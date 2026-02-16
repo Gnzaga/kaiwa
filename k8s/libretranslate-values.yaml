@@ -1,17 +1,46 @@
-env:
-  LT_LOAD_ONLY: "en,ja"
-  LT_FRONTEND_LANGUAGE_SOURCE: "ja"
-  LT_FRONTEND_LANGUAGE_TARGET: "en"
-  LT_DISABLE_WEB_UI: "false"
+service:
+  type: LoadBalancer
+
+appSettings:
+  disableWebUi: "false"
+  metrics: "true"
+
+appConfig:
+  loadOnly: "en,ja,es,zh,tl,de,fr"
+  frontendLanguageSource: "ja"
+  frontendLanguageTarget: "en"
 
 persistence:
   enabled: true
-  size: 5Gi
+  models:
+    storageClass: nfs-csi
+    accessMode: "ReadWriteMany"
+    size: "10Gi"
 
 resources:
   requests:
     cpu: "500m"
-    memory: "1Gi"
+    memory: "2Gi"
   limits:
     cpu: "2"
-    memory: "4Gi"
+    memory: "6Gi"
+
+livenessProbe:
+  exec:
+    command:
+    - /app/venv/bin/python
+    - scripts/healthcheck.py
+  initialDelaySeconds: 120
+  periodSeconds: 15
+  timeoutSeconds: 10
+  failureThreshold: 5
+
+readinessProbe:
+  exec:
+    command:
+    - /app/venv/bin/python
+    - /app/scripts/healthcheck.py
+  initialDelaySeconds: 120
+  periodSeconds: 15
+  timeoutSeconds: 10
+  failureThreshold: 5

@@ -2,7 +2,7 @@ import type { Job } from 'pg-boss';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { fetchEntries, markAsRead } from '@/lib/miniflux';
-import { boss, QUEUE_TRANSLATION } from '@/lib/queue';
+import { boss, QUEUE_SCRAPE } from '@/lib/queue';
 
 export async function handleSync(_jobs: Job[]) {
   console.log('[sync] Starting Miniflux sync...');
@@ -48,7 +48,7 @@ export async function handleSync(_jobs: Job[]) {
     await markAsRead(entry.id);
 
     // Enqueue translation job
-    await boss.send(QUEUE_TRANSLATION, { articleId: article.id });
+    await boss.send(QUEUE_SCRAPE, { articleId: article.id });
 
     created++;
   }

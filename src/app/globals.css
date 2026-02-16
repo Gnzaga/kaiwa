@@ -50,37 +50,11 @@ body {
   border-top: 2px solid var(--color-accent-primary);
 }
 
-/* Japanese watermark effect */
-.watermark {
-  position: relative;
-}
-.watermark::before {
-  content: attr(data-kanji);
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-jp);
-  font-size: 6rem;
-  font-weight: 700;
-  color: var(--color-bg-elevated);
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-}
-
-/* Brush divider */
-.brush-divider {
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--color-accent-primary) 15%,
-    var(--color-accent-secondary) 50%,
-    var(--color-accent-primary) 85%,
-    transparent 100%
-  );
-  opacity: 0.6;
+/* Divider line */
+.divider-line {
+  height: 1px;
+  background: var(--color-accent-primary);
+  opacity: 0.4;
 }
 
 /* Subtle card hover */

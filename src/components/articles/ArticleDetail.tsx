@@ -6,7 +6,6 @@ import type { Article } from '@/db/schema';
 import Tag from '@/components/ui/Tag';
 import SentimentBadge from './SentimentBadge';
 import StatusIndicator from '@/components/ui/StatusIndicator';
-import BrushDivider from '@/components/ui/BrushDivider';
 import ArticleCard from './ArticleCard';
 
 interface ArticleDetailResponse {
@@ -30,6 +29,20 @@ export default function ArticleDetail({ id }: { id: number }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(action),
       }).then((r) => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['article', id] });
+    },
+  });
+
+  const scrapeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/articles/${id}/scrape`, { method: 'POST' });
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error || `Scrape failed (${res.status})`);
+      }
+      return res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['article', id] });
     },
@@ -104,6 +117,12 @@ export default function ArticleDetail({ id }: { id: number }) {
         <ActionButton onClick={() => actionMutation.mutate({ type: 'resummarize' })}>
           Re-summarize
         </ActionButton>
+        <ActionButton
+          onClick={() => scrapeMutation.mutate()}
+          disabled={scrapeMutation.isPending}
+        >
+          {scrapeMutation.isPending ? 'Scraping...' : 'Scrape'}
+        </ActionButton>
         <a
           href={article.originalUrl}
           target="_blank"
@@ -114,7 +133,16 @@ export default function ArticleDetail({ id }: { id: number }) {
         </a>
       </div>
 
-      <BrushDivider />
+      {scrapeMutation.isError && (
+        <p className="text-xs text-accent-highlight">{(scrapeMutation.error as Error).message}</p>
+      )}
+      {scrapeMutation.isSuccess && (
+        <p className="text-xs text-accent-secondary">
+          Pipeline queued: scrape → translate → summarize
+        </p>
+      )}
+
+      <hr className="divider-line border-0" />
 
       {/* AI Summary */}
       {article.summaryStatus === 'complete' && (
@@ -157,7 +185,7 @@ export default function ArticleDetail({ id }: { id: number }) {
             onClick={() => setShowOriginal(!showOriginal)}
             className="flex items-center justify-between w-full px-4 py-3 text-sm text-text-tertiary hover:text-text-secondary transition-colors bg-bg-elevated"
           >
-            <span className="font-jp">{'\u539F\u6587'} Original</span>
+            <span>Original Text</span>
             <svg
               className={`w-4 h-4 transition-transform ${showOriginal ? 'rotate-180' : ''}`}
               fill="none"
@@ -179,7 +207,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       {/* Related articles */}
       {related && related.length > 0 && (
         <>
-          <BrushDivider className="my-6" />
+          <hr className="divider-line border-0 my-6" />
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-text-tertiary">Related Articles</h2>
             <div className="space-y-2">
@@ -198,18 +226,23 @@ function ActionButton({
   children,
   onClick,
   active,
+  disabled,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   active?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`px-3 py-1.5 text-xs border rounded transition-colors ${
-        active
-          ? 'border-accent-primary text-accent-primary'
-          : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'
+        disabled
+          ? 'border-border text-text-tertiary cursor-not-allowed opacity-60'
+          : active
+            ? 'border-accent-primary text-accent-primary'
+            : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'
       }`}
     >
       {children}

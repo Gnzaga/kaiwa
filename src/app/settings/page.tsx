@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import BrushDivider from '@/components/ui/BrushDivider';
-
 interface HealthStatus {
   miniflux: { ok: boolean; error?: string };
   libretranslate: { ok: boolean; error?: string };
@@ -70,25 +68,22 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-4xl mx-auto">
-      <header className="watermark" data-kanji={'\u8A2D'}>
-        <h1 className="text-2xl font-semibold text-text-primary relative z-10">
-          <span className="font-jp text-accent-primary mr-2">{'\u8A2D\u5B9A'}</span>
-          <span className="text-text-secondary text-sm">Settings</span>
-        </h1>
+      <header>
+        <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
       </header>
 
       {/* Polling Interval */}
-      <Section title="Polling Interval" titleJa={'\u30DD\u30FC\u30EA\u30F3\u30B0\u9593\u9694'}>
+      <Section title="Polling Interval">
         <PollingControl
           value={data?.pollingInterval ?? 15}
           onChange={(v) => updateMutation.mutate({ pollingInterval: v })}
         />
       </Section>
 
-      <BrushDivider />
+      <hr className="divider-line border-0" />
 
       {/* Service Health */}
-      <Section title="Service Health" titleJa={'\u30B5\u30FC\u30D3\u30B9\u72B6\u614B'}>
+      <Section title="Service Health">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <HealthCard name="Miniflux" status={data?.health.miniflux} />
           <HealthCard name="LibreTranslate" status={data?.health.libretranslate} />
@@ -96,10 +91,10 @@ export default function SettingsPage() {
         </div>
       </Section>
 
-      <BrushDivider />
+      <hr className="divider-line border-0" />
 
       {/* Queue Status */}
-      <Section title="Queue Status" titleJa={'\u30AD\u30E5\u30FC\u72B6\u614B'}>
+      <Section title="Queue Status">
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-bg-elevated border border-border rounded p-4">
             <div className="text-xs text-text-tertiary mb-1">Translations Pending</div>
@@ -128,10 +123,10 @@ export default function SettingsPage() {
         </div>
       </Section>
 
-      <BrushDivider />
+      <hr className="divider-line border-0" />
 
       {/* Feed Management */}
-      <Section title="Feeds" titleJa={'\u30D5\u30A3\u30FC\u30C9\u7BA1\u7406'}>
+      <Section title="Feeds">
         {data?.feeds && data.feeds.length > 0 ? (
           <div className="space-y-2">
             {data.feeds.map((feed) => (
@@ -165,19 +160,14 @@ export default function SettingsPage() {
 
 function Section({
   title,
-  titleJa,
   children,
 }: {
   title: string;
-  titleJa: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="space-y-4">
-      <h2 className="text-base font-medium text-text-primary">
-        <span className="text-text-tertiary font-jp text-sm mr-2">{titleJa}</span>
-        {title}
-      </h2>
+      <h2 className="text-base font-medium text-text-primary">{title}</h2>
       {children}
     </section>
   );

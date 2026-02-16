@@ -3,7 +3,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import ArticleCard from '@/components/articles/ArticleCard';
-import BrushDivider from '@/components/ui/BrushDivider';
 
 interface RecentResponse {
   data: (Article & { sourceName?: string })[];
@@ -14,12 +13,10 @@ interface RecentResponse {
 
 function CategoryColumn({
   category,
-  labelJa,
-  labelEn,
+  label,
 }: {
   category: 'law' | 'economics';
-  labelJa: string;
-  labelEn: string;
+  label: string;
 }) {
   const { data, isLoading } = useQuery<RecentResponse>({
     queryKey: ['recent', category],
@@ -29,13 +26,8 @@ function CategoryColumn({
 
   return (
     <section className="space-y-3">
-      <div className="watermark" data-kanji={labelJa}>
-        <h2 className="text-lg font-medium text-text-primary relative z-10">
-          <span className="font-jp text-accent-primary mr-2">{labelJa}</span>
-          <span className="text-text-secondary text-sm">{labelEn}</span>
-        </h2>
-      </div>
-      <BrushDivider />
+      <h2 className="text-lg font-medium text-text-primary">{label}</h2>
+      <hr className="divider-line border-0" />
       {isLoading && (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -60,8 +52,8 @@ function CategoryColumn({
 export default function RecentArticles() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <CategoryColumn category="law" labelJa={'\u6CD5\u5F8B'} labelEn="Law" />
-      <CategoryColumn category="economics" labelJa={'\u7D4C\u6E08'} labelEn="Economics" />
+      <CategoryColumn category="law" label="Law" />
+      <CategoryColumn category="economics" label="Economics" />
     </div>
   );
 }

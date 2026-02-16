@@ -67,10 +67,22 @@ export const config = {
     },
   },
 
+  // Scraping
+  scrape: {
+    enabled: env('SCRAPE_ENABLED', 'true') === 'true',
+    timeoutMs: parseInt(env('SCRAPE_TIMEOUT_MS', '15000'), 10),
+    userAgent: env(
+      'SCRAPE_USER_AGENT',
+      'Mozilla/5.0 (compatible; Kaiwa/1.0; +https://github.com/Gnzaga/kaiwa)',
+    ),
+    minContentLength: parseInt(env('SCRAPE_MIN_CONTENT_LENGTH', '200'), 10),
+  },
+
   // Worker
   worker: {
     pollIntervalMinutes: parseInt(env('POLL_INTERVAL_MINUTES', '15'), 10),
     translationConcurrency: parseInt(env('TRANSLATION_CONCURRENCY', '3'), 10),
     summarizationConcurrency: parseInt(env('SUMMARIZATION_CONCURRENCY', '2'), 10),
+    scrapeConcurrency: parseInt(env('SCRAPE_CONCURRENCY', '2'), 10),
   },
 } as const;

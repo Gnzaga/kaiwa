@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { href: '/', label: '\u30DB\u30FC\u30E0', icon: HomeIcon },
-  { href: '/law', label: '\u6CD5\u5F8B', icon: LawIcon },
-  { href: '/economics', label: '\u7D4C\u6E08', icon: EconIcon },
-  { href: '/search', label: '\u691C\u7D22', icon: SearchIcon },
-  { href: '/settings', label: '\u8A2D\u5B9A', icon: SettingsIcon },
+  { href: '/', label: 'Home', icon: HomeIcon },
+  { href: '/law', label: 'Law', icon: LawIcon },
+  { href: '/economics', label: 'Econ', icon: EconIcon },
+  { href: '/search', label: 'Search', icon: SearchIcon },
+  { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 export default function MobileNav() {
@@ -30,7 +30,7 @@ export default function MobileNav() {
             }`}
           >
             <Icon className="w-5 h-5" />
-            <span className="text-[10px] font-jp">{item.label}</span>
+            <span className="text-[10px]">{item.label}</span>
           </Link>
         );
       })}

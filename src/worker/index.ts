@@ -1,6 +1,7 @@
-import { boss, QUEUE_SYNC, QUEUE_TRANSLATION, QUEUE_SUMMARIZATION } from '@/lib/queue';
+import { boss, QUEUE_SYNC, QUEUE_SCRAPE, QUEUE_TRANSLATION, QUEUE_SUMMARIZATION } from '@/lib/queue';
 import { config } from '@/lib/config';
 import { handleSync } from './sync';
+import { handleScrape } from './scrape';
 import { handleTranslate } from './translate';
 import { handleSummarize } from './summarize';
 
@@ -10,12 +11,20 @@ async function main() {
   console.log('[worker] pg-boss started');
 
   // Ensure queues exist (pg-boss v12+ requires explicit creation)
+  await boss.createQueue(QUEUE_SCRAPE);
   await boss.createQueue(QUEUE_TRANSLATION);
   await boss.createQueue(QUEUE_SUMMARIZATION);
   await boss.createQueue(QUEUE_SYNC);
   console.log('[worker] Queues created');
 
   // Register job handlers
+  await boss.work(
+    QUEUE_SCRAPE,
+    { localConcurrency: config.worker.scrapeConcurrency },
+    handleScrape,
+  );
+  console.log(`[worker] Registered handler: ${QUEUE_SCRAPE} (concurrency: ${config.worker.scrapeConcurrency})`);
+
   await boss.work(
     QUEUE_TRANSLATION,
     { localConcurrency: config.worker.translationConcurrency },

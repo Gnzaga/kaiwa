@@ -11,12 +11,14 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "worker": "tsx src/worker/index.ts"
+    "worker": "tsx --env-file=.env.local src/worker/index.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
+    "@mozilla/readability": "^0.6.0",
     "@tanstack/react-query": "^5.90.21",
     "drizzle-orm": "^0.45.1",
+    "jsdom": "^28.1.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "pg": "^8.18.0",
@@ -26,6 +28,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/jsdom": "^27.0.0",
     "@types/node": "^20",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",

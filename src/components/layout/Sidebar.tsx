@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { href: '/', labelJa: '\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9', labelEn: 'Dashboard', icon: DashboardIcon },
-  { href: '/law', labelJa: '\u6CD5\u5F8B', labelEn: 'Law', icon: LawIcon },
-  { href: '/economics', labelJa: '\u7D4C\u6E08', labelEn: 'Economics', icon: EconomicsIcon },
-  { href: '/search', labelJa: '\u691C\u7D22', labelEn: 'Search', icon: SearchIcon },
+  { href: '/', label: 'Dashboard', icon: DashboardIcon },
+  { href: '/law', label: 'Law', icon: LawIcon },
+  { href: '/economics', label: 'Economics', icon: EconomicsIcon },
+  { href: '/search', label: 'Search', icon: SearchIcon },
   { type: 'divider' as const },
-  { href: '/settings', labelJa: '\u8A2D\u5B9A', labelEn: 'Settings', icon: SettingsIcon },
+  { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ] as const;
 
 export default function Sidebar() {
@@ -35,7 +35,7 @@ export default function Sidebar() {
       <nav className="flex-1 py-4 overflow-y-auto">
         {navItems.map((item, i) => {
           if ('type' in item && item.type === 'divider') {
-            return <div key={i} className="brush-divider mx-4 my-3" />;
+            return <hr key={i} className="divider-line border-0 mx-4 my-3" />;
           }
 
           if (!('href' in item)) return null;
@@ -55,10 +55,7 @@ export default function Sidebar() {
             >
               <Icon className="w-5 h-5 shrink-0" />
               {!collapsed && (
-                <div className="flex flex-col leading-tight">
-                  <span className="text-sm">{item.labelEn}</span>
-                  <span className="text-[10px] text-text-tertiary font-jp">{item.labelJa}</span>
-                </div>
+                <span className="text-sm">{item.label}</span>
               )}
             </Link>
           );

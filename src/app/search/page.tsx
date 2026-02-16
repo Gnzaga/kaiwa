@@ -39,11 +39,8 @@ export default function SearchPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
-      <header className="watermark" data-kanji={'\u691C'}>
-        <h1 className="text-2xl font-semibold text-text-primary relative z-10">
-          <span className="font-jp text-accent-primary mr-2">{'\u691C\u7D22'}</span>
-          <span className="text-text-secondary text-sm">Search</span>
-        </h1>
+      <header>
+        <h1 className="text-2xl font-semibold text-text-primary">Search</h1>
       </header>
 
       <SearchBar onSearch={handleSearch} />

@@ -2,18 +2,21 @@ import { eq } from 'drizzle-orm';
 import { db, schema } from './db';
 import { config } from './config';
 
-const SYSTEM_PROMPT = `You are a Japanese media analyst specializing in law and economics. Given a translated article, produce a structured JSON analysis.
+const SYSTEM_PROMPT = `You are a Japanese media analyst specializing in law and economics. Given an article (which may be in Japanese or English), produce a structured JSON analysis.
+
+IMPORTANT: ALL output must be in English. If the article is in Japanese, translate your analysis into English.
 
 Respond with ONLY valid JSON in this exact format:
 {
-  "tldr": "A single-sentence summary of the article (max 280 characters)",
-  "bullets": ["Key point 1", "Key point 2", "Key point 3"],
+  "tldr": "A single-sentence summary of the article in English (max 280 characters)",
+  "bullets": ["Key point 1 in English", "Key point 2 in English", "Key point 3 in English"],
   "tags": ["tag1", "tag2", "tag3"],
   "sentiment": "bullish|bearish|neutral|restrictive|permissive",
-  "sentiment_reasoning": "Brief explanation of why this sentiment was chosen"
+  "sentiment_reasoning": "Brief explanation of why this sentiment was chosen, in English"
 }
 
 Rules:
+- ALL fields must be in English, even if the source article is in Japanese
 - tldr: One sentence, max 280 characters
 - bullets: 3-5 key points
 - tags: 2-5 lowercase tags relevant to the content
@@ -53,8 +56,11 @@ export async function summarizeArticle(articleId: number): Promise<void> {
     where: eq(schema.articles.id, articleId),
   });
   if (!article) throw new Error(`Article ${articleId} not found`);
-  if (!article.translatedContent) {
-    throw new Error(`Article ${articleId} has no translation`);
+
+  const content = article.translatedContent || article.originalContent;
+  const title = article.translatedTitle || article.originalTitle;
+  if (!content) {
+    throw new Error(`Article ${articleId} has no content`);
   }
 
   await db
@@ -62,7 +68,7 @@ export async function summarizeArticle(articleId: number): Promise<void> {
     .set({ summaryStatus: 'summarizing', updatedAt: new Date() })
     .where(eq(schema.articles.id, articleId));
 
-  const articleText = `Title: ${article.translatedTitle}\n\n${article.translatedContent}`;
+  const articleText = `Title: ${title}\n\n${content}`;
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -81,6 +87,7 @@ export async function summarizeArticle(articleId: number): Promise<void> {
           ],
           temperature: 0.2,
         }),
+        signal: AbortSignal.timeout(60000),
       });
 
       if (!res.ok) {

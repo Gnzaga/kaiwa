@@ -16,9 +16,9 @@ export default function StatsBar() {
   });
 
   const stats = [
-    { label: 'Articles Today', labelJa: '\u4ECA\u65E5\u306E\u8A18\u4E8B', value: data?.articlesToday ?? 0 },
-    { label: 'Translations Pending', labelJa: '\u7FFB\u8A33\u5F85\u3061', value: data?.translationsPending ?? 0 },
-    { label: 'Summaries Pending', labelJa: '\u8981\u7D04\u5F85\u3061', value: data?.summariesPending ?? 0 },
+    { label: 'Articles Today', value: data?.articlesToday ?? 0 },
+    { label: 'Translations Pending', value: data?.translationsPending ?? 0 },
+    { label: 'Summaries Pending', value: data?.summariesPending ?? 0 },
   ];
 
   return (
@@ -36,7 +36,6 @@ export default function StatsBar() {
               stat.value
             )}
           </div>
-          <div className="text-[10px] text-text-tertiary font-jp mt-0.5">{stat.labelJa}</div>
         </div>
       ))}
     </div>
