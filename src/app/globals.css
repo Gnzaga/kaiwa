@@ -1,0 +1,109 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@theme {
+  --color-bg-primary: #0A0A0A;
+  --color-bg-secondary: #141414;
+  --color-bg-elevated: #1A1A1A;
+  --color-accent-primary: #C41E3A;
+  --color-accent-secondary: #8B0000;
+  --color-accent-highlight: #FF2D55;
+  --color-text-primary: #E8E8E8;
+  --color-text-secondary: #888888;
+  --color-text-tertiary: #555555;
+  --color-border: #2A2A2A;
+  --color-success: #2D5A27;
+  --color-warning: #8B6914;
+
+  --font-sans: 'Inter', 'Noto Sans JP', sans-serif;
+  --font-jp: 'Noto Sans JP', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Red accent line motif */
+.accent-line {
+  border-left: 2px solid var(--color-accent-primary);
+}
+
+.accent-line-top {
+  border-top: 2px solid var(--color-accent-primary);
+}
+
+/* Japanese watermark effect */
+.watermark {
+  position: relative;
+}
+.watermark::before {
+  content: attr(data-kanji);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-jp);
+  font-size: 6rem;
+  font-weight: 700;
+  color: var(--color-bg-elevated);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+/* Brush divider */
+.brush-divider {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-accent-primary) 15%,
+    var(--color-accent-secondary) 50%,
+    var(--color-accent-primary) 85%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* Subtle card hover */
+.card-hover {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover {
+  background-color: var(--color-bg-elevated);
+  border-color: var(--color-text-tertiary);
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Sentiment colors */
+.sentiment-bullish { color: #4ade80; }
+.sentiment-bearish { color: var(--color-accent-highlight); }
+.sentiment-neutral { color: var(--color-text-secondary); }
+.sentiment-restrictive { color: var(--color-accent-highlight); }
+.sentiment-permissive { color: #4ade80; }
