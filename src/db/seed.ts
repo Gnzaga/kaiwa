@@ -2,8 +2,8 @@ import { db, schema } from '@/lib/db';
 import { sql } from 'drizzle-orm';
 
 const REGIONS = [
-  { id: 'jp', name: 'Japan', code: 'JP', defaultLanguage: 'ja', flagEmoji: '\u{1F1EF}\u{1F1F5}', sortOrder: 0 },
-  { id: 'us', name: 'United States', code: 'US', defaultLanguage: 'en', flagEmoji: '\u{1F1FA}\u{1F1F8}', sortOrder: 1 },
+  { id: 'us', name: 'United States', code: 'US', defaultLanguage: 'en', flagEmoji: '\u{1F1FA}\u{1F1F8}', sortOrder: 0 },
+  { id: 'jp', name: 'Japan', code: 'JP', defaultLanguage: 'ja', flagEmoji: '\u{1F1EF}\u{1F1F5}', sortOrder: 1 },
   { id: 'ph', name: 'Philippines', code: 'PH', defaultLanguage: 'en', flagEmoji: '\u{1F1F5}\u{1F1ED}', sortOrder: 2 },
   { id: 'tw', name: 'Taiwan', code: 'TW', defaultLanguage: 'zh', flagEmoji: '\u{1F1F9}\u{1F1FC}', sortOrder: 3 },
 ];

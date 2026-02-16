@@ -4,7 +4,7 @@ import { config } from './config';
 export const QUEUE_SYNC = 'sync-feeds';
 
 // Region-aware queue names
-export const REGIONS = ['jp', 'us', 'ph', 'tw'];
+export const REGIONS = ['us', 'jp', 'ph', 'tw'];
 
 export function queueScrape(regionId: string) { return `scrape-${regionId}`; }
 export function queueTranslate(regionId: string) { return `translate-${regionId}`; }
