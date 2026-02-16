@@ -1,0 +1,17 @@
+env:
+  LT_LOAD_ONLY: "en,ja"
+  LT_FRONTEND_LANGUAGE_SOURCE: "ja"
+  LT_FRONTEND_LANGUAGE_TARGET: "en"
+  LT_DISABLE_WEB_UI: "false"
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "2"
+    memory: "4Gi"

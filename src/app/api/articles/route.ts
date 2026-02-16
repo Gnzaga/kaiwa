@@ -1,0 +1,119 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
+import { db, schema } from '@/lib/db';
+
+const PAGE_SIZE = 20;
+
+export async function GET(request: NextRequest) {
+  try {
+    const params = request.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(params.get('page') ?? '1', 10));
+    const category = params.get('category');
+    const source = params.get('source');
+    const translationStatus = params.get('translationStatus');
+    const summaryStatus = params.get('summaryStatus');
+    const tags = params.get('tags'); // comma-separated
+    const dateFrom = params.get('dateFrom');
+    const dateTo = params.get('dateTo');
+    const isRead = params.get('isRead');
+    const isStarred = params.get('isStarred');
+    const isArchived = params.get('isArchived');
+    const sort = params.get('sort') ?? 'newest';
+
+    const conditions = [];
+
+    if (category) {
+      conditions.push(eq(schema.feeds.category, category as 'law' | 'economics'));
+    }
+    if (source) {
+      conditions.push(eq(schema.feeds.sourceName, source));
+    }
+    if (translationStatus) {
+      conditions.push(eq(schema.articles.translationStatus, translationStatus as 'pending' | 'translating' | 'complete' | 'error'));
+    }
+    if (summaryStatus) {
+      conditions.push(eq(schema.articles.summaryStatus, summaryStatus as 'pending' | 'summarizing' | 'complete' | 'error'));
+    }
+    if (tags) {
+      const tagList = tags.split(',').map(t => t.trim());
+      conditions.push(sql`${schema.articles.summaryTags} ?| array[${sql.join(tagList.map(t => sql`${t}`), sql`, `)}]`);
+    }
+    if (dateFrom) {
+      conditions.push(sql`${schema.articles.publishedAt} >= ${dateFrom}`);
+    }
+    if (dateTo) {
+      conditions.push(sql`${schema.articles.publishedAt} <= ${dateTo}`);
+    }
+    if (isRead !== null && isRead !== undefined) {
+      conditions.push(eq(schema.articles.isRead, isRead === 'true'));
+    }
+    if (isStarred !== null && isStarred !== undefined) {
+      conditions.push(eq(schema.articles.isStarred, isStarred === 'true'));
+    }
+    if (isArchived !== null && isArchived !== undefined) {
+      conditions.push(eq(schema.articles.isArchived, isArchived === 'true'));
+    }
+
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    let orderBy;
+    switch (sort) {
+      case 'oldest':
+        orderBy = asc(schema.articles.publishedAt);
+        break;
+      case 'source':
+        orderBy = asc(schema.feeds.sourceName);
+        break;
+      case 'sentiment':
+        orderBy = asc(schema.articles.summarySentiment);
+        break;
+      default:
+        orderBy = desc(schema.articles.publishedAt);
+    }
+
+    const offset = (page - 1) * PAGE_SIZE;
+
+    const [articles, countResult] = await Promise.all([
+      db
+        .select({
+          id: schema.articles.id,
+          originalTitle: schema.articles.originalTitle,
+          originalUrl: schema.articles.originalUrl,
+          translatedTitle: schema.articles.translatedTitle,
+          publishedAt: schema.articles.publishedAt,
+          translationStatus: schema.articles.translationStatus,
+          translationProvider: schema.articles.translationProvider,
+          summaryStatus: schema.articles.summaryStatus,
+          summaryTldr: schema.articles.summaryTldr,
+          summaryTags: schema.articles.summaryTags,
+          summarySentiment: schema.articles.summarySentiment,
+          isRead: schema.articles.isRead,
+          isStarred: schema.articles.isStarred,
+          isArchived: schema.articles.isArchived,
+          feedCategory: schema.feeds.category,
+          feedSourceName: schema.feeds.sourceName,
+        })
+        .from(schema.articles)
+        .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .where(where)
+        .orderBy(orderBy)
+        .limit(PAGE_SIZE)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.articles)
+        .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .where(where),
+    ]);
+
+    return NextResponse.json({
+      data: articles,
+      total: Number(countResult[0].count),
+      page,
+      pageSize: PAGE_SIZE,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

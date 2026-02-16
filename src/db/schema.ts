@@ -1,5 +1,5 @@
 import { pgTable, serial, integer, text, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 export const feeds = pgTable('feeds', {
   id: serial('id').primaryKey(),
@@ -65,6 +65,18 @@ export const articles = pgTable('articles', {
     sql`to_tsvector('english', COALESCE(${table.translatedTitle}, '') || ' ' || COALESCE(${table.translatedContent}, '') || ' ' || COALESCE(${table.summaryTldr}, ''))`
   ),
 ]);
+
+// Relations
+export const feedsRelations = relations(feeds, ({ many }) => ({
+  articles: many(articles),
+}));
+
+export const articlesRelations = relations(articles, ({ one }) => ({
+  feed: one(feeds, {
+    fields: [articles.feedId],
+    references: [feeds.id],
+  }),
+}));
 
 // Types
 export type Feed = typeof feeds.$inferSelect;

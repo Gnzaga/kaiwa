@@ -1,0 +1,82 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import type { Article } from '@/db/schema';
+import SearchBar, { type SearchFilters } from '@/components/search/SearchBar';
+import ArticleCard from '@/components/articles/ArticleCard';
+
+interface SearchResponse {
+  data: (Article & { sourceName?: string })[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export default function SearchPage() {
+  const [filters, setFilters] = useState<SearchFilters>({
+    query: '',
+    category: '',
+    dateRange: '',
+  });
+
+  const hasQuery = filters.query.length > 0;
+
+  const params = new URLSearchParams();
+  if (filters.query) params.set('q', filters.query);
+  if (filters.category) params.set('category', filters.category);
+  if (filters.dateRange) params.set('dateRange', filters.dateRange);
+
+  const { data, isLoading } = useQuery<SearchResponse>({
+    queryKey: ['search', filters],
+    queryFn: () => fetch(`/api/articles/search?${params}`).then((r) => r.json()),
+    enabled: hasQuery,
+  });
+
+  const handleSearch = useCallback((f: SearchFilters) => {
+    setFilters(f);
+  }, []);
+
+  return (
+    <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
+      <header className="watermark" data-kanji={'\u691C'}>
+        <h1 className="text-2xl font-semibold text-text-primary relative z-10">
+          <span className="font-jp text-accent-primary mr-2">{'\u691C\u7D22'}</span>
+          <span className="text-text-secondary text-sm">Search</span>
+        </h1>
+      </header>
+
+      <SearchBar onSearch={handleSearch} />
+
+      {/* Results */}
+      {!hasQuery && (
+        <div className="text-center py-16 text-text-tertiary text-sm">
+          Enter a search term to find articles
+        </div>
+      )}
+
+      {hasQuery && isLoading && (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-24 bg-bg-secondary border border-border rounded animate-pulse" />
+          ))}
+        </div>
+      )}
+
+      {hasQuery && data && data.data.length === 0 && (
+        <div className="text-center py-12 text-text-tertiary text-sm">
+          No results found
+        </div>
+      )}
+
+      {data && data.data.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-text-tertiary">{data.total} result{data.total !== 1 ? 's' : ''}</p>
+          {data.data.map((article) => (
+            <ArticleCard key={article.id} article={article} sourceName={article.sourceName} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

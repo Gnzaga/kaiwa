@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaiwa-worker
+  namespace: kaiwa
+  labels:
+    app.kubernetes.io/name: kaiwa
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kaiwa
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kaiwa
+        app.kubernetes.io/component: worker
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "kaiwa"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/kaiwa/config"
+        vault.hashicorp.com/agent-inject-template-config: |
+          {{- with secret "secret/kaiwa/config" -}}
+          {{- range $k, $v := .Data.data }}
+          export {{ $k }}={{ $v }}
+          {{- end }}
+          {{- end }}
+    spec:
+      serviceAccountName: kaiwa
+      containers:
+        - name: worker
+          image: kaiwa:latest
+          command: ["/bin/sh", "-c"]
+          args: [". /vault/secrets/config && npx tsx src/worker/index.ts"]
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
