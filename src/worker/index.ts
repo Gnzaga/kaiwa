@@ -9,6 +9,12 @@ async function main() {
   await boss.start();
   console.log('[worker] pg-boss started');
 
+  // Ensure queues exist (pg-boss v12+ requires explicit creation)
+  await boss.createQueue(QUEUE_TRANSLATION);
+  await boss.createQueue(QUEUE_SUMMARIZATION);
+  await boss.createQueue(QUEUE_SYNC);
+  console.log('[worker] Queues created');
+
   // Register job handlers
   await boss.work(
     QUEUE_TRANSLATION,
