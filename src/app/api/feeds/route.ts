@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { minifluxFeedId, name, url, category, sourceName } = body;
-    if (!minifluxFeedId || !name || !url || !category || !sourceName) {
+    const { minifluxFeedId, name, url, regionId, categoryId, sourceLanguage, sourceName } = body;
+    if (!minifluxFeedId || !name || !url || !regionId || !categoryId || !sourceName) {
       return NextResponse.json(
-        { error: 'Missing required fields: minifluxFeedId, name, url, category, sourceName' },
+        { error: 'Missing required fields: minifluxFeedId, name, url, regionId, categoryId, sourceName' },
         { status: 400 },
       );
     }
@@ -29,7 +29,9 @@ export async function POST(request: NextRequest) {
         minifluxFeedId,
         name,
         url,
-        category,
+        regionId,
+        categoryId,
+        sourceLanguage: sourceLanguage ?? 'en',
         sourceName,
       })
       .returning();

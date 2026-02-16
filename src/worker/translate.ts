@@ -1,6 +1,8 @@
 import type { Job } from 'pg-boss';
+import { eq } from 'drizzle-orm';
 import { translateArticle } from '@/lib/translate';
-import { boss, QUEUE_SUMMARIZATION } from '@/lib/queue';
+import { db, schema } from '@/lib/db';
+import { boss, queueSummarize } from '@/lib/queue';
 
 interface TranslateJobData {
   articleId: number;
@@ -12,8 +14,15 @@ export async function handleTranslate(jobs: Job<TranslateJobData>[]) {
     console.log(`[translate] Processing article ${articleId}`);
 
     try {
+      // Look up region for routing to the correct summarize queue
+      const article = await db.query.articles.findFirst({
+        where: eq(schema.articles.id, articleId),
+        with: { feed: true },
+      });
+      const regionId = article?.feed?.regionId ?? 'jp';
+
       await translateArticle(articleId);
-      await boss.send(QUEUE_SUMMARIZATION, { articleId });
+      await boss.send(queueSummarize(regionId), { articleId });
       console.log(`[translate] Article ${articleId} translated, summarization enqueued`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

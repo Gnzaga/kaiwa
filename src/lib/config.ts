@@ -78,6 +78,15 @@ export const config = {
     minContentLength: parseInt(env('SCRAPE_MIN_CONTENT_LENGTH', '200'), 10),
   },
 
+  // MinIO (S3-compatible image storage)
+  minio: {
+    endpoint: env('MINIO_ENDPOINT', 'http://10.100.0.228:9000'),
+    accessKey: envOptional('MINIO_ACCESS_KEY', ''),
+    secretKey: envOptional('MINIO_SECRET_KEY', ''),
+    bucket: env('MINIO_BUCKET', 'kaiwa-images'),
+    publicUrl: env('MINIO_PUBLIC_URL', 'http://10.100.0.228:9000/kaiwa-images'),
+  },
+
   // Worker
   worker: {
     pollIntervalMinutes: parseInt(env('POLL_INTERVAL_MINUTES', '15'), 10),

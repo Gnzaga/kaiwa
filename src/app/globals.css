@@ -81,3 +81,6 @@ body {
 .sentiment-neutral { color: var(--color-text-secondary); }
 .sentiment-restrictive { color: var(--color-accent-highlight); }
 .sentiment-permissive { color: #4ade80; }
+.sentiment-positive { color: #4ade80; }
+.sentiment-negative { color: var(--color-accent-highlight); }
+.sentiment-mixed { color: #facc15; }

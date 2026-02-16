@@ -2,7 +2,8 @@ import type { Job } from 'pg-boss';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { fetchEntries, markAsRead } from '@/lib/miniflux';
-import { boss, QUEUE_SCRAPE } from '@/lib/queue';
+import { boss, queueScrape } from '@/lib/queue';
+import { downloadArticleImage } from '@/lib/images';
 
 export async function handleSync(_jobs: Job[]) {
   console.log('[sync] Starting Miniflux sync...');
@@ -31,6 +32,12 @@ export async function handleSync(_jobs: Job[]) {
       continue;
     }
 
+    // Check for image in enclosures
+    let imageUrl: string | null = null;
+    const imageEnclosure = entry.enclosures?.find(
+      (e) => e.mime_type?.startsWith('image/'),
+    );
+
     const [article] = await db
       .insert(schema.articles)
       .values({
@@ -40,15 +47,27 @@ export async function handleSync(_jobs: Job[]) {
         originalContent: entry.content,
         originalUrl: entry.url,
         publishedAt: new Date(entry.published_at),
+        sourceLanguage: feed.sourceLanguage ?? 'ja',
         translationStatus: 'pending',
         summaryStatus: 'pending',
       })
       .returning();
 
+    // Download enclosure image if available
+    if (imageEnclosure?.url) {
+      imageUrl = await downloadArticleImage(imageEnclosure.url, article.id);
+      if (imageUrl) {
+        await db
+          .update(schema.articles)
+          .set({ imageUrl })
+          .where(eq(schema.articles.id, article.id));
+      }
+    }
+
     await markAsRead(entry.id);
 
-    // Enqueue translation job
-    await boss.send(QUEUE_SCRAPE, { articleId: article.id });
+    // Enqueue scrape job to region-specific queue
+    await boss.send(queueScrape(feed.regionId), { articleId: article.id });
 
     created++;
   }

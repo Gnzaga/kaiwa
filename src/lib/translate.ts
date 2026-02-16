@@ -3,7 +3,7 @@ import { db, schema } from './db';
 import * as libre from './providers/libretranslate';
 import * as llm from './providers/llm-translate';
 
-type Provider = 'libretranslate' | 'llm';
+type Provider = 'libretranslate' | 'llm' | 'passthrough';
 
 const MAX_ATTEMPTS = 3;
 
@@ -12,6 +12,25 @@ export async function translateArticle(articleId: number): Promise<void> {
     where: eq(schema.articles.id, articleId),
   });
   if (!article) throw new Error(`Article ${articleId} not found`);
+
+  const sourceLanguage = article.sourceLanguage ?? 'ja';
+
+  // English passthrough: copy original → translated, skip API calls
+  if (sourceLanguage === 'en') {
+    await db
+      .update(schema.articles)
+      .set({
+        translatedTitle: article.originalTitle,
+        translatedContent: article.originalContent,
+        translationProvider: 'passthrough',
+        translationStatus: 'complete',
+        translationError: null,
+        translatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.articles.id, articleId));
+    return;
+  }
 
   await db
     .update(schema.articles)
@@ -22,9 +41,15 @@ export async function translateArticle(articleId: number): Promise<void> {
   let attempts = 0;
 
   // Try LibreTranslate first, then LLM fallback
-  const providers: { name: Provider; fn: { translate: typeof libre.translate } }[] = [
-    { name: 'libretranslate', fn: libre },
-    { name: 'llm', fn: llm },
+  const providers: { name: Provider; fn: { translate: (text: string, src?: string) => Promise<{ text: string }> } }[] = [
+    {
+      name: 'libretranslate',
+      fn: { translate: (text: string, src?: string) => libre.translate(text, src, 'en') },
+    },
+    {
+      name: 'llm',
+      fn: { translate: (text: string, src?: string) => llm.translate(text, src) },
+    },
   ];
 
   for (const provider of providers) {
@@ -33,8 +58,8 @@ export async function translateArticle(articleId: number): Promise<void> {
     try {
       attempts++;
       const [titleResult, contentResult] = await Promise.all([
-        provider.fn.translate(article.originalTitle),
-        provider.fn.translate(article.originalContent),
+        provider.fn.translate(article.originalTitle, sourceLanguage),
+        provider.fn.translate(article.originalContent, sourceLanguage),
       ]);
 
       await db
@@ -69,25 +94,35 @@ export async function translateArticle(articleId: number): Promise<void> {
 
 export async function forceTranslate(
   articleId: number,
-  provider: Provider,
+  provider: 'libretranslate' | 'llm',
 ): Promise<void> {
   const article = await db.query.articles.findFirst({
     where: eq(schema.articles.id, articleId),
   });
   if (!article) throw new Error(`Article ${articleId} not found`);
 
+  const sourceLanguage = article.sourceLanguage ?? 'ja';
+
   await db
     .update(schema.articles)
     .set({ translationStatus: 'translating', updatedAt: new Date() })
     .where(eq(schema.articles.id, articleId));
 
-  const providerModule = provider === 'libretranslate' ? libre : llm;
-
   try {
-    const [titleResult, contentResult] = await Promise.all([
-      providerModule.translate(article.originalTitle),
-      providerModule.translate(article.originalContent),
-    ]);
+    let titleResult: { text: string };
+    let contentResult: { text: string };
+
+    if (provider === 'libretranslate') {
+      [titleResult, contentResult] = await Promise.all([
+        libre.translate(article.originalTitle, sourceLanguage, 'en'),
+        libre.translate(article.originalContent, sourceLanguage, 'en'),
+      ]);
+    } else {
+      [titleResult, contentResult] = await Promise.all([
+        llm.translate(article.originalTitle, sourceLanguage),
+        llm.translate(article.originalContent, sourceLanguage),
+      ]);
+    }
 
     await db
       .update(schema.articles)

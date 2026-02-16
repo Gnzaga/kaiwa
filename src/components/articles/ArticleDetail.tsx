@@ -9,7 +9,7 @@ import StatusIndicator from '@/components/ui/StatusIndicator';
 import ArticleCard from './ArticleCard';
 
 interface ArticleDetailResponse {
-  article: Article & { sourceName?: string };
+  article: Article & { sourceName?: string; imageUrl?: string | null };
   related: (Article & { sourceName?: string })[];
 }
 
@@ -71,6 +71,21 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   return (
     <div className="max-w-3xl space-y-6 animate-fade-in">
+      {/* Hero image */}
+      {article.imageUrl && (
+        <div className="rounded overflow-hidden border border-border">
+          <img
+            src={article.imageUrl}
+            alt=""
+            className="w-full max-h-80 object-cover"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <header className="space-y-2">
         <div className="flex items-center gap-3 text-xs text-text-tertiary">
@@ -138,7 +153,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       )}
       {scrapeMutation.isSuccess && (
         <p className="text-xs text-accent-secondary">
-          Pipeline queued: scrape → translate → summarize
+          Pipeline queued: scrape &rarr; translate &rarr; summarize
         </p>
       )}
 
@@ -178,7 +193,7 @@ export default function ArticleDetail({ id }: { id: number }) {
         </section>
       )}
 
-      {/* Original Japanese text (collapsible) */}
+      {/* Original text (collapsible) */}
       {article.originalContent && (
         <section className="border border-border rounded overflow-hidden">
           <button

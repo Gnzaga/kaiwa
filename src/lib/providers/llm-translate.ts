@@ -1,16 +1,31 @@
 import { config } from '../config';
 
-const SYSTEM_PROMPT =
-  'You are a professional Japanese-to-English translator specializing in legal and economic texts. ' +
-  'Translate the following Japanese text to English. Preserve technical terminology accurately. ' +
-  'Do not summarize or interpret — provide a faithful translation only. ' +
-  'Respond with ONLY the translated text, no explanations or preamble.';
+const LANGUAGE_NAMES: Record<string, string> = {
+  ja: 'Japanese',
+  zh: 'Traditional Chinese',
+  tl: 'Filipino',
+  ko: 'Korean',
+  es: 'Spanish',
+};
+
+function buildSystemPrompt(sourceLanguage: string): string {
+  const langName = LANGUAGE_NAMES[sourceLanguage] || sourceLanguage;
+  return (
+    `You are a professional ${langName}-to-English translator specializing in news, legal, and economic texts. ` +
+    `Translate the following ${langName} text to English. Preserve technical terminology accurately. ` +
+    'Do not summarize or interpret — provide a faithful translation only. ' +
+    'Respond with ONLY the translated text, no explanations or preamble.'
+  );
+}
 
 interface TranslationResult {
   text: string;
 }
 
-export async function translate(text: string): Promise<TranslationResult> {
+export async function translate(
+  text: string,
+  sourceLanguage: string = 'ja',
+): Promise<TranslationResult> {
   const res = await fetch(`${config.openwebui.url}/api/chat/completions`, {
     method: 'POST',
     headers: {
@@ -20,7 +35,7 @@ export async function translate(text: string): Promise<TranslationResult> {
     body: JSON.stringify({
       model: config.openwebui.model,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt(sourceLanguage) },
         { role: 'user', content: text },
       ],
       temperature: 0.1,

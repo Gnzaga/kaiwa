@@ -23,6 +23,7 @@ interface MinifluxEntry {
       title: string;
     };
   };
+  enclosures?: { url: string; mime_type: string }[];
 }
 
 interface MinifluxEntriesResponse {

@@ -1,11 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { eq, and, sql, gte } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const region = request.nextUrl.searchParams.get('region');
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+
+    const regionCondition = region
+      ? sql`${schema.articles.feedId} IN (SELECT id FROM feeds WHERE region_id = ${region})`
+      : undefined;
 
     const [
       totalArticlesToday,
@@ -15,22 +20,26 @@ export async function GET() {
       db
         .select({ count: sql<number>`count(*)` })
         .from(schema.articles)
-        .where(gte(schema.articles.createdAt, todayStart)),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(schema.articles)
         .where(
-          and(
-            eq(schema.articles.translationStatus, 'pending'),
-          ),
+          regionCondition
+            ? and(gte(schema.articles.createdAt, todayStart), regionCondition)
+            : gte(schema.articles.createdAt, todayStart),
         ),
       db
         .select({ count: sql<number>`count(*)` })
         .from(schema.articles)
         .where(
-          and(
-            eq(schema.articles.summaryStatus, 'pending'),
-          ),
+          regionCondition
+            ? and(eq(schema.articles.translationStatus, 'pending'), regionCondition)
+            : eq(schema.articles.translationStatus, 'pending'),
+        ),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.articles)
+        .where(
+          regionCondition
+            ? and(eq(schema.articles.summaryStatus, 'pending'), regionCondition)
+            : eq(schema.articles.summaryStatus, 'pending'),
         ),
     ]);
 

@@ -1,40 +1,105 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 
-const navItems = [
-  { href: '/', label: 'Home', icon: HomeIcon },
-  { href: '/law', label: 'Law', icon: LawIcon },
-  { href: '/economics', label: 'Econ', icon: EconIcon },
-  { href: '/search', label: 'Search', icon: SearchIcon },
-  { href: '/settings', label: 'Settings', icon: SettingsIcon },
-];
+interface Region {
+  id: string;
+  name: string;
+  flagEmoji: string;
+  categories: { id: string; slug: string; name: string }[];
+}
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const [showRegions, setShowRegions] = useState(false);
+
+  const { data: regions } = useQuery<Region[]>({
+    queryKey: ['regions'],
+    queryFn: () => fetch('/api/regions').then((r) => r.json()),
+  });
+
+  const isHome = pathname === '/';
+  const isRegion = pathname.startsWith('/region/');
+  const isSearch = pathname.startsWith('/search');
+  const isSettings = pathname.startsWith('/settings');
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden items-center justify-around bg-bg-secondary border-t border-border h-16 px-2">
-      {navItems.map((item) => {
-        const isActive =
-          item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-        const Icon = item.icon;
+    <>
+      {/* Region sheet overlay */}
+      {showRegions && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setShowRegions(false)}
+          />
+          <div className="absolute bottom-16 left-0 right-0 bg-bg-secondary border-t border-border rounded-t-xl p-4 max-h-[60vh] overflow-y-auto animate-fade-in">
+            <h3 className="text-sm font-medium text-text-primary mb-3">Regions</h3>
+            <div className="space-y-1">
+              {Array.isArray(regions) && regions.map((region) => (
+                <Link
+                  key={region.id}
+                  href={`/region/${region.id}`}
+                  onClick={() => setShowRegions(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded transition-colors ${
+                    pathname.startsWith(`/region/${region.id}`)
+                      ? 'bg-bg-elevated text-text-primary'
+                      : 'text-text-secondary'
+                  }`}
+                >
+                  <span className="text-lg">{region.flagEmoji}</span>
+                  <span className="text-sm">{region.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
-              isActive ? 'text-accent-primary' : 'text-text-tertiary'
-            }`}
-          >
-            <Icon className="w-5 h-5" />
-            <span className="text-[10px]">{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex md:hidden items-center justify-around bg-bg-secondary border-t border-border h-16 px-2">
+        <Link
+          href="/"
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
+            isHome ? 'text-accent-primary' : 'text-text-tertiary'
+          }`}
+        >
+          <HomeIcon className="w-5 h-5" />
+          <span className="text-[10px]">Home</span>
+        </Link>
+
+        <button
+          onClick={() => setShowRegions(!showRegions)}
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
+            isRegion ? 'text-accent-primary' : 'text-text-tertiary'
+          }`}
+        >
+          <GlobeIcon className="w-5 h-5" />
+          <span className="text-[10px]">Regions</span>
+        </button>
+
+        <Link
+          href="/search"
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
+            isSearch ? 'text-accent-primary' : 'text-text-tertiary'
+          }`}
+        >
+          <SearchIcon className="w-5 h-5" />
+          <span className="text-[10px]">Search</span>
+        </Link>
+
+        <Link
+          href="/settings"
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
+            isSettings ? 'text-accent-primary' : 'text-text-tertiary'
+          }`}
+        >
+          <SettingsIcon className="w-5 h-5" />
+          <span className="text-[10px]">Settings</span>
+        </Link>
+      </nav>
+    </>
   );
 }
 
@@ -46,18 +111,10 @@ function HomeIcon({ className }: { className?: string }) {
   );
 }
 
-function LawIcon({ className }: { className?: string }) {
+function GlobeIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" />
-    </svg>
-  );
-}
-
-function EconIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
     </svg>
   );
 }

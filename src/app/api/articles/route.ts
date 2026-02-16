@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
+import { eq, desc, asc, and, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 
 const PAGE_SIZE = 20;
@@ -8,7 +8,8 @@ export async function GET(request: NextRequest) {
   try {
     const params = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(params.get('page') ?? '1', 10));
-    const category = params.get('category');
+    const region = params.get('region');
+    const category = params.get('category'); // category slug
     const source = params.get('source');
     const translationStatus = params.get('translationStatus');
     const summaryStatus = params.get('summaryStatus');
@@ -22,8 +23,15 @@ export async function GET(request: NextRequest) {
 
     const conditions = [];
 
+    if (region) {
+      conditions.push(eq(schema.feeds.regionId, region));
+    }
     if (category) {
-      conditions.push(eq(schema.feeds.category, category as 'law' | 'economics'));
+      // Filter by category slug within the region
+      conditions.push(eq(schema.categories.slug, category));
+      if (region) {
+        conditions.push(eq(schema.categories.regionId, region));
+      }
     }
     if (source) {
       conditions.push(eq(schema.feeds.sourceName, source));
@@ -90,11 +98,15 @@ export async function GET(request: NextRequest) {
           isRead: schema.articles.isRead,
           isStarred: schema.articles.isStarred,
           isArchived: schema.articles.isArchived,
-          feedCategory: schema.feeds.category,
+          sourceLanguage: schema.articles.sourceLanguage,
+          imageUrl: schema.articles.imageUrl,
           feedSourceName: schema.feeds.sourceName,
+          feedRegionId: schema.feeds.regionId,
+          categorySlug: schema.categories.slug,
         })
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
         .where(where)
         .orderBy(orderBy)
         .limit(PAGE_SIZE)
@@ -103,6 +115,7 @@ export async function GET(request: NextRequest) {
         .select({ count: sql<number>`count(*)` })
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
         .where(where),
     ]);
 

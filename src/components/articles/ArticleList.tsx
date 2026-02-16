@@ -8,13 +8,19 @@ import ArticleCard from './ArticleCard';
 type SortOption = 'newest' | 'source' | 'sentiment';
 
 interface ArticlesResponse {
-  data: (Article & { sourceName?: string })[];
+  data: (Article & { feedSourceName?: string; imageUrl?: string | null })[];
   total: number;
   page: number;
   pageSize: number;
 }
 
-export default function ArticleList({ category }: { category?: 'law' | 'economics' }) {
+export default function ArticleList({
+  regionId,
+  categorySlug,
+}: {
+  regionId?: string;
+  categorySlug?: string;
+}) {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState('');
@@ -25,13 +31,14 @@ export default function ArticleList({ category }: { category?: 'law' | 'economic
   params.set('page', String(page));
   params.set('pageSize', '20');
   params.set('sort', sort);
-  if (category) params.set('category', category);
+  if (regionId) params.set('region', regionId);
+  if (categorySlug) params.set('category', categorySlug);
   if (sourceFilter) params.set('source', sourceFilter);
   if (tagFilter) params.set('tag', tagFilter);
   if (readFilter) params.set('read', readFilter);
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', category, page, sort, sourceFilter, tagFilter, readFilter],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
   });
 
@@ -101,10 +108,15 @@ export default function ArticleList({ category }: { category?: 'law' | 'economic
         <div className="text-center py-12 text-text-tertiary text-sm">No articles found</div>
       )}
 
-      {data && (
+      {data && data.data.length > 0 && (
         <div className="space-y-2">
-          {data.data.map((article) => (
-            <ArticleCard key={article.id} article={article} sourceName={article.sourceName} />
+          {data.data.map((article, i) => (
+            <ArticleCard
+              key={article.id}
+              article={article}
+              sourceName={article.feedSourceName}
+              variant={i === 0 && article.imageUrl ? 'hero' : 'default'}
+            />
           ))}
         </div>
       )}

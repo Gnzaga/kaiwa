@@ -5,8 +5,8 @@ import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
 
 export const metadata: Metadata = {
-  title: 'Kaiwa - Japanese Media Intelligence',
-  description: 'Real-time Japanese legal and economic news aggregation with AI-powered translation and analysis',
+  title: 'Kaiwa - Multi-National Media Intelligence',
+  description: 'Real-time international news aggregation with AI-powered translation and analysis',
 };
 
 export default function RootLayout({

@@ -4,6 +4,9 @@ const sentimentConfig: Record<string, { label: string; icon: string; className: 
   neutral: { label: 'Neutral', icon: '\u2014', className: 'sentiment-neutral' },
   restrictive: { label: 'Restrictive', icon: '\u25BC', className: 'sentiment-restrictive' },
   permissive: { label: 'Permissive', icon: '\u25B2', className: 'sentiment-permissive' },
+  positive: { label: 'Positive', icon: '\u25B2', className: 'sentiment-positive' },
+  negative: { label: 'Negative', icon: '\u25BC', className: 'sentiment-negative' },
+  mixed: { label: 'Mixed', icon: '\u25C6', className: 'sentiment-mixed' },
 };
 
 export default function SentimentBadge({ sentiment }: { sentiment: string | null }) {

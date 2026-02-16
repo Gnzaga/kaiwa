@@ -4,11 +4,15 @@ interface TranslationResult {
   text: string;
 }
 
-export async function translate(text: string): Promise<TranslationResult> {
+export async function translate(
+  text: string,
+  sourceLanguage: string = 'ja',
+  targetLanguage: string = 'en',
+): Promise<TranslationResult> {
   const body: Record<string, string> = {
     q: text,
-    source: 'ja',
-    target: 'en',
+    source: sourceLanguage,
+    target: targetLanguage,
   };
   if (config.libretranslate.apiKey) {
     body.api_key = config.libretranslate.apiKey;

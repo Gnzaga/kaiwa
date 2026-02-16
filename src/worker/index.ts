@@ -1,4 +1,14 @@
-import { boss, QUEUE_SYNC, QUEUE_SCRAPE, QUEUE_TRANSLATION, QUEUE_SUMMARIZATION } from '@/lib/queue';
+import {
+  boss,
+  QUEUE_SYNC,
+  QUEUE_SCRAPE,
+  QUEUE_TRANSLATION,
+  QUEUE_SUMMARIZATION,
+  REGIONS,
+  queueScrape,
+  queueTranslate,
+  queueSummarize,
+} from '@/lib/queue';
 import { config } from '@/lib/config';
 import { handleSync } from './sync';
 import { handleScrape } from './scrape';
@@ -10,34 +20,55 @@ async function main() {
   await boss.start();
   console.log('[worker] pg-boss started');
 
-  // Ensure queues exist (pg-boss v12+ requires explicit creation)
+  // Create all queues
   await boss.createQueue(QUEUE_SCRAPE);
   await boss.createQueue(QUEUE_TRANSLATION);
   await boss.createQueue(QUEUE_SUMMARIZATION);
   await boss.createQueue(QUEUE_SYNC);
+  for (const region of REGIONS) {
+    await boss.createQueue(queueScrape(region));
+    await boss.createQueue(queueTranslate(region));
+    await boss.createQueue(queueSummarize(region));
+  }
   console.log('[worker] Queues created');
 
-  // Register job handlers
+  // Register per-region handlers — each region gets its own concurrency
+  for (const region of REGIONS) {
+    await boss.work(
+      queueScrape(region),
+      { localConcurrency: config.worker.scrapeConcurrency },
+      handleScrape,
+    );
+    await boss.work(
+      queueTranslate(region),
+      { localConcurrency: config.worker.translationConcurrency },
+      handleTranslate,
+    );
+    await boss.work(
+      queueSummarize(region),
+      { localConcurrency: config.worker.summarizationConcurrency },
+      handleSummarize,
+    );
+    console.log(`[worker] Registered handlers for region: ${region}`);
+  }
+
+  // Legacy fallback handlers (for articles enqueued without region)
   await boss.work(
     QUEUE_SCRAPE,
     { localConcurrency: config.worker.scrapeConcurrency },
     handleScrape,
   );
-  console.log(`[worker] Registered handler: ${QUEUE_SCRAPE} (concurrency: ${config.worker.scrapeConcurrency})`);
-
   await boss.work(
     QUEUE_TRANSLATION,
     { localConcurrency: config.worker.translationConcurrency },
     handleTranslate,
   );
-  console.log(`[worker] Registered handler: ${QUEUE_TRANSLATION} (concurrency: ${config.worker.translationConcurrency})`);
-
   await boss.work(
     QUEUE_SUMMARIZATION,
     { localConcurrency: config.worker.summarizationConcurrency },
     handleSummarize,
   );
-  console.log(`[worker] Registered handler: ${QUEUE_SUMMARIZATION} (concurrency: ${config.worker.summarizationConcurrency})`);
+  console.log('[worker] Registered legacy fallback handlers');
 
   // Register sync handler
   await boss.work(QUEUE_SYNC, handleSync);

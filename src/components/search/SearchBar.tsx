@@ -1,10 +1,17 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
+interface Region {
+  id: string;
+  name: string;
+  flagEmoji: string;
+}
 
 export interface SearchFilters {
   query: string;
-  category: '' | 'law' | 'economics';
+  region: string;
   dateRange: '' | '24h' | '7d' | '30d';
 }
 
@@ -14,17 +21,22 @@ export default function SearchBar({
   onSearch: (filters: SearchFilters) => void;
 }) {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<SearchFilters['category']>('');
+  const [region, setRegion] = useState<string>('');
   const [dateRange, setDateRange] = useState<SearchFilters['dateRange']>('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const { data: regions } = useQuery<Region[]>({
+    queryKey: ['regions'],
+    queryFn: () => fetch('/api/regions').then((r) => r.json()),
+  });
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onSearch({ query, category, dateRange });
+      onSearch({ query, region, dateRange });
     }, 300);
     return () => clearTimeout(debounceRef.current);
-  }, [query, category, dateRange, onSearch]);
+  }, [query, region, dateRange, onSearch]);
 
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -41,22 +53,25 @@ export default function SearchBar({
         </svg>
         <input
           type="text"
-          placeholder="\u691C\u7D22 Search articles..."
+          placeholder="Search articles..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full bg-bg-elevated border border-border rounded pl-10 pr-4 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
         />
       </div>
 
-      {/* Category filter */}
+      {/* Region filter */}
       <select
-        value={category}
-        onChange={(e) => setCategory(e.target.value as SearchFilters['category'])}
+        value={region}
+        onChange={(e) => setRegion(e.target.value)}
         className="bg-bg-elevated border border-border rounded px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
       >
-        <option value="">All Categories</option>
-        <option value="law">{'\u6CD5\u5F8B'} Law</option>
-        <option value="economics">{'\u7D4C\u6E08'} Economics</option>
+        <option value="">All Regions</option>
+        {Array.isArray(regions) && regions.map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.flagEmoji} {r.name}
+          </option>
+        ))}
       </select>
 
       {/* Date range */}

@@ -17,7 +17,9 @@ interface Feed {
   id: number;
   name: string;
   url: string;
-  category: 'law' | 'economics';
+  regionId: string;
+  categoryId: string;
+  sourceLanguage: string;
   sourceName: string;
   enabled: boolean;
 }
@@ -136,7 +138,7 @@ export default function SettingsPage() {
               >
                 <div>
                   <div className="text-sm text-text-primary">{feed.name}</div>
-                  <div className="text-xs text-text-tertiary">{feed.sourceName} &middot; {feed.category}</div>
+                  <div className="text-xs text-text-tertiary">{feed.sourceName} &middot; {feed.regionId}/{feed.categoryId} &middot; {feed.sourceLanguage}</div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`inline-block h-2 w-2 rounded-full ${feed.enabled ? 'bg-success' : 'bg-text-tertiary'}`} />

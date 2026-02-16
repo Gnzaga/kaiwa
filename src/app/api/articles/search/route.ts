@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams;
     const q = params.get('q');
     const page = Math.max(1, parseInt(params.get('page') ?? '1', 10));
+    const region = params.get('region');
     const category = params.get('category');
     const source = params.get('source');
     const dateFrom = params.get('dateFrom');
@@ -23,8 +24,14 @@ export async function GET(request: NextRequest) {
       sql`to_tsvector('english', COALESCE(${schema.articles.translatedTitle}, '') || ' ' || COALESCE(${schema.articles.translatedContent}, '') || ' ' || COALESCE(${schema.articles.summaryTldr}, '')) @@ plainto_tsquery('english', ${q})`,
     ];
 
+    if (region) {
+      conditions.push(eq(schema.feeds.regionId, region));
+    }
     if (category) {
-      conditions.push(eq(schema.feeds.category, category as 'law' | 'economics'));
+      conditions.push(eq(schema.categories.slug, category));
+      if (region) {
+        conditions.push(eq(schema.categories.regionId, region));
+      }
     }
     if (source) {
       conditions.push(eq(schema.feeds.sourceName, source));
@@ -58,12 +65,16 @@ export async function GET(request: NextRequest) {
           summarySentiment: schema.articles.summarySentiment,
           isRead: schema.articles.isRead,
           isStarred: schema.articles.isStarred,
-          feedCategory: schema.feeds.category,
+          sourceLanguage: schema.articles.sourceLanguage,
+          imageUrl: schema.articles.imageUrl,
           feedSourceName: schema.feeds.sourceName,
+          feedRegionId: schema.feeds.regionId,
+          categorySlug: schema.categories.slug,
           rank: sql<number>`ts_rank(to_tsvector('english', COALESCE(${schema.articles.translatedTitle}, '') || ' ' || COALESCE(${schema.articles.translatedContent}, '') || ' ' || COALESCE(${schema.articles.summaryTldr}, '')), plainto_tsquery('english', ${q}))`,
         })
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
         .where(where)
         .orderBy(sql`rank DESC`)
         .limit(PAGE_SIZE)
@@ -72,6 +83,7 @@ export async function GET(request: NextRequest) {
         .select({ count: sql<number>`count(*)` })
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
         .where(where),
     ]);
 

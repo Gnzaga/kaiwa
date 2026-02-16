@@ -2,26 +2,38 @@ import { eq } from 'drizzle-orm';
 import { db, schema } from './db';
 import { config } from './config';
 
-const SYSTEM_PROMPT = `You are a Japanese media analyst specializing in law and economics. Given an article (which may be in Japanese or English), produce a structured JSON analysis.
+const REGION_CONTEXT: Record<string, string> = {
+  jp: 'Japanese',
+  us: 'American',
+  ph: 'Philippine',
+  tw: 'Taiwanese',
+};
 
-IMPORTANT: ALL output must be in English. If the article is in Japanese, translate your analysis into English.
+function buildSystemPrompt(regionId?: string, categorySlug?: string): string {
+  const regionAdj = regionId ? (REGION_CONTEXT[regionId] ?? '') : '';
+  const categoryContext = categorySlug ? ` specializing in ${categorySlug}` : '';
+
+  return `You are a${regionAdj ? ` ${regionAdj}` : 'n international'} media analyst${categoryContext}. Given an article (which may be in any language), produce a structured JSON analysis.
+
+IMPORTANT: ALL output must be in English. If the article is not in English, translate your analysis into English.
 
 Respond with ONLY valid JSON in this exact format:
 {
   "tldr": "A single-sentence summary of the article in English (max 280 characters)",
   "bullets": ["Key point 1 in English", "Key point 2 in English", "Key point 3 in English"],
   "tags": ["tag1", "tag2", "tag3"],
-  "sentiment": "bullish|bearish|neutral|restrictive|permissive",
+  "sentiment": "positive|negative|neutral|mixed|bullish|bearish|restrictive|permissive",
   "sentiment_reasoning": "Brief explanation of why this sentiment was chosen, in English"
 }
 
 Rules:
-- ALL fields must be in English, even if the source article is in Japanese
+- ALL fields must be in English, even if the source article is in another language
 - tldr: One sentence, max 280 characters
 - bullets: 3-5 key points
 - tags: 2-5 lowercase tags relevant to the content
-- sentiment: Must be exactly one of: bullish, bearish, neutral, restrictive, permissive
+- sentiment: Must be exactly one of: positive, negative, neutral, mixed, bullish, bearish, restrictive, permissive
 - sentiment_reasoning: 1-2 sentences explaining the sentiment choice`;
+}
 
 const MAX_RETRIES = 3;
 
@@ -54,6 +66,7 @@ function parseSummaryResponse(content: string): SummaryResult {
 export async function summarizeArticle(articleId: number): Promise<void> {
   const article = await db.query.articles.findFirst({
     where: eq(schema.articles.id, articleId),
+    with: { feed: { with: { category: true } } },
   });
   if (!article) throw new Error(`Article ${articleId} not found`);
 
@@ -67,6 +80,10 @@ export async function summarizeArticle(articleId: number): Promise<void> {
     .update(schema.articles)
     .set({ summaryStatus: 'summarizing', updatedAt: new Date() })
     .where(eq(schema.articles.id, articleId));
+
+  const regionId = article.feed?.regionId;
+  const categorySlug = article.feed?.category?.slug;
+  const systemPrompt = buildSystemPrompt(regionId, categorySlug);
 
   const articleText = `Title: ${title}\n\n${content}`;
   let lastError: Error | null = null;
@@ -82,7 +99,7 @@ export async function summarizeArticle(articleId: number): Promise<void> {
         body: JSON.stringify({
           model: config.openwebui.model,
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: articleText },
           ],
           temperature: 0.2,
@@ -96,10 +113,10 @@ export async function summarizeArticle(articleId: number): Promise<void> {
       }
 
       const data = await res.json();
-      const content = data.choices?.[0]?.message?.content?.trim();
-      if (!content) throw new Error('Summarization returned empty response');
+      const responseContent = data.choices?.[0]?.message?.content?.trim();
+      if (!responseContent) throw new Error('Summarization returned empty response');
 
-      const summary = parseSummaryResponse(content);
+      const summary = parseSummaryResponse(responseContent);
 
       await db
         .update(schema.articles)
@@ -107,7 +124,7 @@ export async function summarizeArticle(articleId: number): Promise<void> {
           summaryTldr: summary.tldr,
           summaryBullets: summary.bullets,
           summaryTags: summary.tags,
-          summarySentiment: summary.sentiment as typeof article.summarySentiment,
+          summarySentiment: summary.sentiment,
           summaryStatus: 'complete',
           summaryError: null,
           summarizedAt: new Date(),

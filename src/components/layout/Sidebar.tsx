@@ -3,19 +3,40 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: DashboardIcon },
-  { href: '/law', label: 'Law', icon: LawIcon },
-  { href: '/economics', label: 'Economics', icon: EconomicsIcon },
-  { href: '/search', label: 'Search', icon: SearchIcon },
-  { type: 'divider' as const },
-  { href: '/settings', label: 'Settings', icon: SettingsIcon },
-] as const;
+interface Category {
+  id: string;
+  slug: string;
+  name: string;
+  icon: string | null;
+}
+
+interface Region {
+  id: string;
+  name: string;
+  flagEmoji: string;
+  categories: Category[];
+}
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
   const pathname = usePathname();
+
+  const { data: regions } = useQuery<Region[]>({
+    queryKey: ['regions'],
+    queryFn: () => fetch('/api/regions').then((r) => r.json()),
+  });
+
+  function toggleRegion(regionId: string) {
+    setExpandedRegions((prev) => {
+      const next = new Set(prev);
+      if (next.has(regionId)) next.delete(regionId);
+      else next.add(regionId);
+      return next;
+    });
+  }
 
   return (
     <aside
@@ -33,33 +54,83 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 py-4 overflow-y-auto">
-        {navItems.map((item, i) => {
-          if ('type' in item && item.type === 'divider') {
-            return <hr key={i} className="divider-line border-0 mx-4 my-3" />;
-          }
+        {/* Dashboard */}
+        <NavItem href="/" label="Dashboard" icon={DashboardIcon} collapsed={collapsed} pathname={pathname} />
 
-          if (!('href' in item)) return null;
-          const isActive =
-            item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-          const Icon = item.icon;
+        {/* Region groups */}
+        {Array.isArray(regions) && regions.map((region) => {
+          const isExpanded = expandedRegions.has(region.id);
+          const isRegionActive = pathname.startsWith(`/region/${region.id}`);
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-r-sm transition-colors relative ${
-                isActive
-                  ? 'bg-bg-elevated text-text-primary border-l-2 border-accent-primary'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated border-l-2 border-transparent'
-              }`}
-            >
-              <Icon className="w-5 h-5 shrink-0" />
-              {!collapsed && (
-                <span className="text-sm">{item.label}</span>
+            <div key={region.id} className="mt-1">
+              <button
+                onClick={() => collapsed ? undefined : toggleRegion(region.id)}
+                className={`flex items-center gap-3 px-4 py-2 mx-2 rounded-r-sm w-[calc(100%-16px)] text-left transition-colors ${
+                  isRegionActive
+                    ? 'text-text-primary'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
+                }`}
+              >
+                <span className="text-base shrink-0">{region.flagEmoji}</span>
+                {!collapsed && (
+                  <>
+                    <span className="text-sm flex-1">{region.name}</span>
+                    <svg
+                      className={`w-3 h-3 transition-transform text-text-tertiary ${isExpanded ? 'rotate-90' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+
+              {!collapsed && isExpanded && (
+                <div className="ml-6 border-l border-border">
+                  <Link
+                    href={`/region/${region.id}`}
+                    className={`flex items-center gap-2 px-4 py-1.5 text-xs transition-colors ${
+                      pathname === `/region/${region.id}`
+                        ? 'text-accent-primary'
+                        : 'text-text-tertiary hover:text-text-secondary'
+                    }`}
+                  >
+                    All
+                  </Link>
+                  {region.categories.map((cat) => {
+                    const catPath = `/region/${region.id}/${cat.slug}`;
+                    const isCatActive = pathname === catPath;
+                    return (
+                      <Link
+                        key={cat.id}
+                        href={catPath}
+                        className={`flex items-center gap-2 px-4 py-1.5 text-xs transition-colors ${
+                          isCatActive
+                            ? 'text-accent-primary'
+                            : 'text-text-tertiary hover:text-text-secondary'
+                        }`}
+                      >
+                        {cat.name}
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-            </Link>
+            </div>
           );
         })}
+
+        <hr className="divider-line border-0 mx-4 my-3" />
+
+        {/* Search */}
+        <NavItem href="/search" label="Search" icon={SearchIcon} collapsed={collapsed} pathname={pathname} />
+
+        {/* Settings */}
+        <NavItem href="/settings" label="Settings" icon={SettingsIcon} collapsed={collapsed} pathname={pathname} />
       </nav>
 
       {/* Collapse toggle */}
@@ -81,28 +152,42 @@ export default function Sidebar() {
   );
 }
 
+function NavItem({
+  href,
+  label,
+  icon: Icon,
+  collapsed,
+  pathname,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  collapsed: boolean;
+  pathname: string;
+}) {
+  const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-r-sm transition-colors relative ${
+        isActive
+          ? 'bg-bg-elevated text-text-primary border-l-2 border-accent-primary'
+          : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated border-l-2 border-transparent'
+      }`}
+    >
+      <Icon className="w-5 h-5 shrink-0" />
+      {!collapsed && <span className="text-sm">{label}</span>}
+    </Link>
+  );
+}
+
 /* Icon components */
 
 function DashboardIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-    </svg>
-  );
-}
-
-function LawIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" />
-    </svg>
-  );
-}
-
-function EconomicsIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
     </svg>
   );
 }

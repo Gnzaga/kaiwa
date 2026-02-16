@@ -7,7 +7,7 @@ import SearchBar, { type SearchFilters } from '@/components/search/SearchBar';
 import ArticleCard from '@/components/articles/ArticleCard';
 
 interface SearchResponse {
-  data: (Article & { sourceName?: string })[];
+  data: (Article & { feedSourceName?: string; imageUrl?: string | null })[];
   total: number;
   page: number;
   pageSize: number;
@@ -16,7 +16,7 @@ interface SearchResponse {
 export default function SearchPage() {
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
-    category: '',
+    region: '',
     dateRange: '',
   });
 
@@ -24,7 +24,7 @@ export default function SearchPage() {
 
   const params = new URLSearchParams();
   if (filters.query) params.set('q', filters.query);
-  if (filters.category) params.set('category', filters.category);
+  if (filters.region) params.set('region', filters.region);
   if (filters.dateRange) params.set('dateRange', filters.dateRange);
 
   const { data, isLoading } = useQuery<SearchResponse>({
@@ -70,7 +70,7 @@ export default function SearchPage() {
         <div className="space-y-2">
           <p className="text-xs text-text-tertiary">{data.total} result{data.total !== 1 ? 's' : ''}</p>
           {data.data.map((article) => (
-            <ArticleCard key={article.id} article={article} sourceName={article.sourceName} />
+            <ArticleCard key={article.id} article={article} sourceName={article.feedSourceName} />
           ))}
         </div>
       )}
