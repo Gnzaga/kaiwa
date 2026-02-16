@@ -17,16 +17,9 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // With Authentik configured, forward-auth is handled at the ingress level.
-  // This middleware is a fallback — check for the X-authentik-username header
-  // set by the Authentik outpost.
-  const username = request.headers.get('x-authentik-username');
-  if (!username) {
-    return NextResponse.redirect(
-      new URL('/outpost.goauthentik.io/start?rd=' + encodeURIComponent(request.url), request.url)
-    );
-  }
-
+  // Auth is enforced at the ingress level via Authentik forward-auth annotations.
+  // The middleware just passes through — the ingress ensures only authenticated
+  // requests reach the app.
   return NextResponse.next();
 }
 
