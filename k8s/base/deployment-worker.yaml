@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kaiwa-worker
-  namespace: kaiwa
   labels:
     app.kubernetes.io/name: kaiwa
     app.kubernetes.io/component: worker
@@ -18,9 +17,11 @@ spec:
         app.kubernetes.io/name: kaiwa
         app.kubernetes.io/component: worker
     spec:
+      imagePullSecrets:
+        - name: harbor-registry
       containers:
         - name: worker
-          image: kaiwa:latest
+          image: harbor.gnzaga.com/apps/kaiwa:latest
           command: ["npx", "tsx", "src/worker/index.ts"]
           envFrom:
             - secretRef:

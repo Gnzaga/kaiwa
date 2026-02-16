@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kaiwa-web
-  namespace: kaiwa
   labels:
     app.kubernetes.io/name: kaiwa
     app.kubernetes.io/component: web
@@ -18,9 +17,11 @@ spec:
         app.kubernetes.io/name: kaiwa
         app.kubernetes.io/component: web
     spec:
+      imagePullSecrets:
+        - name: harbor-registry
       containers:
         - name: web
-          image: kaiwa:latest
+          image: harbor.gnzaga.com/apps/kaiwa:latest
           ports:
             - name: http
               containerPort: 3000
