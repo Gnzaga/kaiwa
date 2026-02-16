@@ -35,11 +35,8 @@ export async function GET() {
 
   const allHealthy = miniflux && libretranslate && openwebui;
 
-  return NextResponse.json(
-    {
-      status: allHealthy ? 'healthy' : 'degraded',
-      services: { miniflux, libretranslate, openwebui },
-    },
-    { status: allHealthy ? 200 : 503 },
-  );
+  return NextResponse.json({
+    status: allHealthy ? 'healthy' : 'degraded',
+    services: { miniflux, libretranslate, openwebui },
+  });
 }
