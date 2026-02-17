@@ -107,11 +107,25 @@ export default function ArticleDetail({ id }: { id: number }) {
   }, [data?.article?.id, prefs?.autoMarkRead]);
 
   const [copied, setCopied] = useState(false);
+  const [summaryCopied, setSummaryCopied] = useState(false);
   const copyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, []);
+
+  const copySummary = useCallback(() => {
+    if (!data?.article) return;
+    const parts: string[] = [];
+    if (data.article.summaryTldr) parts.push(data.article.summaryTldr);
+    if (data.article.summaryBullets && data.article.summaryBullets.length > 0) {
+      parts.push(data.article.summaryBullets.map((b: string) => `• ${b}`).join('\n'));
+    }
+    if (parts.length === 0) return;
+    navigator.clipboard.writeText(parts.join('\n\n'));
+    setSummaryCopied(true);
+    setTimeout(() => setSummaryCopied(false), 2000);
+  }, [data?.article]);
 
   const { article, related } = data;
   const title = article.translatedTitle || article.originalTitle;
@@ -205,6 +219,12 @@ export default function ArticleDetail({ id }: { id: number }) {
         <ActionButton onClick={copyLink} active={copied}>
           {copied ? 'Copied!' : 'Copy Link'}
         </ActionButton>
+
+        {article.summaryStatus === 'complete' && (article.summaryTldr || (article.summaryBullets && article.summaryBullets.length > 0)) && (
+          <ActionButton onClick={copySummary} active={summaryCopied}>
+            {summaryCopied ? 'Copied!' : 'Copy Summary'}
+          </ActionButton>
+        )}
 
         <a
           href={article.originalUrl}
