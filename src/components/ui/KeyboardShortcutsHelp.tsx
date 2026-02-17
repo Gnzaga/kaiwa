@@ -10,6 +10,10 @@ const shortcuts = [
   { key: 'g t', description: 'Go to Tags' },
   { key: 'g l', description: 'Go to Lists' },
   { key: 'g x', description: 'Go to Stats' },
+  { key: 'g f', description: 'Go to Feeds' },
+  { key: 'g r', description: 'Go to Archived' },
+  { key: 'g /', description: 'Go to Search' },
+  { key: '← →', description: 'Prev / Next article' },
 ];
 
 export default function KeyboardShortcutsHelp() {
