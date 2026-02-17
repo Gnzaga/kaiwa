@@ -31,6 +31,12 @@ export default function Sidebar() {
     queryFn: () => fetch('/api/regions').then((r) => r.json()),
   });
 
+  const { data: unreadCounts } = useQuery<Record<string, number>>({
+    queryKey: ['unread-counts'],
+    queryFn: () => fetch('/api/regions/unread-counts').then((r) => r.json()),
+    refetchInterval: 60000, // refresh every 60s
+  });
+
   function toggleRegion(regionId: string) {
     setExpandedRegions((prev) => {
       const next = new Set(prev);
@@ -84,6 +90,11 @@ export default function Sidebar() {
                 {!collapsed && (
                   <>
                     <span className="text-sm flex-1">{region.name}</span>
+                    {unreadCounts?.[region.id] ? (
+                      <span className="text-[10px] font-mono bg-accent-primary/20 text-accent-primary rounded-full px-1.5 py-0.5 leading-none">
+                        {unreadCounts[region.id] > 99 ? '99+' : unreadCounts[region.id]}
+                      </span>
+                    ) : null}
                     <svg
                       className={`w-3 h-3 transition-transform text-text-tertiary ${isExpanded ? 'rotate-90' : ''}`}
                       fill="none"
