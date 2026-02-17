@@ -147,12 +147,112 @@ Autonomous feature development session. Each entry timestamped.
 - ToastProvider/useToast context, auto-dismiss 3s toasts
 - Article actions (star/read/archive/retranslate/resummarize/add-to-list) show feedback
 
+### Feature 32 — Recent search history (commit 019f276)
+- Search page: saves last 8 searches to localStorage, shows as pill buttons, Clear button
+
+### Feature 33 — NEW badge on fresh unread articles (commit 8566df6)
+- Red-tinted "NEW" chip on default ArticleCard for articles < 6h old and unread
+
+### Feature 34 — Inline list rename + word count (commit f203d2e)
+- Reading list detail: click title to rename in-place (Enter/Escape)
+- Article detail: word count + reading time (e.g. "4 min read · 820 words")
+
+### Feature 35 — Dynamic page title (commit a3462ee)
+- DynamicTitle: updates document.title to "(N) KAIWA" when there are unread articles
+
+### Feature 36 — Article Prev/Next navigation (commit 530d94b)
+- ArticleNav: sessionStorage-based nav list, ← → arrow key shortcuts
+- GlobalShortcuts: added g+f (Feeds), g+r (Archived), g+/ (Search)
+
+### Feature 37 — Keyboard shortcuts help updated (commit b4fb1b2)
+- KeyboardShortcutsHelp updated with new shortcuts from features 36+
+
+### Feature 38 — Sentiment distribution on stats (commit e967e57)
+- /api/user/stats: sentimentDist query
+- Stats page: segmented color bar + legend
+
+### Feature 39 — Print button (commit c7174c6)
+- Article detail: Print button → window.print()
+- globals.css: @media print hides sidebar/nav/buttons/fixed elements
+
+---
+
+## Third context session — 2026-02-17 (features 40+)
+
+### Feature 40 — Command palette (commit 46ff056)
+- Cmd+K / Ctrl+K spotlight-style search modal
+- Inline results, navigate to article or full search
+
+### Feature 41 — Reading streak counter (commit 24002d6)
+- Stats page: streak calculated from dailyActivity, shown as StatCard with "day(s)" suffix
+
+### Feature 42 — Recently viewed articles in palette (commit d287357)
+- CommandPalette shows last 6 viewed articles when query empty
+- trackArticleView() called from ArticleDetail on load
+
+### Feature 43 — Arrow key navigation in palette (commit a7640e9)
+- ↑↓ keys move selection; Enter opens selected item or falls back to full search
+- Item highlighted with bg-bg-primary
+
+### Feature 44+45 — Oldest sort, sidebar persistence, share button (commit 32b202f)
+- Added 'Oldest' option to sort dropdown (API already supported it)
+- Sidebar collapsed state persisted in localStorage
+- Collapsed nav items show label as title tooltip
+- Share button: navigator.share() with clipboard fallback
+
+### Feature 46 — Article page keyboard shortcuts (commit be057f9)
+- s = star, r = mark read, a = archive
+- o = open original source in new tab (added later)
+- Updated KeyboardShortcutsHelp
+
+### Feature 47 — Image lightbox (commit 39e4e96)
+- Click hero image → full-viewport lightbox (click anywhere to dismiss)
+
+### Feature 48+49 — Tags filter + result count (commit 8410821)
+- Tags page: text input filters tag cloud client-side
+- Article list: "Showing X-Y of Z articles" above pagination
+
+### Feature 50+51 — Persist prefs, 'o' shortcut (commit 312736b)
+- Article list: sort, read-filter, view-mode persisted in localStorage
+- 'o' key opens original article URL in new tab
+
+### Feature 52 — New articles banner (commit 408244b)
+- Background refetch every 2 min; shows "N new articles — click to refresh" banner
+- Only on page 1 + newest sort where new articles would appear
+
+### Feature 53 — Public reading list sharing (commit 8e39ed7)
+- Toggle list public/private; public URL /lists/:id/public (no auth)
+- API endpoint /api/reading-lists/:id/public (no auth required)
+- Middleware updated to bypass auth for public routes
+- Copy Share Link button
+
+### Feature 54 — Personal article notes (commit a1d78ee)
+- Added 'note' text column to user_article_states — **DB schema pushed**
+- Article detail: collapsible My Note panel with textarea, save/clear
+- Dot indicator when note exists
+
+### Feature 55 — Sentiment filter in search (commit f28aac9)
+- SearchBar: sentiment dropdown
+- Search API: ?sentiment= parameter
+
+### Feature 56 — Unread badge on mobile nav (commit 4b82668)
+- Total unread count badge on Home icon in mobile bottom nav
+
+### Feature 57+58 — Accessibility + language badge (commit 0943dd2)
+- "Skip to main content" link (visible on keyboard focus)
+- Source language badge on article cards for non-English articles (e.g. 'ja', 'zh')
+
+### Feature 59 — Filter within reading list (commit 9653a1f)
+- Filter input appears on lists with > 4 articles, narrows by title client-side
+
 ---
 
 ## Active Build
-- **kaiwa-build-97hdv**: features 16-31 — triggered ~current time
+- **kaiwa-build-tg98g**: features 40-59 — triggered 2026-02-17
 
 ## Issues
-- **kaiwa-build-6sdt9**: FAILED — wrong pipeline name (kaiwa-build-pipeline vs generic-build-push)
-  Fixed by deleting and recreating with correct pipeline ref
+- **kaiwa-build-6sdt9**: FAILED — wrong pipeline name
+- **kaiwa-build-qnrvx**: FAILED — ParameterTypeMismatch on kaniko-extra-args
+- **kaiwa-build-n6js6**: FAILED — workspace named 'source' but pipeline expects 'shared-data'
+  Fixed: use workspace name 'shared-data'
 
