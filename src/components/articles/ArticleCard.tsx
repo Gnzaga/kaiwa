@@ -113,6 +113,7 @@ export default function ArticleCard({
 
   // Default variant — image on right, content on left (Apple News row style)
   const rt = readingTime(article.translatedContent || article.originalContent);
+  const isNew = !isRead && (Date.now() - new Date(article.publishedAt).getTime()) < 6 * 60 * 60 * 1000;
   return (
     <Link href={`/article/${article.id}`}>
       <article className={`flex gap-3 p-3 bg-bg-secondary border border-border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${isRead ? ' opacity-60 hover:opacity-100' : ''}`}>
@@ -128,6 +129,11 @@ export default function ArticleCard({
               )}
               <span>{relativeTime(article.publishedAt)}</span>
               {rt && <span>{rt} read</span>}
+              {isNew && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider bg-accent-primary/20 text-accent-primary border border-accent-primary/30">
+                  NEW
+                </span>
+              )}
               <div className="flex items-center gap-1 ml-auto">
                 {isStarred && (
                   <span className="text-accent-highlight" title="Starred">★</span>
