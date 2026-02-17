@@ -147,6 +147,7 @@ export const userArticleStates = pgTable('user_article_states', {
   readAt: timestamp('read_at', { withTimezone: true }),
   starredAt: timestamp('starred_at', { withTimezone: true }),
   archivedAt: timestamp('archived_at', { withTimezone: true }),
+  note: text('note'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => [

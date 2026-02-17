@@ -11,7 +11,7 @@ import { useToast } from '@/components/ui/Toast';
 import { trackArticleView } from '@/components/ui/CommandPalette';
 
 interface ArticleDetailResponse {
-  article: Article & { sourceName?: string; imageUrl?: string | null };
+  article: Article & { sourceName?: string; imageUrl?: string | null; note?: string | null };
   related: (Article & { sourceName?: string })[];
 }
 
@@ -151,6 +151,7 @@ export default function ArticleDetail({ id }: { id: number }) {
     if (data?.article) {
       const title = data.article.translatedTitle || data.article.originalTitle;
       trackArticleView(id, title, data.article.sourceName);
+      setNoteText(data.article.note ?? '');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.article?.id, prefs?.autoMarkRead]);
@@ -158,6 +159,8 @@ export default function ArticleDetail({ id }: { id: number }) {
   const [copied, setCopied] = useState(false);
   const [summaryCopied, setSummaryCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteText, setNoteText] = useState('');
   const copyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -364,6 +367,50 @@ export default function ArticleDetail({ id }: { id: number }) {
           Pipeline queued: scrape &rarr; translate &rarr; summarize
         </p>
       )}
+
+      {/* Personal Note */}
+      <div className="border border-border rounded overflow-hidden">
+        <button
+          onClick={() => setNoteOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-text-tertiary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <span>My Note</span>
+            {article.note && <span className="w-1.5 h-1.5 rounded-full bg-accent-primary" />}
+          </span>
+          <span>{noteOpen ? '▲' : '▼'}</span>
+        </button>
+        {noteOpen && (
+          <div className="border-t border-border p-3 space-y-2">
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Add a private note about this article..."
+              rows={4}
+              className="w-full bg-bg-primary border border-border rounded px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary resize-none"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  actionMutation.mutate({ type: 'updateNote', note: noteText } as { type: string });
+                  toast(noteText.trim() ? 'Note saved' : 'Note cleared');
+                }}
+                className="px-3 py-1 text-xs bg-accent-primary text-bg-primary rounded hover:bg-accent-highlight transition-colors"
+              >
+                Save Note
+              </button>
+              {noteText && (
+                <button
+                  onClick={() => { setNoteText(''); actionMutation.mutate({ type: 'updateNote', note: '' } as { type: string }); toast('Note cleared'); }}
+                  className="px-3 py-1 text-xs border border-border rounded text-text-tertiary hover:text-text-primary transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       <hr className="divider-line border-0" />
 

@@ -24,6 +24,7 @@ export async function GET(
         isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
         isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
         isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
+        note: schema.userArticleStates.note,
       })
       .from(schema.articles)
       .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
@@ -49,6 +50,7 @@ export async function GET(
       isRead: row.isRead,
       isStarred: row.isStarred,
       isArchived: row.isArchived,
+      note: row.note ?? null,
     };
 
     // Find related articles by matching tags
@@ -194,6 +196,21 @@ export async function PATCH(
         isStarred: state.isStarred,
         isArchived: state.isArchived,
       });
+    }
+
+    // Note update
+    if (body.type === 'updateNote') {
+      const note = typeof body.note === 'string' ? body.note || null : null;
+      const existing = await db.query.userArticleStates.findFirst({
+        where: and(eq(schema.userArticleStates.userId, userId), eq(schema.userArticleStates.articleId, articleId)),
+      });
+      if (existing) {
+        await db.update(schema.userArticleStates).set({ note, updatedAt: new Date() })
+          .where(and(eq(schema.userArticleStates.userId, userId), eq(schema.userArticleStates.articleId, articleId)));
+      } else {
+        await db.insert(schema.userArticleStates).values({ userId, articleId, isRead: false, isStarred: false, isArchived: false, note, updatedAt: new Date() });
+      }
+      return NextResponse.json({ note });
     }
 
     // Article-level operations (retranslate, resummarize, rescrape)
