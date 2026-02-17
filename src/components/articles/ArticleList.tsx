@@ -6,7 +6,7 @@ import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
 import { setArticleNavList } from './ArticleNav';
 
-type SortOption = 'newest' | 'source' | 'sentiment';
+type SortOption = 'newest' | 'oldest' | 'source' | 'sentiment';
 
 interface ArticlesResponse {
   data: (Article & { feedSourceName?: string; imageUrl?: string | null })[];
@@ -97,6 +97,7 @@ export default function ArticleList({
           className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
         >
           <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
           <option value="source">By Source</option>
           <option value="sentiment">By Sentiment</option>
         </select>

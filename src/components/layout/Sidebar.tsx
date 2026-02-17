@@ -21,7 +21,10 @@ interface Region {
 }
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('sidebar-collapsed') === 'true';
+  });
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -219,7 +222,11 @@ export default function Sidebar() {
 
       {/* Collapse toggle */}
       <button
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => {
+          const next = !collapsed;
+          setCollapsed(next);
+          localStorage.setItem('sidebar-collapsed', String(next));
+        }}
         className="flex items-center justify-center h-12 border-t border-border text-text-tertiary hover:text-text-primary transition-colors"
       >
         <svg
@@ -254,6 +261,7 @@ function NavItem({
   return (
     <Link
       href={href}
+      title={collapsed ? label : undefined}
       className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-r-sm transition-colors relative ${
         isActive
           ? 'bg-bg-elevated text-text-primary border-l-2 border-accent-primary'

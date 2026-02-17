@@ -283,6 +283,20 @@ export default function ArticleDetail({ id }: { id: number }) {
           Print
         </button>
 
+        <button
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({ title, url: article.originalUrl }).catch(() => {});
+            } else {
+              navigator.clipboard.writeText(article.originalUrl);
+              toast('Link copied');
+            }
+          }}
+          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+        >
+          Share
+        </button>
+
         <ActionButton onClick={() => actionMutation.mutate({ type: 'retranslate' })}>
           Re-translate
         </ActionButton>
