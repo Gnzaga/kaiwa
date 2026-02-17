@@ -30,6 +30,7 @@ function relativeTime(date: string): string {
 export default function FeedsPage() {
   const [regionFilter, setRegionFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [staleOnly, setStaleOnly] = useState(false);
 
   const { data: feeds, isLoading } = useQuery<FeedStat[]>({
     queryKey: ['feed-stats'],
@@ -45,6 +46,10 @@ export default function FeedsPage() {
     if (regionFilter && f.regionId !== regionFilter) return false;
     if (search && !f.sourceName.toLowerCase().includes(search.toLowerCase()) &&
         !f.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (staleOnly) {
+      const hours = f.lastArticleAt ? (Date.now() - new Date(f.lastArticleAt).getTime()) / 3600000 : Infinity;
+      if (!(f.enabled && hours > 24)) return false;
+    }
     return true;
   });
 
@@ -79,7 +84,13 @@ export default function FeedsPage() {
             <option key={r.id} value={r.id}>{r.flag} {r.name}</option>
           ))}
         </select>
-        {(search || regionFilter) && (
+        <button
+          onClick={() => setStaleOnly(s => !s)}
+          className={`px-3 py-1.5 text-xs border rounded transition-colors ${staleOnly ? 'border-yellow-500 text-yellow-500' : 'border-border text-text-tertiary hover:text-text-primary'}`}
+        >
+          {staleOnly ? '⚠ Stale only' : 'Show stale'}
+        </button>
+        {(search || regionFilter || staleOnly) && (
           <span className="text-xs text-text-tertiary self-center">
             {filtered.length} feeds · {enabledCount} active · {totalArticles.toLocaleString()} articles
           </span>
@@ -119,12 +130,19 @@ export default function FeedsPage() {
                 <div className="text-xs text-text-tertiary">articles</div>
               </div>
 
-              {/* Last article */}
-              <div className="flex-1 text-xs text-text-tertiary">
-                {feed.lastArticleAt ? (
-                  <>Last: {relativeTime(feed.lastArticleAt)}</>
-                ) : (
-                  'No articles yet'
+              {/* Last article + health */}
+              <div className="flex-1 text-xs">
+                {feed.lastArticleAt ? (() => {
+                  const hoursSince = (Date.now() - new Date(feed.lastArticleAt).getTime()) / 3600000;
+                  const stale = feed.enabled && hoursSince > 48;
+                  const warning = feed.enabled && hoursSince > 24 && !stale;
+                  return (
+                    <span className={stale ? 'text-accent-highlight' : warning ? 'text-yellow-500' : 'text-text-tertiary'}>
+                      Last: {relativeTime(feed.lastArticleAt)}{stale ? ' ⚠' : ''}
+                    </span>
+                  );
+                })() : (
+                  <span className="text-text-tertiary">No articles yet</span>
                 )}
               </div>
 
