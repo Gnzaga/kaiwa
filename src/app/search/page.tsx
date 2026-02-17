@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { Suspense, useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import type { Article } from '@/db/schema';
@@ -28,7 +28,7 @@ interface SearchResponse {
   pageSize: number;
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const initialQ = searchParams.get('q') ?? '';
 
@@ -138,5 +138,13 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-6 md:p-8 max-w-4xl mx-auto"><div className="h-10 bg-bg-secondary border border-border rounded animate-pulse" /></div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }

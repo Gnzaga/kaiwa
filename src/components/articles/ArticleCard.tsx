@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import Tag from '@/components/ui/Tag';
 import SentimentBadge from './SentimentBadge';
@@ -112,11 +114,30 @@ export default function ArticleCard({
   }
 
   // Default variant — image on right, content on left (Apple News row style)
+  const queryClient = useQueryClient();
+  const [localStarred, setLocalStarred] = useState<boolean | null>(null);
+  const [localRead, setLocalRead] = useState<boolean | null>(null);
+  const starred = localStarred !== null ? localStarred : !!isStarred;
+  const read = localRead !== null ? localRead : !!isRead;
+
+  const quickAction = async (e: React.MouseEvent, type: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (type === 'toggleStar') setLocalStarred(!starred);
+    if (type === 'toggleRead') setLocalRead(!read);
+    await fetch(`/api/articles/${article.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type }),
+    });
+    queryClient.invalidateQueries({ queryKey: ['articles'] });
+  };
+
   const rt = readingTime(article.translatedContent || article.originalContent);
-  const isNew = !isRead && (Date.now() - new Date(article.publishedAt).getTime()) < 6 * 60 * 60 * 1000;
+  const isNew = !read && (Date.now() - new Date(article.publishedAt).getTime()) < 6 * 60 * 60 * 1000;
   return (
     <Link href={`/article/${article.id}`}>
-      <article className={`flex gap-3 p-3 bg-bg-secondary border border-border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${isRead ? ' opacity-60 hover:opacity-100' : ''}`}>
+      <article className={`flex gap-3 p-3 bg-bg-secondary border border-border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${read ? ' opacity-60 hover:opacity-100' : ''}`}>
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           {/* Source + time */}
           <div>
@@ -140,7 +161,7 @@ export default function ArticleCard({
                 </span>
               )}
               <div className="flex items-center gap-1 ml-auto">
-                {isStarred && (
+                {starred && (
                   <span className="text-accent-highlight" title="Starred">★</span>
                 )}
                 <StatusIndicator
@@ -168,14 +189,29 @@ export default function ArticleCard({
             )}
           </div>
 
-          {/* Footer: tags + sentiment */}
+          {/* Footer: tags + sentiment + quick actions */}
           <div className="flex items-center justify-between gap-2 flex-wrap mt-2">
             <div className="flex items-center gap-1.5 flex-wrap">
               {article.summaryTags?.slice(0, 3).map((tag) => (
                 <Tag key={tag} label={tag} />
               ))}
             </div>
-            <SentimentBadge sentiment={article.summarySentiment} />
+            <div className="flex items-center gap-1.5">
+              <SentimentBadge sentiment={article.summarySentiment} />
+              {/* Hover quick actions */}
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                <button
+                  onClick={(e) => quickAction(e, 'toggleStar')}
+                  title={starred ? 'Unstar' : 'Star'}
+                  className={`text-xs px-1.5 py-0.5 rounded border transition-colors ${starred ? 'border-accent-highlight text-accent-highlight' : 'border-border text-text-tertiary hover:border-accent-highlight hover:text-accent-highlight'}`}
+                >★</button>
+                <button
+                  onClick={(e) => quickAction(e, 'toggleRead')}
+                  title={read ? 'Mark unread' : 'Mark read'}
+                  className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${read ? 'border-accent-primary text-accent-primary' : 'border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary'}`}
+                >{read ? '✓' : '○'}</button>
+              </div>
+            </div>
           </div>
         </div>
 
