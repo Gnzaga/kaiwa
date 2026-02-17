@@ -15,6 +15,9 @@ const shortcuts = [
   { key: 'g r', description: 'Go to Archived' },
   { key: 'g /', description: 'Go to Search' },
   { key: '← →', description: 'Prev / Next article' },
+  { key: 's', description: 'Star / Unstar article' },
+  { key: 'r', description: 'Mark Read / Unread' },
+  { key: 'a', description: 'Archive / Unarchive' },
 ];
 
 export default function KeyboardShortcutsHelp() {

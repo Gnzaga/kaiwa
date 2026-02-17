@@ -127,6 +127,21 @@ export default function ArticleDetail({ id }: { id: number }) {
     );
   }
 
+  // Article page keyboard shortcuts: s=star, r=read, a=archive
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 's') actionMutation.mutate({ type: 'toggleStar' });
+      if (e.key === 'r') actionMutation.mutate({ type: 'toggleRead' });
+      if (e.key === 'a') actionMutation.mutate({ type: 'toggleArchive' });
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Auto-mark read + track view when article loads
   useEffect(() => {
     if (data?.article && !data.article.isRead && prefs?.autoMarkRead !== false) {
