@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 interface StatsResponse {
@@ -22,6 +23,16 @@ export default function StatsPage() {
     queryKey: ['user-stats'],
     queryFn: () => fetch('/api/user/stats').then((r) => r.json()),
   });
+  const [digestCopied, setDigestCopied] = useState(false);
+
+  const copyDigest = async () => {
+    const resp = await fetch('/api/user/digest').then(r => r.json());
+    if (resp.markdown) {
+      await navigator.clipboard.writeText(resp.markdown);
+      setDigestCopied(true);
+      setTimeout(() => setDigestCopied(false), 2500);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -80,9 +91,17 @@ export default function StatsPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8">
-      <header>
-        <h1 className="text-2xl font-semibold text-text-primary">Your Stats</h1>
-        <p className="text-xs text-text-tertiary mt-1">Reading activity overview</p>
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-semibold text-text-primary">Your Stats</h1>
+          <p className="text-xs text-text-tertiary mt-1">Reading activity overview</p>
+        </div>
+        <button
+          onClick={copyDigest}
+          className={`px-3 py-1.5 text-xs border rounded transition-colors ${digestCopied ? 'border-accent-primary text-accent-primary' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
+        >
+          {digestCopied ? 'Digest copied!' : 'Copy weekly digest'}
+        </button>
       </header>
 
       {/* Overview cards */}
