@@ -156,6 +156,7 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   const [copied, setCopied] = useState(false);
   const [summaryCopied, setSummaryCopied] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const copyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -185,7 +186,7 @@ export default function ArticleDetail({ id }: { id: number }) {
     <div className="max-w-3xl space-y-6 animate-fade-in">
       {/* Hero image */}
       {article.imageUrl && (
-        <div className="rounded overflow-hidden border border-border">
+        <div className="rounded overflow-hidden border border-border cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
           <img
             src={article.imageUrl}
             alt=""
@@ -195,6 +196,26 @@ export default function ArticleDetail({ id }: { id: number }) {
               (e.target as HTMLImageElement).parentElement!.style.display = 'none';
             }}
           />
+        </div>
+      )}
+
+      {/* Image lightbox */}
+      {lightboxOpen && article.imageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 cursor-zoom-out"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <img
+            src={article.imageUrl}
+            alt=""
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded shadow-2xl"
+          />
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 text-white/60 hover:text-white text-2xl leading-none"
+          >
+            ✕
+          </button>
         </div>
       )}
 
