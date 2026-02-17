@@ -6,6 +6,8 @@ import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
 import { setArticleNavList } from './ArticleNav';
 
+interface FeedOption { id: number; name: string; regionId: string; }
+
 type SortOption = 'newest' | 'oldest' | 'source' | 'sentiment';
 
 interface ArticlesResponse {
@@ -29,6 +31,12 @@ export default function ArticleList({
   hideFilters?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const { data: feedOptions } = useQuery<FeedOption[]>({
+    queryKey: ['feeds-list'],
+    queryFn: () => fetch('/api/feeds').then(r => r.json()),
+    staleTime: 5 * 60 * 1000,
+    enabled: !hideFilters,
+  });
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortOption>(() => {
     if (typeof window === 'undefined') return 'newest';
@@ -136,13 +144,16 @@ export default function ArticleList({
         </select>
 
         {/* Source filter */}
-        <input
-          type="text"
-          placeholder="Filter source..."
+        <select
           value={sourceFilter}
           onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-36"
-        />
+          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary max-w-[160px]"
+        >
+          <option value="">All Sources</option>
+          {feedOptions?.filter(f => !regionId || f.regionId === regionId).map(f => (
+            <option key={f.id} value={f.name}>{f.name}</option>
+          ))}
+        </select>
 
         {/* Tag filter */}
         <input
