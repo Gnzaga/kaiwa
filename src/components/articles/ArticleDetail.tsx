@@ -271,6 +271,13 @@ export default function ArticleDetail({ id }: { id: number }) {
           Source ↗
         </a>
 
+        <button
+          onClick={() => window.print()}
+          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+        >
+          Print
+        </button>
+
         <ActionButton onClick={() => actionMutation.mutate({ type: 'retranslate' })}>
           Re-translate
         </ActionButton>

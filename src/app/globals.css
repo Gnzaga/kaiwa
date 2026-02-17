@@ -84,3 +84,11 @@ body {
 .sentiment-positive { color: #4ade80; }
 .sentiment-negative { color: var(--color-accent-highlight); }
 .sentiment-mixed { color: #facc15; }
+
+/* Print styles */
+@media print {
+  aside, nav, button, [role="navigation"] { display: none !important; }
+  body { background: white; color: black; }
+  a { color: black; text-decoration: underline; }
+  .fixed { display: none !important; }
+}
