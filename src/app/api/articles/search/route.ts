@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const dateFrom = params.get('dateFrom');
     const dateTo = params.get('dateTo');
     const tags = params.get('tags');
+    const sentiment = params.get('sentiment');
 
     if (!q) {
       return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 });
@@ -49,6 +50,9 @@ export async function GET(request: NextRequest) {
     if (tags) {
       const tagList = tags.split(',').map(t => t.trim());
       conditions.push(sql`${schema.articles.summaryTags} ?| array[${sql.join(tagList.map(t => sql`${t}`), sql`, `)}]`);
+    }
+    if (sentiment) {
+      conditions.push(eq(schema.articles.summarySentiment, sentiment));
     }
 
     const where = and(...conditions);

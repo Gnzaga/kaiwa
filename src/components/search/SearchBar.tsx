@@ -13,6 +13,7 @@ export interface SearchFilters {
   query: string;
   region: string;
   dateRange: '' | '24h' | '7d' | '30d';
+  sentiment: string;
 }
 
 export default function SearchBar({
@@ -23,6 +24,7 @@ export default function SearchBar({
   const [query, setQuery] = useState('');
   const [region, setRegion] = useState<string>('');
   const [dateRange, setDateRange] = useState<SearchFilters['dateRange']>('');
+  const [sentiment, setSentiment] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const { data: regions } = useQuery<Region[]>({
@@ -33,10 +35,10 @@ export default function SearchBar({
   useEffect(() => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onSearch({ query, region, dateRange });
+      onSearch({ query, region, dateRange, sentiment });
     }, 300);
     return () => clearTimeout(debounceRef.current);
-  }, [query, region, dateRange, onSearch]);
+  }, [query, region, dateRange, sentiment, onSearch]);
 
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -84,6 +86,23 @@ export default function SearchBar({
         <option value="24h">Last 24 Hours</option>
         <option value="7d">Last 7 Days</option>
         <option value="30d">Last 30 Days</option>
+      </select>
+
+      {/* Sentiment filter */}
+      <select
+        value={sentiment}
+        onChange={(e) => setSentiment(e.target.value)}
+        className="bg-bg-elevated border border-border rounded px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+      >
+        <option value="">All Sentiment</option>
+        <option value="positive">Positive</option>
+        <option value="negative">Negative</option>
+        <option value="neutral">Neutral</option>
+        <option value="mixed">Mixed</option>
+        <option value="bullish">Bullish</option>
+        <option value="bearish">Bearish</option>
+        <option value="restrictive">Restrictive</option>
+        <option value="permissive">Permissive</option>
       </select>
     </div>
   );

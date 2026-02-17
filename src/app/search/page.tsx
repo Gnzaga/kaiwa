@@ -36,6 +36,7 @@ export default function SearchPage() {
     query: initialQ,
     region: '',
     dateRange: '',
+    sentiment: '',
   });
 
   // Sync URL ?q= changes (e.g. from tag cloud links)
@@ -59,6 +60,7 @@ export default function SearchPage() {
   if (filters.query) params.set('q', filters.query);
   if (filters.region) params.set('region', filters.region);
   if (filters.dateRange) params.set('dateRange', filters.dateRange);
+  if (filters.sentiment) params.set('sentiment', filters.sentiment);
 
   const { data, isLoading } = useQuery<SearchResponse>({
     queryKey: ['search', filters],
