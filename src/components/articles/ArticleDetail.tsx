@@ -94,6 +94,9 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   const { article, related } = data;
   const title = article.translatedTitle || article.originalTitle;
+  const content = article.translatedContent || article.originalContent;
+  const wordCount = content ? content.trim().split(/\s+/).length : 0;
+  const readingMins = wordCount > 0 ? Math.ceil(wordCount / 200) : 0;
 
   return (
     <div className="max-w-3xl space-y-6 animate-fade-in">
@@ -123,6 +126,7 @@ export default function ArticleDetail({ id }: { id: number }) {
               day: 'numeric',
             })}
           </span>
+          {readingMins > 0 && <span>{readingMins} min read</span>}
           <StatusIndicator status={article.translationStatus ?? 'pending'} tooltip={`Translation: ${article.translationStatus}`} />
           <StatusIndicator status={article.summaryStatus ?? 'pending'} tooltip={`Summary: ${article.summaryStatus}`} />
         </div>

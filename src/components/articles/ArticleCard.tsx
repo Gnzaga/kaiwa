@@ -6,6 +6,13 @@ import Tag from '@/components/ui/Tag';
 import SentimentBadge from './SentimentBadge';
 import StatusIndicator from '@/components/ui/StatusIndicator';
 
+function readingTime(content: string | null | undefined): string | null {
+  if (!content) return null;
+  const words = content.trim().split(/\s+/).length;
+  const minutes = Math.ceil(words / 200);
+  return minutes < 1 ? null : `${minutes} min`;
+}
+
 function relativeTime(date: Date | string): string {
   const now = Date.now();
   const then = new Date(date).getTime();
@@ -100,6 +107,7 @@ export default function ArticleCard({
   }
 
   // Default variant — image on right, content on left (Apple News row style)
+  const rt = readingTime(article.translatedContent || article.originalContent);
   return (
     <Link href={`/article/${article.id}`}>
       <article className="flex gap-3 p-3 bg-bg-secondary border border-border rounded-xl card-hover animate-fade-in cursor-pointer group">
@@ -109,6 +117,7 @@ export default function ArticleCard({
             <div className="flex items-center gap-2 text-xs text-text-tertiary mb-1">
               {sourceName && <span className="font-medium text-accent-primary">{sourceName}</span>}
               <span>{relativeTime(article.publishedAt)}</span>
+              {rt && <span>{rt} read</span>}
               <div className="flex items-center gap-1 ml-auto">
                 <StatusIndicator
                   status={article.translationStatus ?? 'pending'}
