@@ -7,6 +7,7 @@ import MobileNav from '@/components/layout/MobileNav';
 import GlobalShortcuts from '@/components/ui/GlobalShortcuts';
 import KeyboardShortcutsHelp from '@/components/ui/KeyboardShortcutsHelp';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import { ToastProvider } from '@/components/ui/Toast';
 
 export const metadata: Metadata = {
   title: 'Kaiwa - Multi-National Media Intelligence',
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className="bg-bg-primary text-text-primary font-sans antialiased">
         <AuthSessionProvider>
           <QueryProvider>
+          <ToastProvider>
             <div className="flex min-h-screen">
               <Sidebar />
               <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
@@ -33,6 +35,7 @@ export default function RootLayout({
             <GlobalShortcuts />
             <KeyboardShortcutsHelp />
             <ScrollToTop />
+          </ToastProvider>
           </QueryProvider>
         </AuthSessionProvider>
       </body>

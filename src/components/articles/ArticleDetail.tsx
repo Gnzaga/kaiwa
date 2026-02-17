@@ -7,6 +7,7 @@ import Tag from '@/components/ui/Tag';
 import SentimentBadge from './SentimentBadge';
 import StatusIndicator from '@/components/ui/StatusIndicator';
 import ArticleCard from './ArticleCard';
+import { useToast } from '@/components/ui/Toast';
 
 interface ArticleDetailResponse {
   article: Article & { sourceName?: string; imageUrl?: string | null };
@@ -24,6 +25,7 @@ const FONT_SIZES: FontSize[] = ['sm', 'base', 'lg'];
 const FONT_CLASS: Record<FontSize, string> = { sm: 'text-sm', base: 'text-base', lg: 'text-lg' };
 
 export default function ArticleDetail({ id }: { id: number }) {
+  const { toast } = useToast();
   const [showOriginal, setShowOriginal] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
   const [fontSize, setFontSize] = useState<FontSize>(() => {
@@ -62,9 +64,19 @@ export default function ArticleDetail({ id }: { id: number }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(action),
       }).then((r) => r.json()),
-    onSuccess: () => {
+    onSuccess: (_, action) => {
       queryClient.invalidateQueries({ queryKey: ['article', id] });
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      const labels: Record<string, string> = {
+        toggleRead: 'Marked as read',
+        toggleStar: 'Starred',
+        toggleArchive: 'Archived',
+        retranslate: 'Re-translation queued',
+        resummarize: 'Re-summarization queued',
+      };
+      if (labels[action.type]) toast(labels[action.type]);
     },
+    onError: () => toast('Action failed', 'error'),
   });
 
   const scrapeMutation = useMutation({
@@ -91,7 +103,9 @@ export default function ArticleDetail({ id }: { id: number }) {
     onSuccess: () => {
       setShowListMenu(false);
       queryClient.invalidateQueries({ queryKey: ['reading-lists'] });
+      toast('Added to reading list');
     },
+    onError: () => toast('Failed to add to list', 'error'),
   });
 
   if (isLoading) {
