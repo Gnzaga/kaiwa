@@ -40,6 +40,7 @@ export default function ArticleCard({
 }) {
   const displayCategory = categorySlug ?? (article as Article & { categorySlug?: string | null }).categorySlug;
   const isRead = (article as Article & { isRead?: boolean | null }).isRead;
+  const isStarred = (article as Article & { isStarred?: boolean | null }).isStarred;
   const title = article.translatedTitle || article.originalTitle;
   const showOriginal = article.translatedTitle && article.translatedTitle !== article.originalTitle;
   const imageUrl = article.imageUrl;
@@ -128,6 +129,9 @@ export default function ArticleCard({
               <span>{relativeTime(article.publishedAt)}</span>
               {rt && <span>{rt} read</span>}
               <div className="flex items-center gap-1 ml-auto">
+                {isStarred && (
+                  <span className="text-accent-highlight" title="Starred">★</span>
+                )}
                 <StatusIndicator
                   status={article.translationStatus ?? 'pending'}
                   tooltip={`Translation: ${article.translationStatus}`}
