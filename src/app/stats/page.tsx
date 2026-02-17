@@ -66,6 +66,18 @@ export default function StatsPage() {
   }
   const maxDay = Math.max(...days.map((d) => d.count), 1);
 
+  // Calculate current reading streak (consecutive days ending today/yesterday)
+  let streak = 0;
+  const todayStr = today.toISOString().split('T')[0];
+  const activitySet = new Set(dailyActivity.map((a) => a.day));
+  const checkStart = activitySet.has(todayStr) ? 0 : 1; // start from yesterday if not read today
+  for (let i = checkStart; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    if (!activitySet.has(d.toISOString().split('T')[0])) break;
+    streak++;
+  }
+
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8">
       <header>
@@ -77,6 +89,7 @@ export default function StatsPage() {
       <section className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <StatCard label="Read Today" value={totals.readToday} highlight />
         <StatCard label="This Week" value={totals.readThisWeek} />
+        <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
         <StatCard label="Total Read" value={totals.totalRead} />
         <StatCard label="Starred" value={totals.totalStarred} />
         <StatCard label="Reading Lists" value={listCount} />
@@ -187,12 +200,12 @@ export default function StatsPage() {
   );
 }
 
-function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function StatCard({ label, value, highlight, suffix }: { label: string; value: number; highlight?: boolean; suffix?: string }) {
   return (
     <div className="bg-bg-elevated border border-border rounded p-4">
       <div className="text-xs text-text-tertiary mb-1">{label}</div>
       <div className={`text-2xl font-mono ${highlight ? 'text-accent-primary' : 'text-text-primary'}`}>
-        {value}
+        {value}{suffix && <span className="text-sm font-sans text-text-secondary">{suffix}</span>}
       </div>
     </div>
   );
