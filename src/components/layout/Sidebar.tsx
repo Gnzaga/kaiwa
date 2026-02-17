@@ -46,6 +46,10 @@ export default function Sidebar() {
     });
   }
 
+  const totalUnread = unreadCounts
+    ? Object.values(unreadCounts).reduce((sum, n) => sum + n, 0)
+    : 0;
+
   const userName = session?.user?.name;
   const userImage = session?.user?.image;
   const initials = userName
@@ -62,7 +66,14 @@ export default function Sidebar() {
       <div className="flex items-center gap-2 px-4 h-16 border-b border-border shrink-0">
         <span className="text-accent-primary text-xl">{'\u26E9'}</span>
         {!collapsed && (
-          <span className="text-text-primary font-semibold tracking-widest text-lg">KAIWA</span>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-text-primary font-semibold tracking-widest text-lg">KAIWA</span>
+            {totalUnread > 0 && (
+              <span className="ml-auto text-xs font-mono text-text-tertiary">
+                {totalUnread > 999 ? '999+' : totalUnread} unread
+              </span>
+            )}
+          </div>
         )}
       </div>
 
