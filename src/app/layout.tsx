@@ -6,6 +6,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
 import GlobalShortcuts from '@/components/ui/GlobalShortcuts';
 import KeyboardShortcutsHelp from '@/components/ui/KeyboardShortcutsHelp';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 
 export const metadata: Metadata = {
   title: 'Kaiwa - Multi-National Media Intelligence',
@@ -31,6 +32,7 @@ export default function RootLayout({
             <MobileNav />
             <GlobalShortcuts />
             <KeyboardShortcutsHelp />
+            <ScrollToTop />
           </QueryProvider>
         </AuthSessionProvider>
       </body>
