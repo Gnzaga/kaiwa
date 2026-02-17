@@ -21,6 +21,13 @@ export default function MobileNav() {
     queryFn: () => fetch('/api/regions').then((r) => r.json()),
   });
 
+  const { data: unreadCounts } = useQuery<Record<string, number>>({
+    queryKey: ['unread-counts'],
+    queryFn: () => fetch('/api/regions/unread-counts').then((r) => r.json()),
+    refetchInterval: 60000,
+  });
+  const totalUnread = unreadCounts ? Object.values(unreadCounts).reduce((s, n) => s + n, 0) : 0;
+
   const isHome = pathname === '/';
   const isRegion = pathname.startsWith('/region/');
   const isSearch = pathname.startsWith('/search');
@@ -62,11 +69,18 @@ export default function MobileNav() {
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex md:hidden items-center justify-around bg-bg-secondary border-t border-border h-16 px-2">
         <Link
           href="/"
-          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors relative ${
             isHome ? 'text-accent-primary' : 'text-text-tertiary'
           }`}
         >
-          <HomeIcon className="w-5 h-5" />
+          <div className="relative">
+            <HomeIcon className="w-5 h-5" />
+            {totalUnread > 0 && (
+              <span className="absolute -top-1 -right-2 text-[9px] font-mono bg-accent-primary text-white rounded-full px-1 leading-tight min-w-[14px] text-center">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            )}
+          </div>
           <span className="text-[10px]">Home</span>
         </Link>
 
