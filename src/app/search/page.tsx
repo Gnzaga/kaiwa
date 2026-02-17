@@ -7,6 +7,20 @@ import type { Article } from '@/db/schema';
 import SearchBar, { type SearchFilters } from '@/components/search/SearchBar';
 import ArticleCard from '@/components/articles/ArticleCard';
 
+const RECENT_KEY = 'kaiwa-recent-searches';
+const MAX_RECENT = 8;
+
+function getRecentSearches(): string[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); } catch { return []; }
+}
+
+function saveSearch(query: string) {
+  if (!query.trim()) return;
+  const prev = getRecentSearches().filter(q => q !== query);
+  localStorage.setItem(RECENT_KEY, JSON.stringify([query, ...prev].slice(0, MAX_RECENT)));
+}
+
 interface SearchResponse {
   data: (Article & { feedSourceName?: string; imageUrl?: string | null })[];
   total: number;
@@ -33,6 +47,12 @@ export default function SearchPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, []);
+
   const hasQuery = filters.query.length > 0;
 
   const params = new URLSearchParams();
@@ -48,6 +68,10 @@ export default function SearchPage() {
 
   const handleSearch = useCallback((f: SearchFilters) => {
     setFilters(f);
+    if (f.query) {
+      saveSearch(f.query);
+      setRecentSearches(getRecentSearches());
+    }
   }, []);
 
   return (
@@ -58,8 +82,32 @@ export default function SearchPage() {
 
       <SearchBar onSearch={handleSearch} />
 
+      {/* Recent searches */}
+      {!hasQuery && recentSearches.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-text-tertiary">Recent searches</p>
+          <div className="flex flex-wrap gap-2">
+            {recentSearches.map((q) => (
+              <button
+                key={q}
+                onClick={() => setFilters((f) => ({ ...f, query: q }))}
+                className="px-3 py-1 text-sm border border-border rounded-full text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+              >
+                {q}
+              </button>
+            ))}
+            <button
+              onClick={() => { localStorage.removeItem(RECENT_KEY); setRecentSearches([]); }}
+              className="px-2 py-1 text-xs text-text-tertiary hover:text-text-primary transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Results */}
-      {!hasQuery && (
+      {!hasQuery && recentSearches.length === 0 && (
         <div className="text-center py-16 text-text-tertiary text-sm">
           Enter a search term to find articles
         </div>
