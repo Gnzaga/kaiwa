@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import Tag from '@/components/ui/Tag';
@@ -27,6 +27,12 @@ export default function ArticleDetail({ id }: { id: number }) {
   const { data, isLoading, error } = useQuery<ArticleDetailResponse>({
     queryKey: ['article', id],
     queryFn: () => fetch(`/api/articles/${id}`).then((r) => r.json()),
+  });
+
+  const { data: prefs } = useQuery<{ autoMarkRead: boolean }>({
+    queryKey: ['user-prefs'],
+    queryFn: () => fetch('/api/user/preferences').then((r) => r.json()),
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: lists } = useQuery<ReadingList[]>({
@@ -91,6 +97,14 @@ export default function ArticleDetail({ id }: { id: number }) {
       </div>
     );
   }
+
+  // Auto-mark read when article loads (if preference enabled)
+  useEffect(() => {
+    if (data?.article && !data.article.isRead && prefs?.autoMarkRead !== false) {
+      actionMutation.mutate({ type: 'toggleRead' });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.article?.id, prefs?.autoMarkRead]);
 
   const [copied, setCopied] = useState(false);
   const copyLink = useCallback(() => {
