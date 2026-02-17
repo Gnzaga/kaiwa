@@ -50,6 +50,7 @@ export async function handleScrape(jobs: Job<ScrapeJobData>[]) {
     const { articleId } = job.data;
     console.log(`[scrape] Processing article ${articleId}`);
 
+    const scrapeStart = Date.now();
     const article = await db.query.articles.findFirst({
       where: eq(schema.articles.id, articleId),
       with: { feed: true },
@@ -61,6 +62,7 @@ export async function handleScrape(jobs: Job<ScrapeJobData>[]) {
     }
 
     const regionId = article.feed?.regionId ?? 'jp';
+    console.log(`[scrape] Article ${articleId}: region=${regionId}, url=${article.originalUrl.slice(0, 80)}`);
 
     if (!config.scrape.enabled) {
       console.log(`[scrape] Scraping disabled, skipping article ${articleId}`);
@@ -137,6 +139,7 @@ export async function handleScrape(jobs: Job<ScrapeJobData>[]) {
     }
 
     await boss.send(queueTranslate(regionId), { articleId });
-    console.log(`[scrape] Article ${articleId} done, translation enqueued`);
+    const scrapeElapsed = Date.now() - scrapeStart;
+    console.log(`[scrape] Article ${articleId} done in ${scrapeElapsed}ms, translation enqueued to translate-${regionId}`);
   }
 }

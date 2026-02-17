@@ -19,6 +19,7 @@ export async function handleSync(_jobs: Job[]) {
     });
 
     if (!feed) {
+      console.log(`[sync] Entry ${entry.id} (feed_id=${entry.feed_id}): no matching feed, skipped`);
       skipped++;
       continue;
     }

@@ -15,8 +15,11 @@ export async function translateArticle(articleId: number): Promise<void> {
 
   const sourceLanguage = article.sourceLanguage ?? 'ja';
 
+  console.log(`[translate] Article ${articleId}: source=${sourceLanguage}, title="${article.originalTitle.slice(0, 60)}..."`);
+
   // English passthrough: copy original → translated, skip API calls
   if (sourceLanguage === 'en') {
+    console.log(`[translate] Article ${articleId}: English passthrough`);
     await db
       .update(schema.articles)
       .set({
@@ -57,10 +60,14 @@ export async function translateArticle(articleId: number): Promise<void> {
 
     try {
       attempts++;
+      console.log(`[translate] Article ${articleId}: trying ${provider.name} (attempt ${attempts}/${MAX_ATTEMPTS})`);
+      const start = Date.now();
       const [titleResult, contentResult] = await Promise.all([
         provider.fn.translate(article.originalTitle, sourceLanguage),
         provider.fn.translate(article.originalContent, sourceLanguage),
       ]);
+      const elapsed = Date.now() - start;
+      console.log(`[translate] Article ${articleId}: ${provider.name} succeeded in ${elapsed}ms`);
 
       await db
         .update(schema.articles)
@@ -78,6 +85,7 @@ export async function translateArticle(articleId: number): Promise<void> {
       return;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
+      console.warn(`[translate] Article ${articleId}: ${provider.name} failed: ${lastError.message}`);
     }
   }
 
