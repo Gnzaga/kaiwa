@@ -229,9 +229,14 @@ export default function ArticleList({
         </div>
       )}
 
-      {/* Pagination */}
+      {/* Result count + Pagination */}
+      {data && data.total > 0 && (
+        <div className="text-xs text-text-tertiary text-center">
+          Showing {((page - 1) * data.pageSize) + 1}–{Math.min(page * data.pageSize, data.total)} of {data.total.toLocaleString()} articles
+        </div>
+      )}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-4">
+        <div className="flex items-center justify-center gap-2 pt-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
