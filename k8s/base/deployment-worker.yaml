@@ -29,6 +29,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
+            - name: OPENWEBUI_MODEL
+              value: "openrouter_integration_for_openwebui.deepseek/deepseek-v3.2"
           resources:
             requests:
               memory: "256Mi"
