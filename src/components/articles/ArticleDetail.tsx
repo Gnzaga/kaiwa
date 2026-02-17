@@ -19,10 +19,24 @@ interface ReadingList {
   articleCount: number;
 }
 
+type FontSize = 'sm' | 'base' | 'lg';
+const FONT_SIZES: FontSize[] = ['sm', 'base', 'lg'];
+const FONT_CLASS: Record<FontSize, string> = { sm: 'text-sm', base: 'text-base', lg: 'text-lg' };
+
 export default function ArticleDetail({ id }: { id: number }) {
   const [showOriginal, setShowOriginal] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
+  const [fontSize, setFontSize] = useState<FontSize>(() => {
+    if (typeof window === 'undefined') return 'base';
+    return (localStorage.getItem('article-font-size') as FontSize) ?? 'base';
+  });
   const queryClient = useQueryClient();
+
+  function cycleFontSize() {
+    const next = FONT_SIZES[(FONT_SIZES.indexOf(fontSize) + 1) % FONT_SIZES.length];
+    setFontSize(next);
+    localStorage.setItem('article-font-size', next);
+  }
 
   const { data, isLoading, error } = useQuery<ArticleDetailResponse>({
     queryKey: ['article', id],
@@ -226,6 +240,14 @@ export default function ArticleDetail({ id }: { id: number }) {
           </ActionButton>
         )}
 
+        <button
+          onClick={cycleFontSize}
+          title={`Font size: ${fontSize} (click to cycle)`}
+          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors font-mono"
+        >
+          A{fontSize === 'sm' ? '−' : fontSize === 'lg' ? '+' : ''}
+        </button>
+
         <a
           href={article.originalUrl}
           target="_blank"
@@ -297,7 +319,7 @@ export default function ArticleDetail({ id }: { id: number }) {
 
       {/* Translated content */}
       {article.translatedContent && (
-        <section className="prose-sm text-text-secondary leading-relaxed space-y-3">
+        <section className={`${FONT_CLASS[fontSize]} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}>
           <div dangerouslySetInnerHTML={{ __html: article.translatedContent }} />
         </section>
       )}
