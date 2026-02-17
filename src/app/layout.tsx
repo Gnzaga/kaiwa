@@ -4,6 +4,8 @@ import QueryProvider from '@/components/providers/QueryProvider';
 import AuthSessionProvider from '@/components/providers/SessionProvider';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
+import GlobalShortcuts from '@/components/ui/GlobalShortcuts';
+import KeyboardShortcutsHelp from '@/components/ui/KeyboardShortcutsHelp';
 
 export const metadata: Metadata = {
   title: 'Kaiwa - Multi-National Media Intelligence',
@@ -27,6 +29,8 @@ export default function RootLayout({
               </main>
             </div>
             <MobileNav />
+            <GlobalShortcuts />
+            <KeyboardShortcutsHelp />
           </QueryProvider>
         </AuthSessionProvider>
       </body>
