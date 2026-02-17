@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
@@ -90,12 +90,36 @@ export default function ArticleList({
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
     queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, datePreset],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
+    refetchInterval: 120000, // background refresh every 2 min
   });
+
+  // Track previous total to detect new articles from background refetch
+  const prevTotalRef = useRef<number | null>(null);
+  const [newArticlesCount, setNewArticlesCount] = useState(0);
+  useEffect(() => {
+    if (!data) return;
+    if (prevTotalRef.current !== null && page === 1 && sort === 'newest' && data.total > prevTotalRef.current) {
+      setNewArticlesCount(data.total - prevTotalRef.current);
+    } else {
+      setNewArticlesCount(0);
+    }
+    prevTotalRef.current = data.total;
+  }, [data, page, sort]);
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
   return (
     <div className="space-y-4">
+      {/* New articles banner */}
+      {newArticlesCount > 0 && (
+        <button
+          onClick={() => { setNewArticlesCount(0); queryClient.invalidateQueries({ queryKey: ['articles'] }); }}
+          className="w-full py-2 text-xs text-center bg-accent-primary/10 border border-accent-primary/40 rounded text-accent-primary hover:bg-accent-primary/20 transition-colors"
+        >
+          {newArticlesCount} new article{newArticlesCount !== 1 ? 's' : ''} — click to refresh
+        </button>
+      )}
+
       {/* Controls */}
       {!hideFilters && (
       <div className="flex flex-wrap items-center gap-3">
