@@ -51,9 +51,37 @@ Autonomous feature development session. Each entry timestamped.
 
 ---
 
-## Pending / Next Features
-- Stats nav item in sidebar
-- Share button (copy link) on article detail
-- Keyboard shortcuts (j/k navigation, s=star, /=search)
-- Archived articles page (`/archived`)
-- Article notes in reading lists
+### Feature 5 — Stats nav + Copy Link + Source link (commit 6e9db98)
+- Sidebar: Stats (/stats) nav item with bar chart icon
+- ArticleDetail: Copy Link (2s flash), Source ↗ opens original URL
+
+### Feature 6 — Keyboard shortcuts (commit c91738d)
+- GlobalShortcuts: / focuses search, g+h/s/t/l/x/a navigates
+- KeyboardShortcutsHelp: ? modal, Esc closes
+
+### Feature 7 — Archived page (commit 587ba9f)
+- /archived page + ArchiveIcon sidebar nav
+
+### Feature 8 — Article notes in reading lists (commit 610df17)
+- Schema: `note` column on reading_list_items — **DB migrated**
+- PATCH endpoint, inline editor UI in list detail
+
+### Feature 9 — Unread count badges (commit 695bab5)
+- /api/regions/unread-counts, sidebar badges refresh every 60s
+
+### Feature 10 — Feed browser (commit 2ae197c)
+- /api/feeds/stats, /feeds page with search/region filter
+
+### Feature 11 — Auto mark-read (commit ebfe5e0)
+- ArticleDetail auto-fires toggleRead on load if autoMarkRead pref is true
+
+---
+
+## Active Build
+- **kaiwa-build-zjr45**: features 1-9 — running ~17:30
+
+## Pending / Next
+- Feed browser sidebar nav item
+- Dark/light theme toggle
+- Dashboard "continue reading" section
+- Search date range UI
