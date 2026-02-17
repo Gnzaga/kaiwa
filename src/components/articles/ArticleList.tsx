@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
 
@@ -27,12 +27,14 @@ export default function ArticleList({
   isArchived?: boolean;
   hideFilters?: boolean;
 }) {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState('');
   const [tagFilter, setTagFilter] = useState('');
   const [readFilter, setReadFilter] = useState<'' | 'read' | 'unread'>('');
   const [sentimentFilter, setSentimentFilter] = useState('');
+  const [markingRead, setMarkingRead] = useState(false);
 
   const params = new URLSearchParams();
   params.set('page', String(page));
@@ -47,6 +49,20 @@ export default function ArticleList({
   if (isStarred) params.set('isStarred', 'true');
   if (isArchived) params.set('isArchived', 'true');
   if (sentimentFilter) params.set('sentiment', sentimentFilter);
+
+  const handleMarkAllRead = async () => {
+    setMarkingRead(true);
+    try {
+      const markParams = new URLSearchParams();
+      if (regionId) markParams.set('region', regionId);
+      if (categorySlug) markParams.set('category', categorySlug);
+      if (sourceFilter) markParams.set('source', sourceFilter);
+      await fetch(`/api/articles/mark-all-read?${markParams}`, { method: 'POST' });
+      await queryClient.invalidateQueries({ queryKey: ['articles'] });
+    } finally {
+      setMarkingRead(false);
+    }
+  };
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
     queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter],
@@ -116,6 +132,14 @@ export default function ArticleList({
           <option value="restrictive">Restrictive</option>
           <option value="permissive">Permissive</option>
         </select>
+
+        <button
+          onClick={handleMarkAllRead}
+          disabled={markingRead || !data || data.data.length === 0}
+          className="ml-auto px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          {markingRead ? 'Marking...' : 'Mark all read'}
+        </button>
       </div>
       )}
 
