@@ -17,9 +17,15 @@ interface ArticlesResponse {
 export default function ArticleList({
   regionId,
   categorySlug,
+  isStarred,
+  isArchived,
+  hideFilters,
 }: {
   regionId?: string;
   categorySlug?: string;
+  isStarred?: boolean;
+  isArchived?: boolean;
+  hideFilters?: boolean;
 }) {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortOption>('newest');
@@ -35,10 +41,13 @@ export default function ArticleList({
   if (categorySlug) params.set('category', categorySlug);
   if (sourceFilter) params.set('source', sourceFilter);
   if (tagFilter) params.set('tag', tagFilter);
-  if (readFilter) params.set('read', readFilter);
+  if (readFilter === 'read') params.set('isRead', 'true');
+  if (readFilter === 'unread') params.set('isRead', 'false');
+  if (isStarred) params.set('isStarred', 'true');
+  if (isArchived) params.set('isArchived', 'true');
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
   });
 
@@ -47,6 +56,7 @@ export default function ArticleList({
   return (
     <div className="space-y-4">
       {/* Controls */}
+      {!hideFilters && (
       <div className="flex flex-wrap items-center gap-3">
         {/* Sort */}
         <select
@@ -88,6 +98,7 @@ export default function ArticleList({
           <option value="read">Read</option>
         </select>
       </div>
+      )}
 
       {/* Articles */}
       {isLoading && (
