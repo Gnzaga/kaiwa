@@ -67,6 +67,33 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
     },
   });
 
+  function exportList() {
+    if (!data) return;
+    const exportData = {
+      name: data.list.name,
+      description: data.list.description,
+      exportedAt: new Date().toISOString(),
+      articles: data.data.map((item) => ({
+        title: item.translatedTitle || item.originalTitle,
+        originalTitle: item.originalTitle,
+        url: item.originalUrl,
+        source: item.feedSourceName,
+        publishedAt: item.publishedAt,
+        addedAt: item.addedAt,
+        tldr: item.summaryTldr,
+        tags: item.summaryTags,
+        note: item.note,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${data.list.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-4">
@@ -94,7 +121,17 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         </Link>
         <h1 className="text-2xl font-semibold text-text-primary">{data.list.name}</h1>
         {data.list.description && <p className="text-sm text-text-tertiary">{data.list.description}</p>}
-        <p className="text-xs text-text-tertiary">{data.total} article{data.total !== 1 ? 's' : ''}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-text-tertiary">{data.total} article{data.total !== 1 ? 's' : ''}</p>
+          {data.data.length > 0 && (
+            <button
+              onClick={exportList}
+              className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
+            >
+              Export JSON
+            </button>
+          )}
+        </div>
       </header>
 
       {data.data.length > 0 ? (
