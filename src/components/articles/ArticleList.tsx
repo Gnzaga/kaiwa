@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
+import { setArticleNavList } from './ArticleNav';
 
 type SortOption = 'newest' | 'source' | 'sentiment';
 
@@ -215,6 +216,7 @@ export default function ArticleList({
 
       {data && data.data.length > 0 && (
         <div className="space-y-2">
+          {(() => { setArticleNavList(data.data.map(a => a.id)); return null; })()}
           {data.data.map((article, i) => (
             <ArticleCard
               key={article.id}

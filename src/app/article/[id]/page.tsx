@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ArticleDetail from '@/components/articles/ArticleDetail';
 import ReadingProgress from '@/components/ui/ReadingProgress';
+import ArticleNav from '@/components/articles/ArticleNav';
 
 export default function ArticlePage() {
   const params = useParams();
@@ -30,6 +31,7 @@ export default function ArticlePage() {
         Back
       </Link>
       <ArticleDetail id={id} />
+      <ArticleNav currentId={id} />
     </div>
   );
 }

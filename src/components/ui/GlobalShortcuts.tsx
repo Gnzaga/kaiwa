@@ -40,6 +40,9 @@ export default function GlobalShortcuts() {
           case 'l': router.push('/lists'); break;
           case 'x': router.push('/stats'); break;
           case 'a': router.push('/admin'); break;
+          case 'f': router.push('/feeds'); break;
+          case 'r': router.push('/archived'); break;
+          case '/': router.push('/search'); break;
         }
       }
     }
