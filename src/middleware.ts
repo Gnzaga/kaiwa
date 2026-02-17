@@ -6,5 +6,5 @@ const { auth } = NextAuth(authConfig);
 export default auth;
 
 export const config = {
-  matcher: ['/((?!api/auth|api/health|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api/auth|api/health|api/reading-lists/.*/public|lists/.*/public|_next/static|_next/image|favicon.ico).*)'],
 };

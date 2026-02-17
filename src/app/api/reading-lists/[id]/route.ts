@@ -100,6 +100,7 @@ export async function PATCH(
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (typeof body.name === 'string') updates.name = body.name;
     if (typeof body.description === 'string' || body.description === null) updates.description = body.description;
+    if (typeof body.isPublic === 'boolean') updates.isPublic = body.isPublic;
 
     const [updated] = await db
       .update(schema.readingLists)

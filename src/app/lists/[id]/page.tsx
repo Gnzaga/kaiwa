@@ -9,6 +9,7 @@ interface ListDetail {
     id: number;
     name: string;
     description: string | null;
+    isPublic: boolean;
   };
   data: {
     itemId: number;
@@ -68,6 +69,16 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
       queryClient.invalidateQueries({ queryKey: ['reading-lists'] });
       setEditingName(false);
     },
+  });
+
+  const visibilityMutation = useMutation({
+    mutationFn: (isPublic: boolean) =>
+      fetch(`/api/reading-lists/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublic }),
+      }).then(r => r.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reading-list', id] }),
   });
 
   const noteMutation = useMutation({
@@ -163,7 +174,7 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
           </h1>
         )}
         {data.list.description && <p className="text-sm text-text-tertiary">{data.list.description}</p>}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <p className="text-xs text-text-tertiary">{data.total} article{data.total !== 1 ? 's' : ''}</p>
           {data.data.length > 0 && (
             <button
@@ -171,6 +182,21 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
               className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
             >
               Export JSON
+            </button>
+          )}
+          <button
+            onClick={() => visibilityMutation.mutate(!data.list.isPublic)}
+            disabled={visibilityMutation.isPending}
+            className={`text-xs border rounded px-2 py-1 transition-colors ${data.list.isPublic ? 'border-accent-primary text-accent-primary hover:text-accent-highlight' : 'border-border text-text-tertiary hover:text-text-primary'}`}
+          >
+            {data.list.isPublic ? 'Public (click to make private)' : 'Make Public'}
+          </button>
+          {data.list.isPublic && (
+            <button
+              onClick={() => navigator.clipboard.writeText(`${window.location.origin}/lists/${id}/public`)}
+              className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
+            >
+              Copy Share Link
             </button>
           )}
         </div>
