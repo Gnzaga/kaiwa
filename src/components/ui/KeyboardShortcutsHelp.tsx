@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 const shortcuts = [
   { key: '?', description: 'Show this help' },
+  { key: '⌘K', description: 'Quick search (command palette)' },
   { key: '/', description: 'Focus search' },
   { key: 'g h', description: 'Go to Dashboard' },
   { key: 'g s', description: 'Go to Starred' },
