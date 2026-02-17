@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import StatsBar from '@/components/dashboard/StatsBar';
 import RecentArticles from '@/components/dashboard/RecentArticles';
 import RecentActivity from '@/components/dashboard/RecentActivity';
+import TopSources from '@/components/dashboard/TopSources';
 import BrushDivider from '@/components/ui/BrushDivider';
 
 function getGreeting(): string {
@@ -25,7 +26,12 @@ export default async function DashboardPage() {
       </header>
 
       <StatsBar />
-      <RecentActivity />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <RecentActivity />
+        </div>
+        <TopSources />
+      </div>
       <BrushDivider />
       <RecentArticles />
     </div>

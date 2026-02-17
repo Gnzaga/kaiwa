@@ -158,6 +158,7 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   const [copied, setCopied] = useState(false);
   const [summaryCopied, setSummaryCopied] = useState(false);
+  const [mdCopied, setMdCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -291,6 +292,19 @@ export default function ArticleDetail({ id }: { id: number }) {
 
         <ActionButton onClick={copyLink} active={copied}>
           {copied ? 'Copied!' : 'Copy Link'}
+        </ActionButton>
+
+        <ActionButton
+          onClick={() => {
+            if (!data?.article) return;
+            const mdTitle = data.article.translatedTitle || data.article.originalTitle;
+            navigator.clipboard.writeText(`[${mdTitle}](${data.article.originalUrl})`);
+            setMdCopied(true);
+            setTimeout(() => setMdCopied(false), 2000);
+          }}
+          active={mdCopied}
+        >
+          {mdCopied ? 'Copied!' : 'Copy MD'}
         </ActionButton>
 
         {article.summaryStatus === 'complete' && (article.summaryTldr || (article.summaryBullets && article.summaryBullets.length > 0)) && (
