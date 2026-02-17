@@ -14,6 +14,7 @@ interface StatsResponse {
   topTags: { tag: string; count: number }[];
   listCount: number;
   dailyActivity: { day: string; count: number }[];
+  sentimentDist: { sentiment: string | null; count: number }[];
 }
 
 export default function StatsPage() {
@@ -32,13 +33,26 @@ export default function StatsPage() {
     );
   }
 
-  const { totals, topRegions, topTags, listCount, dailyActivity } = data ?? {
+  const { totals, topRegions, topTags, listCount, dailyActivity, sentimentDist } = data ?? {
     totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0 },
     topRegions: [],
     topTags: [],
     listCount: 0,
     dailyActivity: [],
+    sentimentDist: [],
   };
+
+  const SENTIMENT_COLOR: Record<string, string> = {
+    positive: '#4ade80',
+    negative: '#ff2d55',
+    neutral: '#888888',
+    mixed: '#f59e0b',
+    bullish: '#22d3ee',
+    bearish: '#ff2d55',
+    restrictive: '#a855f7',
+    permissive: '#4ade80',
+  };
+  const sentimentTotal = sentimentDist.reduce((s, d) => s + Number(d.count), 0);
 
   // Build 30-day calendar grid
   const today = new Date();
@@ -137,6 +151,37 @@ export default function StatsPage() {
             </div>
           )}
         </section>
+
+        {/* Sentiment distribution */}
+        {sentimentDist.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-base font-medium text-text-primary">Sentiment Distribution</h2>
+            <div className="flex rounded-lg overflow-hidden h-4">
+              {sentimentDist.map(({ sentiment, count }) => (
+                <div
+                  key={sentiment ?? 'unknown'}
+                  style={{
+                    width: `${(Number(count) / sentimentTotal) * 100}%`,
+                    backgroundColor: SENTIMENT_COLOR[sentiment ?? ''] ?? '#555555',
+                  }}
+                  title={`${sentiment ?? 'unknown'}: ${count}`}
+                />
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {sentimentDist.map(({ sentiment, count }) => (
+                <div key={sentiment ?? 'unknown'} className="flex items-center gap-1.5 text-xs text-text-secondary">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: SENTIMENT_COLOR[sentiment ?? ''] ?? '#555555' }}
+                  />
+                  <span className="capitalize">{sentiment ?? 'unknown'}</span>
+                  <span className="text-text-tertiary font-mono">{Math.round((Number(count) / sentimentTotal) * 100)}%</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

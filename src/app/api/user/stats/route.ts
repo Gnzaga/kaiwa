@@ -67,6 +67,24 @@ export async function GET() {
       .orderBy(sql`count(*) DESC`)
       .limit(8);
 
+    // Sentiment distribution of read articles
+    const sentimentDist = await db
+      .select({
+        sentiment: schema.articles.summarySentiment,
+        count: count(),
+      })
+      .from(schema.userArticleStates)
+      .innerJoin(schema.articles, eq(schema.userArticleStates.articleId, schema.articles.id))
+      .where(
+        and(
+          eq(schema.userArticleStates.userId, userId),
+          eq(schema.userArticleStates.isRead, true),
+          sql`${schema.articles.summarySentiment} IS NOT NULL`,
+        ),
+      )
+      .groupBy(schema.articles.summarySentiment)
+      .orderBy(sql`count(*) DESC`);
+
     // Reading lists count
     const [{ listCount }] = await db
       .select({ listCount: count() })
@@ -96,6 +114,7 @@ export async function GET() {
       topTags,
       listCount,
       dailyActivity,
+      sentimentDist,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
