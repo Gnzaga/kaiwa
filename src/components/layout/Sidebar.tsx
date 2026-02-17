@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
+import { useSession, signOut } from 'next-auth/react';
 
 interface Category {
   id: string;
@@ -23,6 +24,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const { data: regions } = useQuery<Region[]>({
     queryKey: ['regions'],
@@ -37,6 +39,12 @@ export default function Sidebar() {
       return next;
     });
   }
+
+  const userName = session?.user?.name;
+  const userImage = session?.user?.image;
+  const initials = userName
+    ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
 
   return (
     <aside
@@ -126,12 +134,51 @@ export default function Sidebar() {
 
         <hr className="divider-line border-0 mx-4 my-3" />
 
+        {/* My Lists */}
+        <NavItem href="/lists" label="My Lists" icon={ListIcon} collapsed={collapsed} pathname={pathname} />
+
         {/* Search */}
         <NavItem href="/search" label="Search" icon={SearchIcon} collapsed={collapsed} pathname={pathname} />
 
         {/* Settings */}
         <NavItem href="/settings" label="Settings" icon={SettingsIcon} collapsed={collapsed} pathname={pathname} />
+
+        {/* Admin (only for admins) */}
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {(session as any)?.isAdmin && (
+          <NavItem href="/admin" label="Admin" icon={AdminIcon} collapsed={collapsed} pathname={pathname} />
+        )}
       </nav>
+
+      {/* User info */}
+      {session?.user && (
+        <div className="border-t border-border px-3 py-3">
+          <div className="flex items-center gap-2">
+            {userImage ? (
+              <img
+                src={userImage}
+                alt=""
+                className="w-8 h-8 rounded-full shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-accent-primary/20 text-accent-primary flex items-center justify-center text-xs font-medium shrink-0">
+                {initials}
+              </div>
+            )}
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-text-primary truncate">{userName}</div>
+                <button
+                  onClick={() => signOut()}
+                  className="text-xs text-text-tertiary hover:text-text-primary transition-colors"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Collapse toggle */}
       <button
@@ -192,10 +239,26 @@ function DashboardIcon({ className }: { className?: string }) {
   );
 }
 
+function ListIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+  );
+}
+
 function SearchIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+  );
+}
+
+function AdminIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
     </svg>
   );
 }

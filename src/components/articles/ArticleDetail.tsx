@@ -13,13 +13,26 @@ interface ArticleDetailResponse {
   related: (Article & { sourceName?: string })[];
 }
 
+interface ReadingList {
+  id: number;
+  name: string;
+  articleCount: number;
+}
+
 export default function ArticleDetail({ id }: { id: number }) {
   const [showOriginal, setShowOriginal] = useState(false);
+  const [showListMenu, setShowListMenu] = useState(false);
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery<ArticleDetailResponse>({
     queryKey: ['article', id],
     queryFn: () => fetch(`/api/articles/${id}`).then((r) => r.json()),
+  });
+
+  const { data: lists } = useQuery<ReadingList[]>({
+    queryKey: ['reading-lists'],
+    queryFn: () => fetch('/api/reading-lists').then(r => r.json()),
+    enabled: showListMenu,
   });
 
   const actionMutation = useMutation({
@@ -45,6 +58,19 @@ export default function ArticleDetail({ id }: { id: number }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['article', id] });
+    },
+  });
+
+  const addToListMutation = useMutation({
+    mutationFn: (listId: number) =>
+      fetch(`/api/reading-lists/${listId}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articleId: id }),
+      }).then(r => r.json()),
+    onSuccess: () => {
+      setShowListMenu(false);
+      queryClient.invalidateQueries({ queryKey: ['reading-lists'] });
     },
   });
 
@@ -126,6 +152,31 @@ export default function ArticleDetail({ id }: { id: number }) {
         >
           {article.isArchived ? 'Unarchive' : 'Archive'}
         </ActionButton>
+
+        {/* Save to List dropdown */}
+        <div className="relative">
+          <ActionButton onClick={() => setShowListMenu(!showListMenu)}>
+            Save to List
+          </ActionButton>
+          {showListMenu && (
+            <div className="absolute top-full left-0 mt-1 w-48 bg-bg-elevated border border-border rounded shadow-lg z-10">
+              {lists && lists.length > 0 ? (
+                lists.map(list => (
+                  <button
+                    key={list.id}
+                    onClick={() => addToListMutation.mutate(list.id)}
+                    className="block w-full text-left px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+                  >
+                    {list.name}
+                  </button>
+                ))
+              ) : (
+                <div className="px-3 py-2 text-xs text-text-tertiary">No lists yet</div>
+              )}
+            </div>
+          )}
+        </div>
+
         <ActionButton onClick={() => actionMutation.mutate({ type: 'retranslate' })}>
           Re-translate
         </ActionButton>

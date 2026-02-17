@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, and, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { requireSession } from '@/lib/auth-helpers';
 
 const PAGE_SIZE = 20;
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await requireSession();
+    const userId = session.user.id;
+
     const params = request.nextUrl.searchParams;
     const q = params.get('q');
     const page = Math.max(1, parseInt(params.get('page') ?? '1', 10));
@@ -63,8 +67,8 @@ export async function GET(request: NextRequest) {
           summaryTldr: schema.articles.summaryTldr,
           summaryTags: schema.articles.summaryTags,
           summarySentiment: schema.articles.summarySentiment,
-          isRead: schema.articles.isRead,
-          isStarred: schema.articles.isStarred,
+          isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
+          isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
           sourceLanguage: schema.articles.sourceLanguage,
           imageUrl: schema.articles.imageUrl,
           feedSourceName: schema.feeds.sourceName,
@@ -75,6 +79,13 @@ export async function GET(request: NextRequest) {
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
         .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
+        .leftJoin(
+          schema.userArticleStates,
+          and(
+            eq(schema.userArticleStates.articleId, schema.articles.id),
+            eq(schema.userArticleStates.userId, userId),
+          ),
+        )
         .where(where)
         .orderBy(sql`rank DESC`)
         .limit(PAGE_SIZE)
@@ -84,6 +95,13 @@ export async function GET(request: NextRequest) {
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
         .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
+        .leftJoin(
+          schema.userArticleStates,
+          and(
+            eq(schema.userArticleStates.articleId, schema.articles.id),
+            eq(schema.userArticleStates.userId, userId),
+          ),
+        )
         .where(where),
     ]);
 
@@ -94,6 +112,7 @@ export async function GET(request: NextRequest) {
       pageSize: PAGE_SIZE,
     });
   } catch (err) {
+    if (err instanceof NextResponse) return err;
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

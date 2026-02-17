@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, desc, asc, and, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { requireSession } from '@/lib/auth-helpers';
 
 const PAGE_SIZE = 20;
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await requireSession();
+    const userId = session.user.id;
+
     const params = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(params.get('page') ?? '1', 10));
     const region = params.get('region');
@@ -53,13 +57,13 @@ export async function GET(request: NextRequest) {
       conditions.push(sql`${schema.articles.publishedAt} <= ${dateTo}`);
     }
     if (isRead !== null && isRead !== undefined) {
-      conditions.push(eq(schema.articles.isRead, isRead === 'true'));
+      conditions.push(sql`COALESCE(${schema.userArticleStates.isRead}, false) = ${isRead === 'true'}`);
     }
     if (isStarred !== null && isStarred !== undefined) {
-      conditions.push(eq(schema.articles.isStarred, isStarred === 'true'));
+      conditions.push(sql`COALESCE(${schema.userArticleStates.isStarred}, false) = ${isStarred === 'true'}`);
     }
     if (isArchived !== null && isArchived !== undefined) {
-      conditions.push(eq(schema.articles.isArchived, isArchived === 'true'));
+      conditions.push(sql`COALESCE(${schema.userArticleStates.isArchived}, false) = ${isArchived === 'true'}`);
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -95,9 +99,9 @@ export async function GET(request: NextRequest) {
           summaryTldr: schema.articles.summaryTldr,
           summaryTags: schema.articles.summaryTags,
           summarySentiment: schema.articles.summarySentiment,
-          isRead: schema.articles.isRead,
-          isStarred: schema.articles.isStarred,
-          isArchived: schema.articles.isArchived,
+          isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
+          isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
+          isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
           sourceLanguage: schema.articles.sourceLanguage,
           imageUrl: schema.articles.imageUrl,
           feedSourceName: schema.feeds.sourceName,
@@ -107,6 +111,13 @@ export async function GET(request: NextRequest) {
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
         .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
+        .leftJoin(
+          schema.userArticleStates,
+          and(
+            eq(schema.userArticleStates.articleId, schema.articles.id),
+            eq(schema.userArticleStates.userId, userId),
+          ),
+        )
         .where(where)
         .orderBy(orderBy)
         .limit(PAGE_SIZE)
@@ -116,6 +127,13 @@ export async function GET(request: NextRequest) {
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
         .leftJoin(schema.categories, eq(schema.feeds.categoryId, schema.categories.id))
+        .leftJoin(
+          schema.userArticleStates,
+          and(
+            eq(schema.userArticleStates.articleId, schema.articles.id),
+            eq(schema.userArticleStates.userId, userId),
+          ),
+        )
         .where(where),
     ]);
 
@@ -126,6 +144,7 @@ export async function GET(request: NextRequest) {
       pageSize: PAGE_SIZE,
     });
   } catch (err) {
+    if (err instanceof NextResponse) return err;
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

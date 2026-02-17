@@ -42,6 +42,16 @@ interface MinifluxFeed {
   };
 }
 
+interface MinifluxCategory {
+  id: number;
+  title: string;
+}
+
+interface MinifluxDiscoverResult {
+  url: string;
+  title: string;
+}
+
 export type { MinifluxEntry, MinifluxEntriesResponse, MinifluxFeed };
 
 export async function fetchEntries(params: {
@@ -81,4 +91,53 @@ export async function markAsRead(entryId: number): Promise<void> {
   if (!res.ok) {
     throw new Error(`Miniflux markAsRead failed: ${res.status} ${res.statusText}`);
   }
+}
+
+export async function discoverFeed(url: string): Promise<MinifluxDiscoverResult[]> {
+  const res = await fetch(`${baseUrl}/v1/discover`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ url }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Miniflux discover failed: ${res.status} ${text}`);
+  }
+  return res.json();
+}
+
+export async function createFeed(params: { feed_url: string; category_id: number }): Promise<{ feed_id: number }> {
+  const res = await fetch(`${baseUrl}/v1/feeds`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Miniflux createFeed failed: ${res.status} ${text}`);
+  }
+  return res.json();
+}
+
+export async function getOrCreateCategory(title: string): Promise<number> {
+  // Try to find existing category
+  const res = await fetch(`${baseUrl}/v1/categories`, { headers });
+  if (!res.ok) {
+    throw new Error(`Miniflux getCategories failed: ${res.status}`);
+  }
+  const categories: MinifluxCategory[] = await res.json();
+  const existing = categories.find(c => c.title === title);
+  if (existing) return existing.id;
+
+  // Create new category
+  const createRes = await fetch(`${baseUrl}/v1/categories`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ title }),
+  });
+  if (!createRes.ok) {
+    throw new Error(`Miniflux createCategory failed: ${createRes.status}`);
+  }
+  const created: MinifluxCategory = await createRes.json();
+  return created.id;
 }

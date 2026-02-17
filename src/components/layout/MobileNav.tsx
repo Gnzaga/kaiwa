@@ -24,6 +24,7 @@ export default function MobileNav() {
   const isHome = pathname === '/';
   const isRegion = pathname.startsWith('/region/');
   const isSearch = pathname.startsWith('/search');
+  const isLists = pathname.startsWith('/lists');
   const isSettings = pathname.startsWith('/settings');
 
   return (
@@ -80,6 +81,16 @@ export default function MobileNav() {
         </button>
 
         <Link
+          href="/lists"
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
+            isLists ? 'text-accent-primary' : 'text-text-tertiary'
+          }`}
+        >
+          <ListIcon className="w-5 h-5" />
+          <span className="text-[10px]">Lists</span>
+        </Link>
+
+        <Link
           href="/search"
           className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
             isSearch ? 'text-accent-primary' : 'text-text-tertiary'
@@ -115,6 +126,14 @@ function GlobeIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+    </svg>
+  );
+}
+
+function ListIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
     </svg>
   );
 }

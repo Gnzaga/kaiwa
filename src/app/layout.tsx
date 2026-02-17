@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import QueryProvider from '@/components/providers/QueryProvider';
+import AuthSessionProvider from '@/components/providers/SessionProvider';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
 
@@ -17,15 +18,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-bg-primary text-text-primary font-sans antialiased">
-        <QueryProvider>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-              {children}
-            </main>
-          </div>
-          <MobileNav />
-        </QueryProvider>
+        <AuthSessionProvider>
+          <QueryProvider>
+            <div className="flex min-h-screen">
+              <Sidebar />
+              <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+                {children}
+              </main>
+            </div>
+            <MobileNav />
+          </QueryProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

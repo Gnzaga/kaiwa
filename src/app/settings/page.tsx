@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 interface HealthStatus {
   miniflux: { ok: boolean; error?: string };
   libretranslate: { ok: boolean; error?: string };
@@ -22,6 +23,7 @@ interface Feed {
   sourceLanguage: string;
   sourceName: string;
   enabled: boolean;
+  submittedByUserId: string | null;
 }
 
 interface SettingsData {
@@ -31,12 +33,40 @@ interface SettingsData {
   queue: QueueStatus;
 }
 
+interface Region {
+  id: string;
+  name: string;
+  categories: { id: string; slug: string; name: string }[];
+}
+
+interface UserPrefs {
+  defaultRegionId: string | null;
+  theme: string;
+  articlesPerPage: number;
+  autoMarkRead: boolean;
+}
+
 export default function SettingsPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery<SettingsData>({
     queryKey: ['settings'],
     queryFn: () => fetch('/api/settings').then((r) => r.json()),
+  });
+
+  const { data: myFeeds } = useQuery<Feed[]>({
+    queryKey: ['my-feeds'],
+    queryFn: () => fetch('/api/feeds/mine').then(r => r.json()),
+  });
+
+  const { data: regions } = useQuery<Region[]>({
+    queryKey: ['regions'],
+    queryFn: () => fetch('/api/regions').then(r => r.json()),
+  });
+
+  const { data: prefs } = useQuery<UserPrefs>({
+    queryKey: ['user-preferences'],
+    queryFn: () => fetch('/api/user/preferences').then(r => r.json()),
   });
 
   const updateMutation = useMutation({
@@ -58,6 +88,22 @@ export default function SettingsPage() {
       }).then((r) => r.json()),
   });
 
+  const deleteFeedMutation = useMutation({
+    mutationFn: (id: number) =>
+      fetch(`/api/feeds/${id}`, { method: 'DELETE' }).then(r => r.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-feeds'] }),
+  });
+
+  const prefsMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      fetch('/api/user/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }).then(r => r.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user-preferences'] }),
+  });
+
   if (isLoading) {
     return (
       <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-4">
@@ -73,6 +119,83 @@ export default function SettingsPage() {
       <header>
         <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
       </header>
+
+      {/* My Preferences */}
+      <Section title="My Preferences">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <label className="text-sm text-text-secondary w-40">Default Region</label>
+            <select
+              value={prefs?.defaultRegionId ?? ''}
+              onChange={e => prefsMutation.mutate({ defaultRegionId: e.target.value || null })}
+              className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+            >
+              <option value="">None</option>
+              {Array.isArray(regions) && regions.map(r => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="text-sm text-text-secondary w-40">Theme</label>
+            <select
+              value={prefs?.theme ?? 'system'}
+              onChange={e => prefsMutation.mutate({ theme: e.target.value })}
+              className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+            >
+              <option value="system">System</option>
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="text-sm text-text-secondary w-40">Articles Per Page</label>
+            <input
+              type="number"
+              min={5}
+              max={100}
+              value={prefs?.articlesPerPage ?? 20}
+              onChange={e => prefsMutation.mutate({ articlesPerPage: Number(e.target.value) })}
+              className="w-20 bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-primary"
+            />
+          </div>
+        </div>
+      </Section>
+
+      <hr className="divider-line border-0" />
+
+      {/* My Feeds */}
+      <Section title="My Feeds">
+        <AddFeedForm
+          regions={regions ?? []}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['my-feeds'] })}
+        />
+        {myFeeds && myFeeds.length > 0 ? (
+          <div className="space-y-2 mt-4">
+            {myFeeds.map(feed => (
+              <div
+                key={feed.id}
+                className="flex items-center justify-between bg-bg-elevated border border-border rounded px-4 py-3"
+              >
+                <div>
+                  <div className="text-sm text-text-primary">{feed.name}</div>
+                  <div className="text-xs text-text-tertiary">{feed.url}</div>
+                </div>
+                <button
+                  onClick={() => deleteFeedMutation.mutate(feed.id)}
+                  className="text-xs text-text-tertiary hover:text-accent-highlight transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-text-tertiary mt-3">No feeds submitted yet.</p>
+        )}
+      </Section>
+
+      <hr className="divider-line border-0" />
 
       {/* Polling Interval */}
       <Section title="Polling Interval">
@@ -128,7 +251,7 @@ export default function SettingsPage() {
       <hr className="divider-line border-0" />
 
       {/* Feed Management */}
-      <Section title="Feeds">
+      <Section title="All Feeds">
         {data?.feeds && data.feeds.length > 0 ? (
           <div className="space-y-2">
             {data.feeds.map((feed) => (
@@ -156,6 +279,90 @@ export default function SettingsPage() {
           <p className="text-sm text-text-tertiary">No feeds configured</p>
         )}
       </Section>
+    </div>
+  );
+}
+
+function AddFeedForm({
+  regions,
+  onSuccess,
+}: {
+  regions: Region[];
+  onSuccess: () => void;
+}) {
+  const [feedUrl, setFeedUrl] = useState('');
+  const [regionId, setRegionId] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [sourceLanguage, setSourceLanguage] = useState('en');
+
+  const selectedRegion = regions.find(r => r.id === regionId);
+
+  const submitMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      fetch('/api/feeds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }).then(async r => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Failed to submit feed');
+        return data;
+      }),
+    onSuccess: () => {
+      setFeedUrl('');
+      onSuccess();
+    },
+  });
+
+  return (
+    <div className="bg-bg-elevated border border-border rounded p-4 space-y-3">
+      <h3 className="text-sm font-medium text-text-primary">Submit RSS Feed</h3>
+      <input
+        type="url"
+        placeholder="https://example.com/feed.xml"
+        value={feedUrl}
+        onChange={e => setFeedUrl(e.target.value)}
+        className="w-full bg-bg-primary border border-border rounded px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+      />
+      <div className="flex flex-wrap gap-3">
+        <select
+          value={regionId}
+          onChange={e => { setRegionId(e.target.value); setCategoryId(''); }}
+          className="bg-bg-primary border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+        >
+          <option value="">Region...</option>
+          {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+        <select
+          value={categoryId}
+          onChange={e => setCategoryId(e.target.value)}
+          disabled={!regionId}
+          className="bg-bg-primary border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary disabled:opacity-50"
+        >
+          <option value="">Category...</option>
+          {selectedRegion?.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select
+          value={sourceLanguage}
+          onChange={e => setSourceLanguage(e.target.value)}
+          className="bg-bg-primary border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+        >
+          <option value="en">English</option>
+          <option value="ja">Japanese</option>
+          <option value="zh">Chinese</option>
+          <option value="tl">Filipino</option>
+        </select>
+      </div>
+      {submitMutation.isError && (
+        <p className="text-xs text-accent-highlight">{(submitMutation.error as Error).message}</p>
+      )}
+      <button
+        onClick={() => feedUrl.trim() && regionId && categoryId && submitMutation.mutate({ url: feedUrl.trim(), regionId, categoryId, sourceLanguage })}
+        disabled={!feedUrl.trim() || !regionId || !categoryId || submitMutation.isPending}
+        className="px-4 py-2 text-sm bg-accent-primary text-bg-primary rounded hover:opacity-90 transition-opacity disabled:opacity-50"
+      >
+        {submitMutation.isPending ? 'Submitting...' : 'Submit Feed'}
+      </button>
     </div>
   );
 }

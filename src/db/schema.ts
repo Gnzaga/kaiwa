@@ -1,5 +1,46 @@
-import { pgTable, serial, integer, text, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, text, boolean, timestamp, jsonb, index, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
+
+// ─── Auth tables (NextAuth Drizzle Adapter) ─────────────────────────
+
+export const users = pgTable('user', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name'),
+  email: text('email').unique(),
+  emailVerified: timestamp('emailVerified', { mode: 'date' }),
+  image: text('image'),
+  isAdmin: boolean('is_admin').default(false),
+});
+
+export const accounts = pgTable('account', {
+  userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  provider: text('provider').notNull(),
+  providerAccountId: text('providerAccountId').notNull(),
+  refresh_token: text('refresh_token'),
+  access_token: text('access_token'),
+  expires_at: integer('expires_at'),
+  token_type: text('token_type'),
+  scope: text('scope'),
+  id_token: text('id_token'),
+  session_state: text('session_state'),
+}, (table) => [
+  primaryKey({ columns: [table.provider, table.providerAccountId] }),
+]);
+
+export const sessions = pgTable('session', {
+  sessionToken: text('sessionToken').primaryKey(),
+  userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+});
+
+export const verificationTokens = pgTable('verificationToken', {
+  identifier: text('identifier').notNull(),
+  token: text('token').notNull(),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.identifier, table.token] }),
+]);
 
 // ─── Reference tables ───────────────────────────────────────────────
 
@@ -35,6 +76,7 @@ export const feeds = pgTable('feeds', {
   sourceLanguage: text('source_language').default('ja').notNull(),
   sourceName: text('source_name').notNull(),
   enabled: boolean('enabled').default(true),
+  submittedByUserId: text('submitted_by_user_id').references(() => users.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
@@ -94,7 +136,86 @@ export const articles = pgTable('articles', {
   ),
 ]);
 
+// ─── Per-user article state ─────────────────────────────────────────
+
+export const userArticleStates = pgTable('user_article_states', {
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  articleId: integer('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
+  isRead: boolean('is_read').default(false).notNull(),
+  isStarred: boolean('is_starred').default(false).notNull(),
+  isArchived: boolean('is_archived').default(false).notNull(),
+  readAt: timestamp('read_at', { withTimezone: true }),
+  starredAt: timestamp('starred_at', { withTimezone: true }),
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.articleId] }),
+  index('idx_uas_user').on(table.userId),
+  index('idx_uas_user_starred').on(table.userId, table.isStarred),
+  index('idx_uas_user_read').on(table.userId, table.isRead),
+]);
+
+// ─── Reading lists / collections ────────────────────────────────────
+
+export const readingLists = pgTable('reading_lists', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  isPublic: boolean('is_public').default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
+export const readingListItems = pgTable('reading_list_items', {
+  id: serial('id').primaryKey(),
+  readingListId: integer('reading_list_id').notNull().references(() => readingLists.id, { onDelete: 'cascade' }),
+  articleId: integer('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
+  sortOrder: integer('sort_order').default(0),
+  addedAt: timestamp('added_at', { withTimezone: true }).defaultNow(),
+}, (table) => [
+  index('idx_rli_list').on(table.readingListId),
+]);
+
+// ─── User preferences ──────────────────────────────────────────────
+
+export const userPreferences = pgTable('user_preferences', {
+  userId: text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  defaultRegionId: text('default_region_id').references(() => regions.id),
+  theme: text('theme', { enum: ['system', 'dark', 'light'] }).default('system'),
+  articlesPerPage: integer('articles_per_page').default(20),
+  autoMarkRead: boolean('auto_mark_read').default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
 // ─── Relations ──────────────────────────────────────────────────────
+
+export const usersRelations = relations(users, ({ many, one }) => ({
+  accounts: many(accounts),
+  sessions: many(sessions),
+  userArticleStates: many(userArticleStates),
+  readingLists: many(readingLists),
+  preferences: one(userPreferences, {
+    fields: [users.id],
+    references: [userPreferences.userId],
+  }),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
 
 export const regionsRelations = relations(regions, ({ many }) => ({
   categories: many(categories),
@@ -119,17 +240,64 @@ export const feedsRelations = relations(feeds, ({ one, many }) => ({
     references: [categories.id],
   }),
   articles: many(articles),
+  submittedBy: one(users, {
+    fields: [feeds.submittedByUserId],
+    references: [users.id],
+  }),
 }));
 
-export const articlesRelations = relations(articles, ({ one }) => ({
+export const articlesRelations = relations(articles, ({ one, many }) => ({
   feed: one(feeds, {
     fields: [articles.feedId],
     references: [feeds.id],
+  }),
+  userStates: many(userArticleStates),
+}));
+
+export const userArticleStatesRelations = relations(userArticleStates, ({ one }) => ({
+  user: one(users, {
+    fields: [userArticleStates.userId],
+    references: [users.id],
+  }),
+  article: one(articles, {
+    fields: [userArticleStates.articleId],
+    references: [articles.id],
+  }),
+}));
+
+export const readingListsRelations = relations(readingLists, ({ one, many }) => ({
+  user: one(users, {
+    fields: [readingLists.userId],
+    references: [users.id],
+  }),
+  items: many(readingListItems),
+}));
+
+export const readingListItemsRelations = relations(readingListItems, ({ one }) => ({
+  readingList: one(readingLists, {
+    fields: [readingListItems.readingListId],
+    references: [readingLists.id],
+  }),
+  article: one(articles, {
+    fields: [readingListItems.articleId],
+    references: [articles.id],
+  }),
+}));
+
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id],
+  }),
+  defaultRegion: one(regions, {
+    fields: [userPreferences.defaultRegionId],
+    references: [regions.id],
   }),
 }));
 
 // ─── Types ──────────────────────────────────────────────────────────
 
+export type User = typeof users.$inferSelect;
 export type Region = typeof regions.$inferSelect;
 export type NewRegion = typeof regions.$inferInsert;
 export type Category = typeof categories.$inferSelect;
@@ -138,3 +306,7 @@ export type Feed = typeof feeds.$inferSelect;
 export type NewFeed = typeof feeds.$inferInsert;
 export type Article = typeof articles.$inferSelect;
 export type NewArticle = typeof articles.$inferInsert;
+export type UserArticleState = typeof userArticleStates.$inferSelect;
+export type ReadingList = typeof readingLists.$inferSelect;
+export type ReadingListItem = typeof readingListItems.$inferSelect;
+export type UserPreferences = typeof userPreferences.$inferSelect;

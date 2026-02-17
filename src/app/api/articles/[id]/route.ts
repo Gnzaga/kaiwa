@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { requireSession } from '@/lib/auth-helpers';
 import { boss, ensureBossStarted, QUEUE_SCRAPE, QUEUE_TRANSLATION, QUEUE_SUMMARIZATION } from '@/lib/queue';
 
 export async function GET(
@@ -8,23 +9,51 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await requireSession();
+    const userId = session.user.id;
     const { id } = await params;
     const articleId = parseInt(id, 10);
     if (isNaN(articleId)) {
       return NextResponse.json({ error: 'Invalid article ID' }, { status: 400 });
     }
 
-    const article = await db.query.articles.findFirst({
-      where: eq(schema.articles.id, articleId),
-      with: { feed: true },
-    });
+    const rows = await db
+      .select({
+        article: schema.articles,
+        feed: schema.feeds,
+        isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
+        isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
+        isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
+      })
+      .from(schema.articles)
+      .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+      .leftJoin(
+        schema.userArticleStates,
+        and(
+          eq(schema.userArticleStates.articleId, schema.articles.id),
+          eq(schema.userArticleStates.userId, userId),
+        ),
+      )
+      .where(eq(schema.articles.id, articleId))
+      .limit(1);
 
-    if (!article) {
+    if (rows.length === 0) {
       return NextResponse.json({ error: 'Article not found' }, { status: 404 });
     }
 
+    const row = rows[0];
+    const article = {
+      ...row.article,
+      feed: row.feed,
+      sourceName: row.feed?.sourceName,
+      isRead: row.isRead,
+      isStarred: row.isStarred,
+      isArchived: row.isArchived,
+    };
+
     return NextResponse.json({ article, related: [] });
   } catch (err) {
+    if (err instanceof NextResponse) return err;
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -35,6 +64,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await requireSession();
+    const userId = session.user.id;
     const { id } = await params;
     const articleId = parseInt(id, 10);
     if (isNaN(articleId)) {
@@ -50,18 +81,79 @@ export async function PATCH(
     }
 
     const body = await request.json();
+
+    // For toggle actions, upsert into userArticleStates
+    if (body.type === 'toggleRead' || body.type === 'toggleStar' || body.type === 'toggleArchive') {
+      // Get current state
+      const existing = await db.query.userArticleStates.findFirst({
+        where: and(
+          eq(schema.userArticleStates.userId, userId),
+          eq(schema.userArticleStates.articleId, articleId),
+        ),
+      });
+
+      const now = new Date();
+      let stateUpdate: Record<string, unknown> = { updatedAt: now };
+
+      switch (body.type) {
+        case 'toggleRead': {
+          const newVal = !(existing?.isRead ?? false);
+          stateUpdate.isRead = newVal;
+          stateUpdate.readAt = newVal ? now : null;
+          break;
+        }
+        case 'toggleStar': {
+          const newVal = !(existing?.isStarred ?? false);
+          stateUpdate.isStarred = newVal;
+          stateUpdate.starredAt = newVal ? now : null;
+          break;
+        }
+        case 'toggleArchive': {
+          const newVal = !(existing?.isArchived ?? false);
+          stateUpdate.isArchived = newVal;
+          stateUpdate.archivedAt = newVal ? now : null;
+          break;
+        }
+      }
+
+      if (existing) {
+        await db
+          .update(schema.userArticleStates)
+          .set(stateUpdate)
+          .where(
+            and(
+              eq(schema.userArticleStates.userId, userId),
+              eq(schema.userArticleStates.articleId, articleId),
+            ),
+          );
+      } else {
+        await db.insert(schema.userArticleStates).values({
+          userId,
+          articleId,
+          isRead: false,
+          isStarred: false,
+          isArchived: false,
+          ...stateUpdate,
+        });
+      }
+
+      // Return the updated article with user state
+      const state = existing
+        ? { ...existing, ...stateUpdate }
+        : { isRead: false, isStarred: false, isArchived: false, ...stateUpdate };
+
+      return NextResponse.json({
+        ...article,
+        isRead: state.isRead,
+        isStarred: state.isStarred,
+        isArchived: state.isArchived,
+      });
+    }
+
+    // Article-level operations (retranslate, resummarize, rescrape)
     const updates: Record<string, unknown> = { updatedAt: new Date() };
 
     switch (body.type) {
-      case 'toggleRead':
-        updates.isRead = !article.isRead;
-        break;
-      case 'toggleStar':
-        updates.isStarred = !article.isStarred;
-        break;
-      case 'toggleArchive':
-        updates.isArchived = !article.isArchived;
-        break;
       case 'retranslate':
         updates.translationStatus = 'pending';
         updates.translationError = null;
@@ -81,10 +173,6 @@ export async function PATCH(
         await boss.send(QUEUE_SCRAPE, { articleId });
         break;
       default:
-        // Legacy: direct boolean fields
-        if (typeof body.isRead === 'boolean') updates.isRead = body.isRead;
-        if (typeof body.isStarred === 'boolean') updates.isStarred = body.isStarred;
-        if (typeof body.isArchived === 'boolean') updates.isArchived = body.isArchived;
         break;
     }
 
@@ -96,6 +184,7 @@ export async function PATCH(
 
     return NextResponse.json(updated);
   } catch (err) {
+    if (err instanceof NextResponse) return err;
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
