@@ -36,7 +36,9 @@ export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const { data } = useQuery<SearchResponse>({
@@ -53,6 +55,7 @@ export default function CommandPalette() {
         e.preventDefault();
         setOpen((v) => !v);
         setQuery('');
+        setSelectedIdx(-1);
       }
       if (e.key === 'Escape') setOpen(false);
     }
@@ -67,9 +70,44 @@ export default function CommandPalette() {
     }
   }, [open]);
 
+  // Reset selection when query changes
+  useEffect(() => { setSelectedIdx(-1); }, [query]);
+
   if (!open) return null;
 
   const results = data?.data ?? [];
+  const isSearchMode = query.length > 1;
+
+  // Unified items list for keyboard navigation
+  // Search mode: results + "see all" sentinel (id=-1)
+  // Recent mode: recent articles
+  const navItems: { id: number; href: string }[] = isSearchMode
+    ? [...results.map(r => ({ id: r.id, href: `/article/${r.id}` })),
+       ...(results.length > 0 ? [{ id: -1, href: `/search?q=${encodeURIComponent(query)}` }] : [])]
+    : recentArticles.map(a => ({ id: a.id, href: `/article/${a.id}` }));
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = Math.min(selectedIdx + 1, navItems.length - 1);
+      setSelectedIdx(next);
+      // Scroll selected item into view
+      setTimeout(() => {
+        listRef.current?.querySelector(`[data-idx="${next}"]`)?.scrollIntoView({ block: 'nearest' });
+      }, 0);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIdx((v) => Math.max(v - 1, -1));
+    } else if (e.key === 'Enter') {
+      if (selectedIdx >= 0 && navItems[selectedIdx]) {
+        setOpen(false);
+        router.push(navItems[selectedIdx].href);
+      } else if (query.trim()) {
+        setOpen(false);
+        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      }
+    }
+  }
 
   return (
     <div
@@ -88,25 +126,21 @@ export default function CommandPalette() {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && query.trim()) {
-                setOpen(false);
-                router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-              }
-            }}
+            onKeyDown={handleKeyDown}
             placeholder="Search articles... (Enter for full results)"
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none"
           />
           <kbd className="text-xs text-text-tertiary font-mono">Esc</kbd>
         </div>
 
-        {results.length > 0 && (
-          <div className="divide-y divide-border max-h-80 overflow-y-auto">
-            {results.map((article) => (
+        {isSearchMode && results.length > 0 && (
+          <div ref={listRef} className="divide-y divide-border max-h-80 overflow-y-auto">
+            {results.map((article, i) => (
               <button
                 key={article.id}
+                data-idx={i}
                 onClick={() => { setOpen(false); router.push(`/article/${article.id}`); }}
-                className="w-full text-left px-4 py-3 hover:bg-bg-primary transition-colors"
+                className={`w-full text-left px-4 py-3 transition-colors ${selectedIdx === i ? 'bg-bg-primary' : 'hover:bg-bg-primary'}`}
               >
                 <div className="text-sm text-text-primary line-clamp-1">
                   {article.translatedTitle || article.originalTitle}
@@ -118,27 +152,29 @@ export default function CommandPalette() {
               </button>
             ))}
             <button
+              data-idx={results.length}
               onClick={() => { setOpen(false); router.push(`/search?q=${encodeURIComponent(query)}`); }}
-              className="w-full text-left px-4 py-3 text-xs text-accent-primary hover:text-accent-highlight transition-colors"
+              className={`w-full text-left px-4 py-3 text-xs text-accent-primary transition-colors ${selectedIdx === results.length ? 'bg-bg-primary text-accent-highlight' : 'hover:text-accent-highlight'}`}
             >
               See all results for &quot;{query}&quot; →
             </button>
           </div>
         )}
 
-        {query.length > 1 && results.length === 0 && (
+        {isSearchMode && results.length === 0 && (
           <div className="px-4 py-6 text-center text-sm text-text-tertiary">No results</div>
         )}
 
-        {query.length <= 1 && recentArticles.length > 0 && (
+        {!isSearchMode && recentArticles.length > 0 && (
           <div>
             <div className="px-4 pt-3 pb-1 text-xs text-text-tertiary font-medium uppercase tracking-wider">Recently Viewed</div>
-            <div className="divide-y divide-border">
-              {recentArticles.map((article) => (
+            <div ref={listRef} className="divide-y divide-border">
+              {recentArticles.map((article, i) => (
                 <button
                   key={article.id}
+                  data-idx={i}
                   onClick={() => { setOpen(false); router.push(`/article/${article.id}`); }}
-                  className="w-full text-left px-4 py-2.5 hover:bg-bg-primary transition-colors"
+                  className={`w-full text-left px-4 py-2.5 transition-colors ${selectedIdx === i ? 'bg-bg-primary' : 'hover:bg-bg-primary'}`}
                 >
                   <div className="text-sm text-text-primary line-clamp-1">{article.title}</div>
                   {article.source && <div className="text-xs text-text-tertiary mt-0.5">{article.source}</div>}
@@ -146,12 +182,12 @@ export default function CommandPalette() {
               ))}
             </div>
             <div className="px-4 py-2 text-xs text-text-tertiary border-t border-border">
-              Type to search · Enter for full results · Esc to close
+              ↑↓ to navigate · Enter to open · Esc to close
             </div>
           </div>
         )}
 
-        {query.length <= 1 && recentArticles.length === 0 && (
+        {!isSearchMode && recentArticles.length === 0 && (
           <div className="px-4 py-3 text-xs text-text-tertiary">
             Type to search, Enter for full results, Esc to close
           </div>
