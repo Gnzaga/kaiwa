@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { requireSession } from '@/lib/auth-helpers';
 import { boss, ensureBossStarted, QUEUE_SCRAPE, QUEUE_TRANSLATION, QUEUE_SUMMARIZATION } from '@/lib/queue';
@@ -51,7 +51,53 @@ export async function GET(
       isArchived: row.isArchived,
     };
 
-    return NextResponse.json({ article, related: [] });
+    // Find related articles by matching tags
+    const tags = row.article.summaryTags as string[] | null;
+    let relatedArticles: Record<string, unknown>[] = [];
+    if (tags && tags.length > 0) {
+      const relatedRows = await db
+        .select({
+          id: schema.articles.id,
+          originalTitle: schema.articles.originalTitle,
+          translatedTitle: schema.articles.translatedTitle,
+          originalUrl: schema.articles.originalUrl,
+          publishedAt: schema.articles.publishedAt,
+          summaryTldr: schema.articles.summaryTldr,
+          summaryTags: schema.articles.summaryTags,
+          summarySentiment: schema.articles.summarySentiment,
+          summaryStatus: schema.articles.summaryStatus,
+          translationStatus: schema.articles.translationStatus,
+          translationProvider: schema.articles.translationProvider,
+          sourceLanguage: schema.articles.sourceLanguage,
+          imageUrl: schema.articles.imageUrl,
+          feedId: schema.articles.feedId,
+          sourceName: schema.feeds.sourceName,
+          isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
+          isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
+          isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
+        })
+        .from(schema.articles)
+        .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .leftJoin(
+          schema.userArticleStates,
+          and(
+            eq(schema.userArticleStates.articleId, schema.articles.id),
+            eq(schema.userArticleStates.userId, userId),
+          ),
+        )
+        .where(
+          and(
+            sql`${schema.articles.id} != ${articleId}`,
+            sql`${schema.articles.summaryTags} ?| array[${sql.join(tags.map((t) => sql`${t}`), sql`, `)}]`,
+          ),
+        )
+        .orderBy(desc(schema.articles.publishedAt))
+        .limit(5);
+
+      relatedArticles = relatedRows;
+    }
+
+    return NextResponse.json({ article, related: relatedArticles });
   } catch (err) {
     if (err instanceof NextResponse) return err;
     const message = err instanceof Error ? err.message : 'Unknown error';
