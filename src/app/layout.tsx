@@ -8,6 +8,7 @@ import GlobalShortcuts from '@/components/ui/GlobalShortcuts';
 import KeyboardShortcutsHelp from '@/components/ui/KeyboardShortcutsHelp';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import { ToastProvider } from '@/components/ui/Toast';
+import DynamicTitle from '@/components/ui/DynamicTitle';
 
 export const metadata: Metadata = {
   title: 'Kaiwa - Multi-National Media Intelligence',
@@ -35,6 +36,7 @@ export default function RootLayout({
             <GlobalShortcuts />
             <KeyboardShortcutsHelp />
             <ScrollToTop />
+            <DynamicTitle />
           </ToastProvider>
           </QueryProvider>
         </AuthSessionProvider>
