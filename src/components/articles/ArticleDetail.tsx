@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import Tag from '@/components/ui/Tag';
@@ -92,6 +92,13 @@ export default function ArticleDetail({ id }: { id: number }) {
     );
   }
 
+  const [copied, setCopied] = useState(false);
+  const copyLink = useCallback(() => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
+
   const { article, related } = data;
   const title = article.translatedTitle || article.originalTitle;
   const content = article.translatedContent || article.originalContent;
@@ -180,6 +187,19 @@ export default function ArticleDetail({ id }: { id: number }) {
             </div>
           )}
         </div>
+
+        <ActionButton onClick={copyLink} active={copied}>
+          {copied ? 'Copied!' : 'Copy Link'}
+        </ActionButton>
+
+        <a
+          href={article.originalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+        >
+          Source ↗
+        </a>
 
         <ActionButton onClick={() => actionMutation.mutate({ type: 'retranslate' })}>
           Re-translate
