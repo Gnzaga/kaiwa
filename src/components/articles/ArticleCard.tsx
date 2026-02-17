@@ -134,6 +134,11 @@ export default function ArticleCard({
                   NEW
                 </span>
               )}
+              {article.sourceLanguage && article.sourceLanguage !== 'en' && (
+                <span className="px-1 py-0.5 text-[9px] font-mono uppercase border border-border rounded text-text-tertiary" title={`Source: ${article.sourceLanguage}`}>
+                  {article.sourceLanguage}
+                </span>
+              )}
               <div className="flex items-center gap-1 ml-auto">
                 {isStarred && (
                   <span className="text-accent-highlight" title="Starred">★</span>

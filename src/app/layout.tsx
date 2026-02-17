@@ -24,12 +24,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-bg-primary text-text-primary font-sans antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent-primary focus:text-white focus:rounded focus:text-sm"
+        >
+          Skip to main content
+        </a>
         <AuthSessionProvider>
           <QueryProvider>
           <ToastProvider>
             <div className="flex min-h-screen">
               <Sidebar />
-              <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+              <main id="main-content" className="flex-1 overflow-y-auto pb-20 md:pb-0">
                 {children}
               </main>
             </div>
