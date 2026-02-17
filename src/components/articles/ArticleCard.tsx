@@ -30,12 +30,15 @@ function relativeTime(date: Date | string): string {
 export default function ArticleCard({
   article,
   sourceName,
+  categorySlug,
   variant = 'default',
 }: {
-  article: Article & { imageUrl?: string | null };
+  article: Article & { imageUrl?: string | null; categorySlug?: string | null };
   sourceName?: string;
+  categorySlug?: string | null;
   variant?: 'default' | 'hero' | 'compact';
 }) {
+  const displayCategory = categorySlug ?? (article as Article & { categorySlug?: string | null }).categorySlug;
   const title = article.translatedTitle || article.originalTitle;
   const showOriginal = article.translatedTitle && article.translatedTitle !== article.originalTitle;
   const imageUrl = article.imageUrl;
@@ -116,6 +119,11 @@ export default function ArticleCard({
           <div>
             <div className="flex items-center gap-2 text-xs text-text-tertiary mb-1">
               {sourceName && <span className="font-medium text-accent-primary">{sourceName}</span>}
+              {displayCategory && (
+                <span className="px-1.5 py-0.5 rounded bg-bg-elevated text-text-tertiary border border-border capitalize text-[10px]">
+                  {displayCategory}
+                </span>
+              )}
               <span>{relativeTime(article.publishedAt)}</span>
               {rt && <span>{rt} read</span>}
               <div className="flex items-center gap-1 ml-auto">
