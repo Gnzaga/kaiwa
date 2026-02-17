@@ -43,6 +43,8 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
 
   const [editingNote, setEditingNote] = useState<number | null>(null); // articleId being edited
   const [noteText, setNoteText] = useState('');
+  const [editingName, setEditingName] = useState(false);
+  const [nameText, setNameText] = useState('');
 
   const removeMutation = useMutation({
     mutationFn: (articleId: number) =>
@@ -52,6 +54,20 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         body: JSON.stringify({ articleId }),
       }).then(r => r.json()),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reading-list', id] }),
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: (name: string) =>
+      fetch(`/api/reading-lists/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      }).then(r => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reading-list', id] });
+      queryClient.invalidateQueries({ queryKey: ['reading-lists'] });
+      setEditingName(false);
+    },
   });
 
   const noteMutation = useMutation({
@@ -119,7 +135,33 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         <Link href="/lists" className="text-xs text-text-tertiary hover:text-text-secondary transition-colors">
           &larr; All Lists
         </Link>
-        <h1 className="text-2xl font-semibold text-text-primary">{data.list.name}</h1>
+        {editingName ? (
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              value={nameText}
+              onChange={(e) => setNameText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && nameText.trim()) renameMutation.mutate(nameText.trim());
+                if (e.key === 'Escape') setEditingName(false);
+              }}
+              className="text-2xl font-semibold bg-transparent border-b border-accent-primary text-text-primary focus:outline-none"
+            />
+            <button
+              onClick={() => nameText.trim() && renameMutation.mutate(nameText.trim())}
+              className="text-xs text-accent-primary hover:text-accent-highlight"
+            >Save</button>
+            <button onClick={() => setEditingName(false)} className="text-xs text-text-tertiary">Cancel</button>
+          </div>
+        ) : (
+          <h1
+            className="text-2xl font-semibold text-text-primary cursor-pointer hover:text-accent-primary transition-colors"
+            onClick={() => { setNameText(data.list.name); setEditingName(true); }}
+            title="Click to rename"
+          >
+            {data.list.name}
+          </h1>
+        )}
         {data.list.description && <p className="text-sm text-text-tertiary">{data.list.description}</p>}
         <div className="flex items-center gap-3">
           <p className="text-xs text-text-tertiary">{data.total} article{data.total !== 1 ? 's' : ''}</p>

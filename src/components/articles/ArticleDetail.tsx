@@ -189,7 +189,7 @@ export default function ArticleDetail({ id }: { id: number }) {
               day: 'numeric',
             })}
           </span>
-          {readingMins > 0 && <span>{readingMins} min read</span>}
+          {readingMins > 0 && <span>{readingMins} min read · {wordCount.toLocaleString()} words</span>}
           <StatusIndicator status={article.translationStatus ?? 'pending'} tooltip={`Translation: ${article.translationStatus}`} />
           <StatusIndicator status={article.summaryStatus ?? 'pending'} tooltip={`Summary: ${article.summaryStatus}`} />
         </div>
