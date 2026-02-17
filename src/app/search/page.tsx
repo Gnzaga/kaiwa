@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import type { Article } from '@/db/schema';
 import SearchBar, { type SearchFilters } from '@/components/search/SearchBar';
 import ArticleCard from '@/components/articles/ArticleCard';
@@ -14,11 +15,23 @@ interface SearchResponse {
 }
 
 export default function SearchPage() {
+  const searchParams = useSearchParams();
+  const initialQ = searchParams.get('q') ?? '';
+
   const [filters, setFilters] = useState<SearchFilters>({
-    query: '',
+    query: initialQ,
     region: '',
     dateRange: '',
   });
+
+  // Sync URL ?q= changes (e.g. from tag cloud links)
+  useEffect(() => {
+    const q = searchParams.get('q') ?? '';
+    if (q && q !== filters.query) {
+      setFilters((f) => ({ ...f, query: q }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const hasQuery = filters.query.length > 0;
 
