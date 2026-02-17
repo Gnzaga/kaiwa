@@ -1,0 +1,154 @@
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+
+interface StatsResponse {
+  totals: {
+    totalRead: number;
+    totalStarred: number;
+    totalArchived: number;
+    readToday: number;
+    readThisWeek: number;
+  };
+  topRegions: { regionId: string; regionName: string; flagEmoji: string; count: number }[];
+  topTags: { tag: string; count: number }[];
+  listCount: number;
+  dailyActivity: { day: string; count: number }[];
+}
+
+export default function StatsPage() {
+  const { data, isLoading } = useQuery<StatsResponse>({
+    queryKey: ['user-stats'],
+    queryFn: () => fetch('/api/user/stats').then((r) => r.json()),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-28 bg-bg-secondary border border-border rounded animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  const { totals, topRegions, topTags, listCount, dailyActivity } = data ?? {
+    totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0 },
+    topRegions: [],
+    topTags: [],
+    listCount: 0,
+    dailyActivity: [],
+  };
+
+  // Build 30-day calendar grid
+  const today = new Date();
+  const days: { date: string; count: number }[] = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const entry = dailyActivity.find((a) => a.day === dateStr);
+    days.push({ date: dateStr, count: entry ? Number(entry.count) : 0 });
+  }
+  const maxDay = Math.max(...days.map((d) => d.count), 1);
+
+  return (
+    <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8">
+      <header>
+        <h1 className="text-2xl font-semibold text-text-primary">Your Stats</h1>
+        <p className="text-xs text-text-tertiary mt-1">Reading activity overview</p>
+      </header>
+
+      {/* Overview cards */}
+      <section className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <StatCard label="Read Today" value={totals.readToday} highlight />
+        <StatCard label="This Week" value={totals.readThisWeek} />
+        <StatCard label="Total Read" value={totals.totalRead} />
+        <StatCard label="Starred" value={totals.totalStarred} />
+        <StatCard label="Reading Lists" value={listCount} />
+      </section>
+
+      {/* Activity heatmap */}
+      <section className="space-y-3">
+        <h2 className="text-base font-medium text-text-primary">30-Day Activity</h2>
+        <div className="flex gap-1 flex-wrap">
+          {days.map(({ date, count }) => {
+            const intensity = count === 0 ? 0 : Math.ceil((count / maxDay) * 4);
+            const bg = ['bg-bg-elevated', 'bg-accent-secondary/30', 'bg-accent-secondary/50', 'bg-accent-primary/60', 'bg-accent-primary'][intensity];
+            return (
+              <div
+                key={date}
+                title={`${date}: ${count} articles`}
+                className={`w-7 h-7 rounded-sm ${bg} border border-border/50 flex items-center justify-center`}
+              >
+                {count > 0 && (
+                  <span className="text-[9px] font-mono text-text-primary/70">{count}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-text-tertiary">Each square = one day. Darker = more articles read.</p>
+      </section>
+
+      {/* Top regions + tags side by side */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* Top regions */}
+        <section className="space-y-3">
+          <h2 className="text-base font-medium text-text-primary">Top Regions</h2>
+          {topRegions.length === 0 ? (
+            <p className="text-sm text-text-tertiary">No data yet</p>
+          ) : (
+            <div className="space-y-2">
+              {topRegions.map((r) => {
+                const maxCount = Math.max(...topRegions.map((x) => Number(x.count)));
+                const pct = Math.round((Number(r.count) / maxCount) * 100);
+                return (
+                  <div key={r.regionId} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-text-secondary">{r.flagEmoji} {r.regionName}</span>
+                      <span className="text-text-tertiary font-mono">{r.count}</span>
+                    </div>
+                    <div className="h-1.5 bg-bg-elevated rounded-full overflow-hidden">
+                      <div className="h-full bg-accent-primary rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Top tags */}
+        <section className="space-y-3">
+          <h2 className="text-base font-medium text-text-primary">Top Tags</h2>
+          {topTags.length === 0 ? (
+            <p className="text-sm text-text-tertiary">No data yet</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {topTags.map(({ tag, count }) => (
+                <span
+                  key={tag}
+                  className="px-2.5 py-1 bg-bg-elevated border border-border rounded-full text-xs text-text-secondary"
+                >
+                  {tag} <span className="text-text-tertiary font-mono">{count}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className="bg-bg-elevated border border-border rounded p-4">
+      <div className="text-xs text-text-tertiary mb-1">{label}</div>
+      <div className={`text-2xl font-mono ${highlight ? 'text-accent-primary' : 'text-text-primary'}`}>
+        {value}
+      </div>
+    </div>
+  );
+}
