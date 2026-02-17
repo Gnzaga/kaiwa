@@ -33,6 +33,7 @@ export async function GET(
       db
         .select({
           itemId: schema.readingListItems.id,
+          note: schema.readingListItems.note,
           sortOrder: schema.readingListItems.sortOrder,
           addedAt: schema.readingListItems.addedAt,
           articleId: schema.articles.id,

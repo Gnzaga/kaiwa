@@ -172,6 +172,7 @@ export const readingListItems = pgTable('reading_list_items', {
   id: serial('id').primaryKey(),
   readingListId: integer('reading_list_id').notNull().references(() => readingLists.id, { onDelete: 'cascade' }),
   articleId: integer('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
+  note: text('note'),
   sortOrder: integer('sort_order').default(0),
   addedAt: timestamp('added_at', { withTimezone: true }).defaultNow(),
 }, (table) => [

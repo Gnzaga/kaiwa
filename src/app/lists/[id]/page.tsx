@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -12,6 +12,7 @@ interface ListDetail {
   };
   data: {
     itemId: number;
+    note: string | null;
     sortOrder: number;
     addedAt: string;
     articleId: number;
@@ -40,6 +41,9 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
     queryFn: () => fetch(`/api/reading-lists/${id}`).then(r => r.json()),
   });
 
+  const [editingNote, setEditingNote] = useState<number | null>(null); // articleId being edited
+  const [noteText, setNoteText] = useState('');
+
   const removeMutation = useMutation({
     mutationFn: (articleId: number) =>
       fetch(`/api/reading-lists/${id}/items`, {
@@ -48,6 +52,19 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         body: JSON.stringify({ articleId }),
       }).then(r => r.json()),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reading-list', id] }),
+  });
+
+  const noteMutation = useMutation({
+    mutationFn: ({ articleId, note }: { articleId: number; note: string }) =>
+      fetch(`/api/reading-lists/${id}/items`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articleId, note }),
+      }).then(r => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reading-list', id] });
+      setEditingNote(null);
+    },
   });
 
   if (isLoading) {
@@ -106,13 +123,54 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
                   {item.feedSourceName && <span>{item.feedSourceName}</span>}
                   <span>{new Date(item.publishedAt).toLocaleDateString()}</span>
                 </div>
+                {/* Note display / edit */}
+                {editingNote === item.articleId ? (
+                  <div className="mt-2 flex flex-col gap-1.5">
+                    <textarea
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      placeholder="Add a note..."
+                      className="w-full text-xs bg-bg-secondary border border-border rounded px-2 py-1.5 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary resize-none"
+                      rows={2}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => noteMutation.mutate({ articleId: item.articleId, note: noteText })}
+                        disabled={noteMutation.isPending}
+                        className="text-xs text-accent-primary hover:text-accent-highlight transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingNote(null)}
+                        className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : item.note ? (
+                  <p className="mt-1.5 text-xs text-text-secondary italic border-l-2 border-accent-primary/40 pl-2">{item.note}</p>
+                ) : null}
               </div>
-              <button
-                onClick={() => removeMutation.mutate(item.articleId)}
-                className="text-xs text-text-tertiary hover:text-accent-highlight transition-colors shrink-0"
-              >
-                Remove
-              </button>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <button
+                  onClick={() => removeMutation.mutate(item.articleId)}
+                  className="text-xs text-text-tertiary hover:text-accent-highlight transition-colors"
+                >
+                  Remove
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingNote(item.articleId);
+                    setNoteText(item.note ?? '');
+                  }}
+                  className="text-xs text-text-tertiary hover:text-accent-primary transition-colors"
+                >
+                  {item.note ? 'Edit note' : 'Add note'}
+                </button>
+              </div>
             </div>
           ))}
         </div>
