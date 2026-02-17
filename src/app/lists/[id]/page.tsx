@@ -46,6 +46,7 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
   const [noteText, setNoteText] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [nameText, setNameText] = useState('');
+  const [listFilter, setListFilter] = useState('');
 
   const removeMutation = useMutation({
     mutationFn: (articleId: number) =>
@@ -202,9 +203,19 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
+      {data.data.length > 4 && (
+        <input
+          type="text"
+          placeholder="Filter articles in this list..."
+          value={listFilter}
+          onChange={(e) => setListFilter(e.target.value)}
+          className="w-full bg-bg-elevated border border-border rounded px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary"
+        />
+      )}
+
       {data.data.length > 0 ? (
         <div className="space-y-3">
-          {data.data.map(item => (
+          {data.data.filter(item => !listFilter || (item.translatedTitle || item.originalTitle).toLowerCase().includes(listFilter.toLowerCase())).map(item => (
             <div key={item.itemId} className="flex items-start gap-4 bg-bg-elevated border border-border rounded px-5 py-4">
               {item.imageUrl && (
                 <img
