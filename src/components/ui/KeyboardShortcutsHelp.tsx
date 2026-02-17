@@ -18,6 +18,7 @@ const shortcuts = [
   { key: 's', description: 'Star / Unstar article' },
   { key: 'r', description: 'Mark Read / Unread' },
   { key: 'a', description: 'Archive / Unarchive' },
+  { key: 'o', description: 'Open original source' },
 ];
 
 export default function KeyboardShortcutsHelp() {

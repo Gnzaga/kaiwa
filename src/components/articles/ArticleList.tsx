@@ -30,14 +30,23 @@ export default function ArticleList({
 }) {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<SortOption>('newest');
+  const [sort, setSort] = useState<SortOption>(() => {
+    if (typeof window === 'undefined') return 'newest';
+    return (localStorage.getItem('article-sort') as SortOption) ?? 'newest';
+  });
   const [sourceFilter, setSourceFilter] = useState('');
   const [tagFilter, setTagFilter] = useState('');
-  const [readFilter, setReadFilter] = useState<'' | 'read' | 'unread'>('');
+  const [readFilter, setReadFilter] = useState<'' | 'read' | 'unread'>(() => {
+    if (typeof window === 'undefined') return '';
+    return (localStorage.getItem('article-read-filter') as '' | 'read' | 'unread') ?? '';
+  });
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [markingRead, setMarkingRead] = useState(false);
   const [datePreset, setDatePreset] = useState<'' | 'today' | '7d' | '30d'>('');
-  const [viewMode, setViewMode] = useState<'expanded' | 'compact'>('expanded');
+  const [viewMode, setViewMode] = useState<'expanded' | 'compact'>(() => {
+    if (typeof window === 'undefined') return 'expanded';
+    return (localStorage.getItem('article-view-mode') as 'expanded' | 'compact') ?? 'expanded';
+  });
 
   function getDateFrom(preset: '' | 'today' | '7d' | '30d'): string {
     if (!preset) return '';
@@ -93,7 +102,7 @@ export default function ArticleList({
         {/* Sort */}
         <select
           value={sort}
-          onChange={(e) => { setSort(e.target.value as SortOption); setPage(1); }}
+          onChange={(e) => { const v = e.target.value as SortOption; setSort(v); localStorage.setItem('article-sort', v); setPage(1); }}
           className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
         >
           <option value="newest">Newest</option>
@@ -123,7 +132,7 @@ export default function ArticleList({
         {/* Read/Unread */}
         <select
           value={readFilter}
-          onChange={(e) => { setReadFilter(e.target.value as '' | 'read' | 'unread'); setPage(1); }}
+          onChange={(e) => { const v = e.target.value as '' | 'read' | 'unread'; setReadFilter(v); localStorage.setItem('article-read-filter', v); setPage(1); }}
           className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
         >
           <option value="">All</option>
@@ -164,7 +173,7 @@ export default function ArticleList({
         {/* View mode toggle */}
         <div className="flex items-center border border-border rounded overflow-hidden">
           <button
-            onClick={() => setViewMode('expanded')}
+            onClick={() => { setViewMode('expanded'); localStorage.setItem('article-view-mode', 'expanded'); }}
             title="Expanded view"
             className={`px-2 py-1.5 transition-colors ${viewMode === 'expanded' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
           >
@@ -174,7 +183,7 @@ export default function ArticleList({
             </svg>
           </button>
           <button
-            onClick={() => setViewMode('compact')}
+            onClick={() => { setViewMode('compact'); localStorage.setItem('article-view-mode', 'compact'); }}
             title="Compact view"
             className={`px-2 py-1.5 transition-colors ${viewMode === 'compact' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
           >
