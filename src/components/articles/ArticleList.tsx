@@ -277,9 +277,23 @@ export default function ArticleList({
           >
             Prev
           </button>
-          <span className="text-sm text-text-tertiary font-mono">
-            {page} / {totalPages}
-          </span>
+          {totalPages > 5 ? (
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={page}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                if (v >= 1 && v <= totalPages) setPage(v);
+              }}
+              className="w-16 text-center text-sm font-mono bg-bg-elevated border border-border rounded px-2 py-1 text-text-primary focus:outline-none focus:border-accent-primary"
+              title={`Page ${page} of ${totalPages}`}
+            />
+          ) : (
+            <span className="text-sm text-text-tertiary font-mono">{page} / {totalPages}</span>
+          )}
+          <span className="text-xs text-text-tertiary">of {totalPages}</span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
