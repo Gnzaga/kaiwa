@@ -35,6 +35,16 @@ export default function ArticleList({
   const [readFilter, setReadFilter] = useState<'' | 'read' | 'unread'>('');
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [markingRead, setMarkingRead] = useState(false);
+  const [datePreset, setDatePreset] = useState<'' | 'today' | '7d' | '30d'>('');
+
+  function getDateFrom(preset: '' | 'today' | '7d' | '30d'): string {
+    if (!preset) return '';
+    const d = new Date();
+    if (preset === 'today') d.setHours(0, 0, 0, 0);
+    else if (preset === '7d') d.setDate(d.getDate() - 7);
+    else if (preset === '30d') d.setDate(d.getDate() - 30);
+    return d.toISOString();
+  }
 
   const params = new URLSearchParams();
   params.set('page', String(page));
@@ -49,6 +59,8 @@ export default function ArticleList({
   if (isStarred) params.set('isStarred', 'true');
   if (isArchived) params.set('isArchived', 'true');
   if (sentimentFilter) params.set('sentiment', sentimentFilter);
+  const dateFrom = getDateFrom(datePreset);
+  if (dateFrom) params.set('dateFrom', dateFrom);
 
   const handleMarkAllRead = async () => {
     setMarkingRead(true);
@@ -65,7 +77,7 @@ export default function ArticleList({
   };
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, datePreset],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
   });
 
@@ -132,6 +144,19 @@ export default function ArticleList({
           <option value="restrictive">Restrictive</option>
           <option value="permissive">Permissive</option>
         </select>
+
+        {/* Date presets */}
+        <div className="flex items-center gap-1 border border-border rounded overflow-hidden">
+          {(['', 'today', '7d', '30d'] as const).map((preset) => (
+            <button
+              key={preset || 'all'}
+              onClick={() => { setDatePreset(preset); setPage(1); }}
+              className={`px-2.5 py-1.5 text-xs transition-colors ${datePreset === preset ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
+            >
+              {preset === '' ? 'All' : preset === 'today' ? 'Today' : preset}
+            </button>
+          ))}
+        </div>
 
         <button
           onClick={handleMarkAllRead}
