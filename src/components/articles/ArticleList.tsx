@@ -32,6 +32,7 @@ export default function ArticleList({
   const [sourceFilter, setSourceFilter] = useState('');
   const [tagFilter, setTagFilter] = useState('');
   const [readFilter, setReadFilter] = useState<'' | 'read' | 'unread'>('');
+  const [sentimentFilter, setSentimentFilter] = useState('');
 
   const params = new URLSearchParams();
   params.set('page', String(page));
@@ -45,9 +46,10 @@ export default function ArticleList({
   if (readFilter === 'unread') params.set('isRead', 'false');
   if (isStarred) params.set('isStarred', 'true');
   if (isArchived) params.set('isArchived', 'true');
+  if (sentimentFilter) params.set('sentiment', sentimentFilter);
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
   });
 
@@ -96,6 +98,23 @@ export default function ArticleList({
           <option value="">All</option>
           <option value="unread">Unread</option>
           <option value="read">Read</option>
+        </select>
+
+        {/* Sentiment filter */}
+        <select
+          value={sentimentFilter}
+          onChange={(e) => { setSentimentFilter(e.target.value); setPage(1); }}
+          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+        >
+          <option value="">All Sentiment</option>
+          <option value="positive">Positive</option>
+          <option value="negative">Negative</option>
+          <option value="neutral">Neutral</option>
+          <option value="mixed">Mixed</option>
+          <option value="bullish">Bullish</option>
+          <option value="bearish">Bearish</option>
+          <option value="restrictive">Restrictive</option>
+          <option value="permissive">Permissive</option>
         </select>
       </div>
       )}

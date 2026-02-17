@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     const isRead = params.get('isRead');
     const isStarred = params.get('isStarred');
     const isArchived = params.get('isArchived');
+    const sentiment = params.get('sentiment');
     const sort = params.get('sort') ?? 'newest';
 
     const conditions = [];
@@ -64,6 +65,9 @@ export async function GET(request: NextRequest) {
     }
     if (isArchived !== null && isArchived !== undefined) {
       conditions.push(sql`COALESCE(${schema.userArticleStates.isArchived}, false) = ${isArchived === 'true'}`);
+    }
+    if (sentiment) {
+      conditions.push(eq(schema.articles.summarySentiment, sentiment));
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
