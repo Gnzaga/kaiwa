@@ -4,6 +4,22 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 
+const RECENT_ARTICLES_KEY = 'kaiwa-recent-articles';
+const MAX_RECENT_ARTICLES = 6;
+
+interface RecentArticle { id: number; title: string; source?: string; }
+
+export function trackArticleView(id: number, title: string, source?: string) {
+  if (typeof window === 'undefined') return;
+  const prev: RecentArticle[] = getRecentArticles().filter(a => a.id !== id);
+  localStorage.setItem(RECENT_ARTICLES_KEY, JSON.stringify([{ id, title, source }, ...prev].slice(0, MAX_RECENT_ARTICLES)));
+}
+
+function getRecentArticles(): RecentArticle[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(RECENT_ARTICLES_KEY) ?? '[]'); } catch { return []; }
+}
+
 interface SearchResult {
   id: number;
   translatedTitle?: string | null;
@@ -19,6 +35,7 @@ interface SearchResponse {
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -44,7 +61,10 @@ export default function CommandPalette() {
   }, []);
 
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 50);
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+      setRecentArticles(getRecentArticles());
+    }
   }, [open]);
 
   if (!open) return null;
@@ -110,7 +130,28 @@ export default function CommandPalette() {
           <div className="px-4 py-6 text-center text-sm text-text-tertiary">No results</div>
         )}
 
-        {query.length <= 1 && (
+        {query.length <= 1 && recentArticles.length > 0 && (
+          <div>
+            <div className="px-4 pt-3 pb-1 text-xs text-text-tertiary font-medium uppercase tracking-wider">Recently Viewed</div>
+            <div className="divide-y divide-border">
+              {recentArticles.map((article) => (
+                <button
+                  key={article.id}
+                  onClick={() => { setOpen(false); router.push(`/article/${article.id}`); }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-bg-primary transition-colors"
+                >
+                  <div className="text-sm text-text-primary line-clamp-1">{article.title}</div>
+                  {article.source && <div className="text-xs text-text-tertiary mt-0.5">{article.source}</div>}
+                </button>
+              ))}
+            </div>
+            <div className="px-4 py-2 text-xs text-text-tertiary border-t border-border">
+              Type to search · Enter for full results · Esc to close
+            </div>
+          </div>
+        )}
+
+        {query.length <= 1 && recentArticles.length === 0 && (
           <div className="px-4 py-3 text-xs text-text-tertiary">
             Type to search, Enter for full results, Esc to close
           </div>

@@ -8,6 +8,7 @@ import SentimentBadge from './SentimentBadge';
 import StatusIndicator from '@/components/ui/StatusIndicator';
 import ArticleCard from './ArticleCard';
 import { useToast } from '@/components/ui/Toast';
+import { trackArticleView } from '@/components/ui/CommandPalette';
 
 interface ArticleDetailResponse {
   article: Article & { sourceName?: string; imageUrl?: string | null };
@@ -126,10 +127,14 @@ export default function ArticleDetail({ id }: { id: number }) {
     );
   }
 
-  // Auto-mark read when article loads (if preference enabled)
+  // Auto-mark read + track view when article loads
   useEffect(() => {
     if (data?.article && !data.article.isRead && prefs?.autoMarkRead !== false) {
       actionMutation.mutate({ type: 'toggleRead' });
+    }
+    if (data?.article) {
+      const title = data.article.translatedTitle || data.article.originalTitle;
+      trackArticleView(id, title, data.article.sourceName);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.article?.id, prefs?.autoMarkRead]);
