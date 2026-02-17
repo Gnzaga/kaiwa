@@ -160,6 +160,7 @@ export default function ArticleDetail({ id }: { id: number }) {
   const [summaryCopied, setSummaryCopied] = useState(false);
   const [mdCopied, setMdCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const copyLink = useCallback(() => {
@@ -187,8 +188,28 @@ export default function ArticleDetail({ id }: { id: number }) {
   const wordCount = content ? content.trim().split(/\s+/).length : 0;
   const readingMins = wordCount > 0 ? Math.ceil(wordCount / 200) : 0;
 
+  // Focus mode: toggle sidebar visibility
+  useEffect(() => {
+    const sidebar = document.getElementById('kaiwa-sidebar');
+    if (sidebar) sidebar.style.display = focusMode ? 'none' : '';
+    return () => { if (sidebar) sidebar.style.display = ''; };
+  }, [focusMode]);
+
+  // Add 'f' key for focus mode toggle
+  useEffect(() => {
+    const prevHandler = window.onkeydown;
+    function handleKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'f') setFocusMode(m => !m);
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
   return (
-    <div className="max-w-3xl space-y-6 animate-fade-in">
+    <div className={`space-y-6 animate-fade-in transition-all${focusMode ? ' max-w-2xl mx-auto' : ' max-w-3xl'}`}>
       {/* Hero image */}
       {article.imageUrl && (
         <div className="rounded overflow-hidden border border-border cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
@@ -329,6 +350,14 @@ export default function ArticleDetail({ id }: { id: number }) {
         >
           Source ↗
         </a>
+
+        <button
+          onClick={() => setFocusMode(m => !m)}
+          title="Focus mode (f)"
+          className={`px-3 py-1.5 text-xs border rounded transition-colors ${focusMode ? 'border-accent-primary text-accent-primary' : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'}`}
+        >
+          {focusMode ? 'Exit Focus' : 'Focus'}
+        </button>
 
         <button
           onClick={() => window.print()}

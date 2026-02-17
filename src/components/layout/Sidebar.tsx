@@ -61,6 +61,7 @@ export default function Sidebar() {
 
   return (
     <aside
+      id="kaiwa-sidebar"
       className={`hidden md:flex flex-col h-screen bg-bg-secondary border-r border-border transition-all duration-300 ${
         collapsed ? 'w-16' : 'w-60'
       }`}

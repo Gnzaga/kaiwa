@@ -19,6 +19,7 @@ const shortcuts = [
   { key: 'r', description: 'Mark Read / Unread' },
   { key: 'a', description: 'Archive / Unarchive' },
   { key: 'o', description: 'Open original source' },
+  { key: 'f', description: 'Toggle focus mode (hides sidebar)' },
 ];
 
 export default function KeyboardShortcutsHelp() {
