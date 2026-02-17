@@ -33,12 +33,13 @@ export default function ArticleCard({
   categorySlug,
   variant = 'default',
 }: {
-  article: Article & { imageUrl?: string | null; categorySlug?: string | null };
+  article: Article & { imageUrl?: string | null; categorySlug?: string | null; isRead?: boolean | null; isStarred?: boolean | null };
   sourceName?: string;
   categorySlug?: string | null;
   variant?: 'default' | 'hero' | 'compact';
 }) {
   const displayCategory = categorySlug ?? (article as Article & { categorySlug?: string | null }).categorySlug;
+  const isRead = (article as Article & { isRead?: boolean | null }).isRead;
   const title = article.translatedTitle || article.originalTitle;
   const showOriginal = article.translatedTitle && article.translatedTitle !== article.originalTitle;
   const imageUrl = article.imageUrl;
@@ -113,7 +114,7 @@ export default function ArticleCard({
   const rt = readingTime(article.translatedContent || article.originalContent);
   return (
     <Link href={`/article/${article.id}`}>
-      <article className="flex gap-3 p-3 bg-bg-secondary border border-border rounded-xl card-hover animate-fade-in cursor-pointer group">
+      <article className={`flex gap-3 p-3 bg-bg-secondary border border-border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${isRead ? ' opacity-60 hover:opacity-100' : ''}`}>
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           {/* Source + time */}
           <div>
