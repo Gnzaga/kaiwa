@@ -36,6 +36,7 @@ export default function ArticleList({
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [markingRead, setMarkingRead] = useState(false);
   const [datePreset, setDatePreset] = useState<'' | 'today' | '7d' | '30d'>('');
+  const [viewMode, setViewMode] = useState<'expanded' | 'compact'>('expanded');
 
   function getDateFrom(preset: '' | 'today' | '7d' | '30d'): string {
     if (!preset) return '';
@@ -158,6 +159,31 @@ export default function ArticleList({
           ))}
         </div>
 
+        {/* View mode toggle */}
+        <div className="flex items-center border border-border rounded overflow-hidden">
+          <button
+            onClick={() => setViewMode('expanded')}
+            title="Expanded view"
+            className={`px-2 py-1.5 transition-colors ${viewMode === 'expanded' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="1" y="1" width="12" height="4" rx="1" />
+              <rect x="1" y="7" width="12" height="4" rx="1" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setViewMode('compact')}
+            title="Compact view"
+            className={`px-2 py-1.5 transition-colors ${viewMode === 'compact' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <line x1="1" y1="3" x2="13" y2="3" />
+              <line x1="1" y1="7" x2="13" y2="7" />
+              <line x1="1" y1="11" x2="13" y2="11" />
+            </svg>
+          </button>
+        </div>
+
         <button
           onClick={handleMarkAllRead}
           disabled={markingRead || !data || data.data.length === 0}
@@ -194,7 +220,7 @@ export default function ArticleList({
               key={article.id}
               article={article}
               sourceName={article.feedSourceName}
-              variant={i === 0 && article.imageUrl ? 'hero' : 'default'}
+              variant={viewMode === 'compact' ? 'compact' : i === 0 && article.imageUrl ? 'hero' : 'default'}
             />
           ))}
         </div>
