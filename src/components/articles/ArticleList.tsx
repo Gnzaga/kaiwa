@@ -116,6 +116,19 @@ export default function ArticleList({
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
+  // Keyboard navigation: [ = prev page, ] = next page
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '[') setPage(p => Math.max(1, p - 1));
+      if (e.key === ']') setPage(p => Math.min(totalPages, p + 1));
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [totalPages]);
+
   return (
     <div className="space-y-4">
       {/* New articles banner */}
