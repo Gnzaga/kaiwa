@@ -16,6 +16,7 @@ const SHORTCUTS_GROUPS = [
       ['g f', 'Feeds'],
       ['g t', 'Tags'],
       ['g a', 'Admin'],
+      ['g p', 'Notes'],
       ['g /', 'Search'],
     ],
   },
@@ -146,6 +147,7 @@ export default function GlobalShortcuts() {
           case 'x': router.push('/stats'); break;
           case 'a': router.push('/admin'); break;
           case 'f': router.push('/feeds'); break;
+          case 'p': router.push('/notes'); break;
           case 'n': router.push('/articles'); break;
           case 'r': router.push('/archived'); break;
           case '/': router.push('/search'); break;

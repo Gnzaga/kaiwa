@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 
 interface FeedStat {
@@ -33,10 +33,32 @@ export default function FeedsPage() {
   const [staleOnly, setStaleOnly] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'' | 'enabled' | 'disabled'>('');
   const [feedSort, setFeedSort] = useState<'default' | 'articles' | 'stale'>('default');
+  const queryClient = useQueryClient();
 
   const { data: feeds, isLoading } = useQuery<FeedStat[]>({
     queryKey: ['feed-stats'],
     queryFn: () => fetch('/api/feeds/stats').then((r) => r.json()),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) =>
+      fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedId: id, enabled }),
+      }).then((r) => r.json()),
+    onMutate: async ({ id, enabled }) => {
+      await queryClient.cancelQueries({ queryKey: ['feed-stats'] });
+      const prev = queryClient.getQueryData<FeedStat[]>(['feed-stats']);
+      queryClient.setQueryData<FeedStat[]>(['feed-stats'], (old) =>
+        old ? old.map((f) => (f.id === id ? { ...f, enabled } : f)) : old,
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['feed-stats'], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['feed-stats'] }),
   });
 
   const regions = feeds ? [...new Set(feeds.map((f) => f.regionId))].map(id => {
@@ -205,8 +227,23 @@ export default function FeedsPage() {
                 {feed.sourceLanguage}
               </span>
 
-              {/* Status dot */}
-              <div className={`w-2 h-2 rounded-full shrink-0 ${feed.enabled ? 'bg-green-500' : 'bg-text-tertiary'}`} />
+              {/* Enable/disable toggle */}
+              <button
+                onClick={() => toggleMutation.mutate({ id: feed.id, enabled: !feed.enabled })}
+                disabled={toggleMutation.isPending}
+                title={feed.enabled ? 'Disable feed' : 'Enable feed'}
+                className={`shrink-0 w-8 h-4 rounded-full border transition-colors relative ${
+                  feed.enabled
+                    ? 'bg-accent-primary border-accent-primary'
+                    : 'bg-bg-elevated border-border'
+                } disabled:opacity-50`}
+              >
+                <span
+                  className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${
+                    feed.enabled ? 'translate-x-4' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
 
               {/* Link to region */}
               <Link

@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { config } from '@/lib/config';
 import { healthCheck as libreHealthCheck } from '@/lib/providers/libretranslate';
 import { sql } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth-helpers';
 
 async function checkService(
   name: string,
@@ -66,6 +68,27 @@ export async function GET() {
       })),
     });
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    await requireAdmin();
+    const body = await request.json();
+
+    if (typeof body.feedId === 'number' && typeof body.enabled === 'boolean') {
+      await db
+        .update(schema.feeds)
+        .set({ enabled: body.enabled })
+        .where(eq(schema.feeds.id, body.feedId));
+      return NextResponse.json({ ok: true });
+    }
+
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+  } catch (err) {
+    if (err instanceof NextResponse) return err;
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -6,6 +6,29 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 269 — Notes page: overview of all articles with user notes
+`src/app/api/user/notes/route.ts` (new): GET endpoint returning all articles where the user has a non-empty note, joining userArticleStates+articles+feeds, ordered by updatedAt DESC.
+`src/app/notes/page.tsx` (new): Notes overview page with search filter, blockquote-styled note display, source/date metadata, and "Edit note →" links back to the article. Empty state with keyboard hint.
+`src/components/layout/Sidebar.tsx`: added "Notes" nav item with pencil icon between Starred and Stats.
+`src/components/ui/GlobalShortcuts.tsx`: added `g p` → `/notes` shortcut.
+
+### Feature 268 — Feeds page: inline enable/disable toggle per feed
+`src/app/feeds/page.tsx`: added `useMutation` for `PATCH /api/settings` to toggle feed `enabled` state; replaced status dot with a pill toggle button; optimistic UI updates the feed list immediately on click.
+
+### Feature 267 — Settings API: PATCH feed toggle + POST bulk actions
+`src/app/api/settings/route.ts`: added `PATCH` handler accepting `{ feedId, enabled }` to toggle feed enabled state (admin-only via `requireAdmin()`).
+`src/app/api/settings/bulk/route.ts` (new): `POST` endpoint for bulk feed actions (`enable-all`, `disable-all`), fixing broken references from the settings page UI.
+
+### Feature 266 — ArticleList: `a`/`s`/`r` key aliases for archive/star/read
+`src/components/articles/ArticleList.tsx`: added `a` (archive), `s` (star), `r` (mark read) as aliases for `x`, `*`, `m` respectively, matching ArticleDetail keyboard conventions.
+`src/components/ui/GlobalShortcuts.tsx`: updated Article List group to show combined shortcut docs.
+
+### Feature 265 — QuickSync: last sync timestamp display
+`src/components/dashboard/QuickSync.tsx`: persists last-synced timestamp to `kaiwa-last-sync` localStorage; displays relative time ("Xm ago") to the left of the sync button on sm+ screens; full ISO datetime shown on hover.
+
+### Feature 264 — ArticleList: `Escape` key to deselect / close filters
+`src/components/articles/ArticleList.tsx`: Escape with an article selected deselects it; Escape with no selection and filters open closes the filter panel. GlobalShortcuts modal updated with 'Esc' entry.
+
 ### Feature 263 — ArticleList: date group headers show article count
 `src/components/articles/ArticleList.tsx`: when group-by-date is enabled, each bucket header (Today/Yesterday/This Week/This Month/Older) now shows the count of articles in that group as a small monospace number on the right side of the header.
 
