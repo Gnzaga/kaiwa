@@ -18,16 +18,25 @@ export default function StatsBar() {
     refetchInterval: 30000,
   });
 
+  function backlogColor(n: number | undefined): string {
+    if (n == null) return '';
+    if (n === 0) return 'text-success';
+    if (n < 30) return '';
+    if (n < 100) return 'text-accent-secondary';
+    return 'text-accent-highlight';
+  }
+
   const stats = [
     {
       label: 'Articles Today',
       value: data?.articlesToday ?? 0,
       sub: data?.articlesThisHour != null ? `${data.articlesThisHour} this hour` : undefined,
       href: '/articles?datePreset=today',
+      colorClass: '',
     },
-    { label: 'Total Articles', value: data?.totalArticles?.toLocaleString() ?? '—', href: '/articles' },
-    { label: 'Translations Pending', value: data?.translationsPending ?? 0, href: null },
-    { label: 'Summaries Pending', value: data?.summariesPending ?? 0, href: null },
+    { label: 'Total Articles', value: data?.totalArticles?.toLocaleString() ?? '—', href: '/articles', colorClass: '' },
+    { label: 'Translations Pending', value: data?.translationsPending ?? 0, href: null, colorClass: backlogColor(data?.translationsPending) },
+    { label: 'Summaries Pending', value: data?.summariesPending ?? 0, href: null, colorClass: backlogColor(data?.summariesPending) },
   ];
 
   return (
@@ -36,7 +45,7 @@ export default function StatsBar() {
         const inner = (
           <>
             <div className="text-xs text-text-tertiary mb-1">{stat.label}</div>
-            <div className="text-3xl font-mono font-medium text-text-primary">
+            <div className={`text-3xl font-mono font-medium ${stat.colorClass || 'text-text-primary'}`}>
               {isLoading ? (
                 <span className="inline-block w-12 h-8 bg-bg-elevated rounded animate-pulse" />
               ) : (

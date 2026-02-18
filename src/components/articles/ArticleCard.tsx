@@ -116,7 +116,15 @@ export default function ArticleCard({
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-text-primary leading-snug line-clamp-2 group-hover:text-accent-highlight transition-colors">{title}</h3>
             <div className="flex items-center gap-2 text-xs text-text-tertiary mt-0.5">
-              {sourceName && <span>{sourceName}</span>}
+              {sourceName && (
+                <a
+                  href={`/articles?source=${encodeURIComponent(sourceName)}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-medium text-accent-primary hover:text-accent-highlight transition-colors"
+                >
+                  {sourceName}
+                </a>
+              )}
               <span title={absoluteTime(article.publishedAt)}>{relativeTime(article.publishedAt)}</span>
               {rt && <span className="opacity-70">{rt}</span>}
               <SentimentBadge sentiment={article.summarySentiment} />

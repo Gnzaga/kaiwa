@@ -462,6 +462,49 @@ export default function StatsPage() {
         );
       })()}
 
+      {/* Reading by Hour of Day */}
+      {hourlyActivity.length > 0 && (() => {
+        const byHour = Array.from({ length: 24 }, (_, h) => ({
+          hour: h,
+          count: hourlyActivity.find(x => x.hour === h)?.count ?? 0,
+        }));
+        const maxH = Math.max(...byHour.map(h => Number(h.count)), 1);
+        const peakH = byHour.reduce((best, h) => Number(h.count) > Number(best.count) ? h : best, byHour[0]);
+        const nowHour = new Date().getHours();
+        return (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-medium text-text-primary">Reading by Hour</h2>
+              <span className="text-xs text-text-tertiary">
+                Peak: <span className="text-text-secondary font-medium">{peakH.hour === 0 ? '12AM' : peakH.hour < 12 ? `${peakH.hour}AM` : peakH.hour === 12 ? '12PM' : `${peakH.hour - 12}PM`}</span>
+              </span>
+            </div>
+            <div className="flex items-end gap-px h-16">
+              {byHour.map(({ hour, count }) => {
+                const pct = (Number(count) / maxH) * 100;
+                const isNow = hour === nowHour;
+                const isPeak = hour === peakH.hour;
+                return (
+                  <div
+                    key={hour}
+                    className="flex-1"
+                    title={`${hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}: ${count} articles`}
+                  >
+                    <div
+                      className={`w-full rounded-sm transition-all ${isNow ? 'bg-accent-primary' : isPeak ? 'bg-accent-primary/70' : 'bg-accent-secondary/40'}`}
+                      style={{ height: `${Math.max(count > 0 ? 4 : 1, pct)}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between text-[9px] text-text-tertiary font-mono">
+              <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+            </div>
+          </section>
+        );
+      })()}
+
       {/* Top regions + tags side by side */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Top regions */}
