@@ -219,28 +219,94 @@ export default function StatsPage() {
         );
       })()}
 
-      {/* Activity heatmap */}
-      <section className="space-y-3">
-        <h2 className="text-base font-medium text-text-primary">30-Day Activity</h2>
-        <div className="flex gap-1 flex-wrap">
-          {days.map(({ date, count }) => {
-            const intensity = count === 0 ? 0 : Math.ceil((count / maxDay) * 4);
-            const bg = ['bg-bg-elevated', 'bg-accent-secondary/30', 'bg-accent-secondary/50', 'bg-accent-primary/60', 'bg-accent-primary'][intensity];
-            return (
-              <div
-                key={date}
-                title={`${date}: ${count} articles`}
-                className={`w-7 h-7 rounded-sm ${bg} border border-border/50 flex items-center justify-center`}
-              >
-                {count > 0 && (
-                  <span className="text-[9px] font-mono text-text-primary/70">{count}</span>
-                )}
+      {/* Activity heatmap — 52-week calendar */}
+      {(() => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const activityMap = new Map<string, number>(dailyActivity.map((a) => [a.day, Number(a.count)]));
+        const maxCount = Math.max(...dailyActivity.map((a) => Number(a.count)), 1);
+
+        // Start from the Sunday 52 weeks back
+        const startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 52 * 7);
+        startDate.setDate(startDate.getDate() - startDate.getDay());
+
+        const heatWeeks: { date: Date; count: number; future: boolean }[][] = [];
+        const curr = new Date(startDate);
+        while (curr <= now) {
+          const week: { date: Date; count: number; future: boolean }[] = [];
+          for (let d = 0; d < 7; d++) {
+            const ds = curr.toISOString().split('T')[0];
+            week.push({ date: new Date(curr), count: activityMap.get(ds) ?? 0, future: curr > now });
+            curr.setDate(curr.getDate() + 1);
+          }
+          heatWeeks.push(week);
+        }
+
+        const getCellBg = (count: number, future: boolean) => {
+          if (future || count === 0) return 'bg-bg-elevated';
+          const r = count / maxCount;
+          if (r < 0.25) return 'bg-accent-secondary/25';
+          if (r < 0.5) return 'bg-accent-secondary/55';
+          if (r < 0.75) return 'bg-accent-primary/60';
+          return 'bg-accent-primary';
+        };
+
+        // Month labels: show when month changes
+        const monthLabels: { label: string; weekIdx: number }[] = [];
+        let lastMonth = -1;
+        heatWeeks.forEach((week, i) => {
+          const m = week[0].date.getMonth();
+          if (m !== lastMonth) {
+            monthLabels.push({ label: week[0].date.toLocaleDateString('en-US', { month: 'short' }), weekIdx: i });
+            lastMonth = m;
+          }
+        });
+
+        return (
+          <section className="space-y-2">
+            <h2 className="text-base font-medium text-text-primary">Reading Activity</h2>
+            <div className="overflow-x-auto pb-1">
+              <div className="inline-flex gap-0.5">
+                {/* Day-of-week labels */}
+                <div className="flex flex-col gap-0.5 mr-1">
+                  <div className="h-4" />
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                    <div key={i} className="h-3 w-3 flex items-center justify-center">
+                      {i % 2 === 1 && <span className="text-[8px] text-text-tertiary">{d}</span>}
+                    </div>
+                  ))}
+                </div>
+                {/* Week columns */}
+                {heatWeeks.map((week, wi) => {
+                  const ml = monthLabels.find((m) => m.weekIdx === wi);
+                  return (
+                    <div key={wi} className="flex flex-col gap-0.5">
+                      <div className="h-4 flex items-end">
+                        {ml && <span className="text-[8px] text-text-tertiary whitespace-nowrap leading-none">{ml.label}</span>}
+                      </div>
+                      {week.map(({ date, count, future }, di) => (
+                        <div
+                          key={di}
+                          title={future ? '' : `${date.toISOString().split('T')[0]}: ${count} article${count !== 1 ? 's' : ''}`}
+                          className={`w-3 h-3 rounded-sm ${getCellBg(count, future)}`}
+                        />
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
-        <p className="text-xs text-text-tertiary">Each square = one day. Darker = more articles read.</p>
-      </section>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-text-tertiary">
+              <span>Less</span>
+              {['bg-bg-elevated', 'bg-accent-secondary/25', 'bg-accent-secondary/55', 'bg-accent-primary/60', 'bg-accent-primary'].map((bg, i) => (
+                <div key={i} className={`w-3 h-3 rounded-sm ${bg}`} />
+              ))}
+              <span>More</span>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Top regions + tags side by side */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

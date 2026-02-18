@@ -120,7 +120,7 @@ export async function GET() {
         .where(and(eq(schema.userArticleStates.userId, userId), eq(schema.userArticleStates.isRead, true))),
     ]);
 
-    // Daily activity for last 30 days (reading streak data)
+    // Daily activity for last 365 days (reading streak + heatmap)
     const dailyActivity = await db
       .select({
         day: sql<string>`DATE(${schema.userArticleStates.readAt} AT TIME ZONE 'UTC')`,
@@ -131,7 +131,7 @@ export async function GET() {
         and(
           eq(schema.userArticleStates.userId, userId),
           eq(schema.userArticleStates.isRead, true),
-          sql`${schema.userArticleStates.readAt} >= NOW() - INTERVAL '30 days'`,
+          sql`${schema.userArticleStates.readAt} >= NOW() - INTERVAL '365 days'`,
         ),
       )
       .groupBy(sql`DATE(${schema.userArticleStates.readAt} AT TIME ZONE 'UTC')`)
