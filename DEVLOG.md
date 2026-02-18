@@ -6,6 +6,25 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 248 — ArticleList: `c` key copies selected article URL
+`src/components/articles/ArticleList.tsx`: `c` key copies `originalUrl` of the j/k-selected article to clipboard when an article is selected.
+
+### Feature 247 — ReadingStatus: daily goal progress ring
+`src/components/dashboard/ReadingStatus.tsx`: SVG circular progress ring (18×18px, r=7) added before the "N/goal today" text; ring fills accent-primary up to percentage of daily goal, turns success green when goal is met.
+
+### Feature 246 — ArticleDetail: scroll-based auto-mark-read at 90%
+`src/components/articles/ArticleDetail.tsx`: when the `autoMarkRead` preference is disabled (manual mode), auto-marks the article as read and shows a toast when scroll progress reaches 90%; uses a `scrollMarkFired` ref to fire only once per article.
+
+### Feature 245 — Stats: Pages Read stat card
+`src/app/stats/page.tsx`: "Pages Read" card shows `totalWordsRead / 250` — a book-page equivalent using the standard 250 words/page metric.
+
+### Feature 244 — ArticleDetail: `p` key triggers print
+`src/components/articles/ArticleDetail.tsx`: `p` keyboard shortcut calls `window.print()`; added to shortcuts overlay.
+
+### Feature 243 — RecentlyViewed href bug fix + `e` key for date grouping
+`src/components/dashboard/RecentlyViewed.tsx`: fixed href from `/articles/${id}` → `/article/${id}`.
+`src/components/articles/ArticleList.tsx`: `e` key toggles group-by-date mode.
+
 ### Feature 242 — ArticleDetail: Print button
 `src/components/articles/ArticleDetail.tsx`: "Print" button in the toolbar calls `window.print()`; pairs with existing print CSS in globals.css that hides sidebar/buttons for clean output.
 
