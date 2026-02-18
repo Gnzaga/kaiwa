@@ -180,6 +180,8 @@ export default function ArticleList({
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === '[' || e.key === 'p') setPage(p => Math.max(1, p - 1));
       if (e.key === ']' || e.key === 'n') setPage(p => Math.min(totalPages, p + 1));
+      if (e.key === 'g') { setSelectedIdx(0); setTimeout(() => document.querySelector('[data-article-idx="0"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }
+      if (e.key === 'G') { const last = articlesRef.current.length - 1; setSelectedIdx(last); setTimeout(() => document.querySelector(`[data-article-idx="${last}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0); }
       if (e.key === 'j') {
         e.preventDefault();
         setSelectedIdx(prev => Math.min(prev + 1, articlesRef.current.length - 1));
@@ -540,7 +542,14 @@ export default function ArticleList({
       )}
 
       {data && data.data.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
+          {selectedIdx >= 0 && (
+            <div className="fixed bottom-4 right-4 z-30 pointer-events-none">
+              <span className="text-xs font-mono bg-bg-elevated border border-border rounded px-2 py-1 text-text-tertiary shadow">
+                {selectedIdx + 1}/{data.data.length}
+              </span>
+            </div>
+          )}
           {(() => { setArticleNavList(data.data.map(a => a.id)); return null; })()}
           {data.data.map((article, i) => {
             let dateBucket: string | null = null;

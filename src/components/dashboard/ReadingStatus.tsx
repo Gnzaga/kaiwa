@@ -66,6 +66,16 @@ export default function ReadingStatus() {
     streak++;
   }
 
+  // 7-day sparkline data
+  const sparkDays: number[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split('T')[0];
+    sparkDays.push(Number(data.dailyActivity.find(a => a.day === ds)?.count ?? 0));
+  }
+  const sparkMax = Math.max(...sparkDays, 1);
+
   return (
     <Link href="/stats" className="flex items-center gap-3 text-xs text-text-tertiary hover:text-text-secondary transition-colors">
       <span className={goalMet ? 'text-success font-medium' : ''}>
@@ -97,6 +107,15 @@ export default function ReadingStatus() {
           <span className="text-accent-secondary">{inProgressCount} in progress</span>
         </>
       )}
+      <span className="flex items-end gap-px h-4 ml-1" title="7-day reading activity">
+        {sparkDays.map((v, i) => (
+          <span
+            key={i}
+            className={`w-1 rounded-sm ${v > 0 ? 'bg-accent-primary' : 'bg-border'}`}
+            style={{ height: `${Math.max(2, Math.round((v / sparkMax) * 16))}px`, opacity: i === 6 ? 1 : 0.6 + i * 0.06 }}
+          />
+        ))}
+      </span>
     </Link>
   );
 }
