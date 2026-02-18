@@ -172,6 +172,10 @@ export default function StatsPage() {
               label="Words Read"
               value={totalWordsRead >= 1000000 ? `${(totalWordsRead / 1000000).toFixed(1)}M` : totalWordsRead >= 1000 ? `${Math.round(totalWordsRead / 1000)}k` : totalWordsRead}
             />
+            {(() => {
+              const hrs = totalWordsRead / 250 / 60;
+              return <StatCard label="Hours Read" value={hrs >= 1 ? `${hrs.toFixed(1)}h` : `${Math.round(hrs * 60)}m`} />;
+            })()}
           </section>
         );
       })()}
@@ -308,6 +312,45 @@ export default function StatsPage() {
                 <div key={i} className={`w-3 h-3 rounded-sm ${bg}`} />
               ))}
               <span>More</span>
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* Day-of-week distribution */}
+      {dailyActivity.length > 0 && (() => {
+        const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dowCounts = [0, 0, 0, 0, 0, 0, 0];
+        dailyActivity.forEach(({ day, count }) => {
+          const dow = new Date(day + 'T00:00:00').getDay();
+          dowCounts[dow] += Number(count);
+        });
+        const maxDow = Math.max(...dowCounts, 1);
+        const total = dowCounts.reduce((s, c) => s + c, 0);
+        const peakDow = dowCounts.indexOf(Math.max(...dowCounts));
+        return (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-medium text-text-primary">Reading by Day of Week</h2>
+              <span className="text-xs text-text-tertiary">Peak: <span className="text-text-secondary font-medium">{DOW[peakDow]}</span></span>
+            </div>
+            <div className="flex items-end gap-1.5 h-20">
+              {DOW.map((label, i) => {
+                const pct = (dowCounts[i] / maxDow) * 100;
+                const sharePct = total > 0 ? Math.round((dowCounts[i] / total) * 100) : 0;
+                const isToday = new Date().getDay() === i;
+                return (
+                  <div key={label} className="flex flex-col items-center gap-1 flex-1" title={`${label}: ${dowCounts[i]} articles (${sharePct}%)`}>
+                    <div className="w-full flex items-end justify-center h-16">
+                      <div
+                        className={`w-full rounded-t transition-all ${isToday ? 'bg-accent-primary' : i === peakDow ? 'bg-accent-primary/70' : 'bg-accent-secondary/40'}`}
+                        style={{ height: `${Math.max(2, pct)}%` }}
+                      />
+                    </div>
+                    <span className={`text-[10px] font-mono ${isToday ? 'text-accent-primary' : 'text-text-tertiary'}`}>{label}</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
         );
