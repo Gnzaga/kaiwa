@@ -6,6 +6,21 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 163 — Sidebar: unread badge on "All Articles" nav item
+`src/components/layout/Sidebar.tsx`: added optional `badge` prop to `NavItem`; "All Articles" now shows total unread count badge when expanded (matching region badge style).
+
+### Feature 162 — Feeds page: filtered count includes statusFilter
+`src/app/feeds/page.tsx`: filtered count label now shows when statusFilter is active; shows "X/Y feeds" ratio.
+
+### Feature 161 — Stats page: Coverage % stat
+`src/app/stats/page.tsx`: computed `totalRead / totalArticles * 100` as "Coverage" stat card.
+
+### Feature 160 — Reading list detail: completion bar in header
+`src/app/lists/[id]/page.tsx`: shows "X/N read" progress bar + percentage in header using `isRead` field from items.
+
+### Feature 159 — Article list: "1h" date preset
+`src/components/articles/ArticleList.tsx`: added "1h" (last hour) preset to date preset bar; updates `getDateFrom` to compute 1h offset.
+
 ### Feature 158 — Tags page: A-Z letter jump filter
 `src/app/tags/page.tsx`: added `letterFilter` state + alphabet chip row showing only letters that have tags. Clicking a letter filters to that initial; clicking again or "All" resets.
 

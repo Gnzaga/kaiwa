@@ -103,7 +103,7 @@ export default function Sidebar() {
       <nav className="flex-1 py-4 overflow-y-auto">
         {/* Dashboard */}
         <NavItem href="/" label="Dashboard" icon={DashboardIcon} collapsed={collapsed} pathname={pathname} />
-        <NavItem href="/articles" label="All Articles" icon={AllArticlesIcon} collapsed={collapsed} pathname={pathname} />
+        <NavItem href="/articles" label="All Articles" icon={AllArticlesIcon} collapsed={collapsed} pathname={pathname} badge={totalUnread} />
 
         {/* Region groups */}
         {Array.isArray(regions) && regions.map((region) => {
@@ -269,12 +269,14 @@ function NavItem({
   icon: Icon,
   collapsed,
   pathname,
+  badge,
 }: {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   collapsed: boolean;
   pathname: string;
+  badge?: number;
 }) {
   const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
 
@@ -289,7 +291,12 @@ function NavItem({
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
-      {!collapsed && <span className="text-sm">{label}</span>}
+      {!collapsed && <span className="text-sm flex-1">{label}</span>}
+      {!collapsed && badge != null && badge > 0 && (
+        <span className="text-[10px] font-mono bg-accent-primary/20 text-accent-primary rounded-full px-1.5 py-0.5 leading-none">
+          {badge > 999 ? '999+' : badge}
+        </span>
+      )}
     </Link>
   );
 }

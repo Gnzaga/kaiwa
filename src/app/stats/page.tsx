@@ -153,6 +153,7 @@ export default function StatsPage() {
             <StatCard label="Starred" value={totals.totalStarred} />
             <StatCard label="Archived" value={totals.totalArchived} />
             <StatCard label="Total in DB" value={totalArticles} />
+            <StatCard label="Coverage" value={totalArticles > 0 ? `${Math.round((totals.totalRead / totalArticles) * 100)}%` : '0%'} />
           </section>
         );
       })()}

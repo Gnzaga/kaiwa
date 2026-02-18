@@ -178,7 +178,26 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         )}
         {data.list.description && <p className="text-sm text-text-tertiary">{data.list.description}</p>}
         <div className="flex items-center gap-3 flex-wrap">
-          <p className="text-xs text-text-tertiary">{data.total} article{data.total !== 1 ? 's' : ''}</p>
+          {(() => {
+            const readCount = data.data.filter(i => i.isRead).length;
+            const total = data.total;
+            const pct = total > 0 ? Math.round((readCount / total) * 100) : 0;
+            return (
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-text-tertiary">{total} article{total !== 1 ? 's' : ''}</p>
+                {total > 0 && (
+                  <>
+                    <span className="text-xs text-text-tertiary opacity-50">·</span>
+                    <span className="text-xs text-text-tertiary">{readCount}/{total} read</span>
+                    <div className="w-16 h-1 bg-bg-secondary rounded-full overflow-hidden">
+                      <div className="h-full bg-accent-secondary rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs text-text-tertiary font-mono">{pct}%</span>
+                  </>
+                )}
+              </div>
+            );
+          })()}
           {data.data.length > 0 && (
             <>
               <button

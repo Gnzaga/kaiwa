@@ -139,9 +139,9 @@ export default function FeedsPage() {
           <option value="articles">Most articles</option>
           <option value="stale">Stalest first</option>
         </select>
-        {(search || regionFilter || staleOnly) && (
+        {(search || regionFilter || staleOnly || statusFilter) && (
           <span className="text-xs text-text-tertiary self-center">
-            {filtered.length} feeds · {enabledCount} active · {totalArticles.toLocaleString()} articles
+            {filtered.length}/{feeds?.length ?? 0} feeds · {enabledCount} active · {totalArticles.toLocaleString()} articles
           </span>
         )}
       </div>
