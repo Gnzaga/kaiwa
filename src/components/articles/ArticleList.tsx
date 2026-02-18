@@ -381,6 +381,19 @@ export default function ArticleList({
         </button>
 
         <button
+          onClick={() => {
+            if (!data?.data || data.data.length === 0) return;
+            const urls = data.data.map(a => a.originalUrl).join('\n');
+            navigator.clipboard.writeText(urls);
+          }}
+          title="Copy all visible article URLs to clipboard"
+          disabled={!data || data.data.length === 0}
+          className="px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          Copy URLs
+        </button>
+
+        <button
           onClick={handleMarkAllRead}
           disabled={markingRead || !data || data.data.length === 0}
           className={`ml-auto px-3 py-1.5 text-sm border rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors ${confirmMarkRead ? 'border-accent-highlight text-accent-highlight hover:border-accent-highlight' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}

@@ -13,6 +13,7 @@ import { trackArticleView } from '@/components/ui/CommandPalette';
 interface ArticleDetailResponse {
   article: Article & { sourceName?: string; imageUrl?: string | null; note?: string | null };
   related: (Article & { sourceName?: string })[];
+  fromSameSource: { id: number; originalTitle: string; translatedTitle: string | null; originalUrl: string; publishedAt: string; summaryTldr: string | null; sourceName: string | null }[];
 }
 
 interface ReadingList {
@@ -294,7 +295,7 @@ export default function ArticleDetail({ id }: { id: number }) {
     setTimeout(() => setCitationCopied(false), 2000);
   }, [data?.article]);
 
-  const { article, related } = data;
+  const { article, related, fromSameSource } = data;
   const title = article.translatedTitle || article.originalTitle;
   const content = article.translatedContent || article.originalContent;
   const wordCount = content ? content.trim().split(/\s+/).length : 0;
@@ -801,6 +802,33 @@ export default function ArticleDetail({ id }: { id: number }) {
             <div className="space-y-2">
               {related.map((r) => (
                 <ArticleCard key={r.id} article={r} sourceName={r.sourceName} />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* Also from this source */}
+      {fromSameSource && fromSameSource.length > 0 && (
+        <>
+          <hr className="divider-line border-0 my-6" />
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium text-text-tertiary">More from {article.sourceName}</h2>
+            <div className="space-y-1">
+              {fromSameSource.map((a) => (
+                <a
+                  key={a.id}
+                  href={`/article/${a.id}`}
+                  className="block py-2 px-3 rounded-lg hover:bg-bg-elevated transition-colors group"
+                >
+                  <div className="text-sm text-text-secondary group-hover:text-text-primary transition-colors line-clamp-2 leading-snug">
+                    {a.translatedTitle || a.originalTitle}
+                  </div>
+                  <div className="text-xs text-text-tertiary mt-0.5">
+                    {new Date(a.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {a.summaryTldr && <span className="ml-2 opacity-70 line-clamp-1">{a.summaryTldr.slice(0, 80)}{a.summaryTldr.length > 80 ? '…' : ''}</span>}
+                  </div>
+                </a>
               ))}
             </div>
           </section>

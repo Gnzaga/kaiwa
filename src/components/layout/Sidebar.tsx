@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -65,6 +65,16 @@ export default function Sidebar() {
   const totalUnread = unreadCounts
     ? Object.values(unreadCounts).reduce((sum, n) => sum + n, 0)
     : 0;
+
+  // Update document title with unread count
+  const baseTitle = useRef(typeof document !== 'undefined' ? document.title.replace(/^\(\d+\+?\)\s*/, '') : 'Kaiwa');
+  useEffect(() => {
+    if (totalUnread > 0) {
+      document.title = `(${totalUnread > 999 ? '999+' : totalUnread}) ${baseTitle.current}`;
+    } else {
+      document.title = baseTitle.current;
+    }
+  }, [totalUnread]);
 
   const userName = session?.user?.name;
   const userImage = session?.user?.image;

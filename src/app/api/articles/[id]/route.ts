@@ -99,7 +99,28 @@ export async function GET(
       relatedArticles = relatedRows;
     }
 
-    return NextResponse.json({ article, related: relatedArticles });
+    // Also from same source (last 5, excluding this article)
+    const sourceName = row.feed?.sourceName;
+    let fromSameSource: Record<string, unknown>[] = [];
+    if (sourceName) {
+      fromSameSource = await db
+        .select({
+          id: schema.articles.id,
+          originalTitle: schema.articles.originalTitle,
+          translatedTitle: schema.articles.translatedTitle,
+          originalUrl: schema.articles.originalUrl,
+          publishedAt: schema.articles.publishedAt,
+          summaryTldr: schema.articles.summaryTldr,
+          sourceName: schema.feeds.sourceName,
+        })
+        .from(schema.articles)
+        .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .where(and(sql`${schema.articles.id} != ${articleId}`, eq(schema.feeds.sourceName, sourceName)))
+        .orderBy(desc(schema.articles.publishedAt))
+        .limit(5);
+    }
+
+    return NextResponse.json({ article, related: relatedArticles, fromSameSource });
   } catch (err) {
     if (err instanceof NextResponse) return err;
     const message = err instanceof Error ? err.message : 'Unknown error';
