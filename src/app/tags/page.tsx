@@ -65,7 +65,7 @@ export default function TagsPage() {
             return (
               <button
                 key={tag}
-                onClick={() => router.push(`/search?q=${encodeURIComponent(tag)}`)}
+                onClick={() => router.push(`/articles?tag=${encodeURIComponent(tag)}`)}
                 className={`${size} ${opacity} px-3 py-1.5 bg-bg-secondary border border-border rounded-full text-text-secondary hover:text-text-primary hover:border-accent-primary hover:bg-bg-elevated transition-colors`}
               >
                 {tag}

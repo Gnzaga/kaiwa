@@ -286,7 +286,15 @@ export default function ArticleList({
       )}
 
       {data && data.data.length === 0 && (
-        <div className="text-center py-12 text-text-tertiary text-sm">No articles found</div>
+        <div className="text-center py-12 text-text-tertiary text-sm">
+          {readFilter === 'unread' ? (
+            <>
+              <div className="text-2xl mb-2">✓</div>
+              <p className="font-medium text-text-secondary">All caught up!</p>
+              <p className="text-xs mt-1">No unread articles matching your filters</p>
+            </>
+          ) : 'No articles found'}
+        </div>
       )}
 
       {data && data.data.length > 0 && (

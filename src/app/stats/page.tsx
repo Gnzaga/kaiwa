@@ -11,6 +11,7 @@ interface StatsResponse {
     readToday: number;
     readThisWeek: number;
     readThisMonth: number;
+    readThisYear: number;
   };
   topRegions: { regionId: string; regionName: string; flagEmoji: string; count: number }[];
   topTags: { tag: string; count: number }[];
@@ -46,7 +47,7 @@ export default function StatsPage() {
   }
 
   const { totals, topRegions, topTags, listCount, dailyActivity, sentimentDist } = data ?? {
-    totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readThisMonth: 0 },
+    totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readThisMonth: 0, readThisYear: 0 },
     topRegions: [],
     topTags: [],
     listCount: 0,
@@ -119,6 +120,7 @@ export default function StatsPage() {
         <StatCard label="Read Today" value={totals.readToday} highlight />
         <StatCard label="This Week" value={totals.readThisWeek} />
         <StatCard label="This Month" value={totals.readThisMonth} />
+        <StatCard label="This Year" value={totals.readThisYear} />
         <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
         <StatCard label="Total Read" value={totals.totalRead} />
         <StatCard label="Starred" value={totals.totalStarred} />
