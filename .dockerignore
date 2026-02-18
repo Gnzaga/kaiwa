@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+*.md
+.env*
+.dockerignore
+k8s/
+docs/
+*.log
+.DS_Store
+coverage/
+.nyc_output/
+DEVLOG.md
