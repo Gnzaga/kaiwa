@@ -562,6 +562,18 @@ Autonomous feature development session. Each entry timestamped.
 - New sort select: "Default order / Most articles / Stalest first"
 - Applied to client-side sorted array after filtering
 
+### Feature 148 — Settings page saves preference with toast
+- prefsMutation now shows "Preferences saved" toast on success via useToast
+
+### Feature 149 — RecentActivity shows article sentiment
+- Dashboard Recently Read list shows sentiment label (e.g. "negative", "bullish") next to source
+
+### Feature 150 — Article detail source name links to /articles?source=
+- Clicking the source name in the article header metadata navigates to articles filtered by that source
+
+### Feature 151 — Compact article card shows reading time
+- Hoisted rt/precomputedRt computation above variant checks so compact cards now also show reading time
+
 ### Feature 147 — Stats page daily goal progress bar
 - Loads user prefs (`dailyGoal`) and shows progress bar between heatmap sections
 - Green accent when goal reached, shows "X/Y (Z%)" label

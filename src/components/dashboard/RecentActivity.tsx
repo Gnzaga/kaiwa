@@ -64,6 +64,9 @@ export default function RecentActivity() {
                   </p>
                   <div className="flex items-center gap-2 text-xs text-text-tertiary">
                     {article.feedSourceName && <span>{article.feedSourceName}</span>}
+                    {article.summarySentiment && (
+                      <span className="capitalize opacity-60">{article.summarySentiment}</span>
+                    )}
                   </div>
                 </div>
                 <span className="text-xs text-text-tertiary shrink-0">

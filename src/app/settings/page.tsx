@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/components/ui/Toast';
 
 interface HealthStatus {
   miniflux: { ok: boolean; error?: string };
@@ -49,6 +50,7 @@ interface UserPrefs {
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data, isLoading } = useQuery<SettingsData>({
     queryKey: ['settings'],
@@ -102,7 +104,7 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       }).then(r => r.json()),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user-preferences'] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['user-preferences'] }); toast('Preferences saved'); },
   });
 
   if (isLoading) {

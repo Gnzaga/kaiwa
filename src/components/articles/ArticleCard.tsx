@@ -54,6 +54,8 @@ export default function ArticleCard({
   const title = article.translatedTitle || article.originalTitle;
   const showOriginal = article.translatedTitle && article.translatedTitle !== article.originalTitle;
   const imageUrl = article.imageUrl;
+  const precomputedRt = (article as Article & { readingMinutes?: number | null }).readingMinutes;
+  const rt = precomputedRt && precomputedRt > 0 ? `${precomputedRt} min` : readingTime(article.translatedContent || article.originalContent);
 
   // Hero variant — large featured card with full-width image
   if (variant === 'hero' && imageUrl) {
@@ -114,6 +116,7 @@ export default function ArticleCard({
             <div className="flex items-center gap-2 text-xs text-text-tertiary mt-0.5">
               {sourceName && <span>{sourceName}</span>}
               <span title={absoluteTime(article.publishedAt)}>{relativeTime(article.publishedAt)}</span>
+              {rt && <span className="opacity-70">{rt}</span>}
             </div>
           </div>
         </article>
@@ -145,8 +148,6 @@ export default function ArticleCard({
     queryClient.invalidateQueries({ queryKey: ['articles'] });
   };
 
-  const precomputedRt = (article as Article & { readingMinutes?: number | null }).readingMinutes;
-  const rt = precomputedRt && precomputedRt > 0 ? `${precomputedRt} min` : readingTime(article.translatedContent || article.originalContent);
   const isNew = !read && (Date.now() - new Date(article.publishedAt).getTime()) < 6 * 60 * 60 * 1000;
   return (
     <Link href={`/article/${article.id}`}>

@@ -270,7 +270,14 @@ export default function ArticleDetail({ id }: { id: number }) {
       {/* Header */}
       <header className="space-y-2">
         <div className="flex items-center gap-3 text-xs text-text-tertiary">
-          {article.sourceName && <span>{article.sourceName}</span>}
+          {article.sourceName && (
+            <a
+              href={`/articles?source=${encodeURIComponent(article.sourceName)}`}
+              className="hover:text-accent-primary transition-colors"
+            >
+              {article.sourceName}
+            </a>
+          )}
           <span>
             {new Date(article.publishedAt).toLocaleDateString('en-US', {
               year: 'numeric',
