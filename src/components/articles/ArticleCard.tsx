@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import type { Article } from '@/db/schema';
 import Tag from '@/components/ui/Tag';
 import SentimentBadge from './SentimentBadge';
@@ -115,6 +116,7 @@ export default function ArticleCard({
 
   // Default variant — image on right, content on left (Apple News row style)
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [localStarred, setLocalStarred] = useState<boolean | null>(null);
   const [localRead, setLocalRead] = useState<boolean | null>(null);
   const [localArchived, setLocalArchived] = useState<boolean | null>(null);
@@ -145,7 +147,14 @@ export default function ArticleCard({
           {/* Source + time */}
           <div>
             <div className="flex items-center gap-2 text-xs text-text-tertiary mb-1">
-              {sourceName && <span className="font-medium text-accent-primary">{sourceName}</span>}
+              {sourceName && (
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/articles?source=${encodeURIComponent(sourceName)}`); }}
+                  className="font-medium text-accent-primary hover:text-accent-highlight transition-colors"
+                >
+                  {sourceName}
+                </button>
+              )}
               {displayCategory && (
                 <span className="px-1.5 py-0.5 rounded bg-bg-elevated text-text-tertiary border border-border capitalize text-[10px]">
                   {displayCategory}

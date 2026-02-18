@@ -23,12 +23,16 @@ export default function ArticleList({
   isStarred,
   isArchived,
   hideFilters,
+  initialSource,
+  initialTag,
 }: {
   regionId?: string;
   categorySlug?: string;
   isStarred?: boolean;
   isArchived?: boolean;
   hideFilters?: boolean;
+  initialSource?: string;
+  initialTag?: string;
 }) {
   const queryClient = useQueryClient();
   const { data: prefs } = useQuery<{ articlesPerPage: number }>({
@@ -48,8 +52,8 @@ export default function ArticleList({
     if (typeof window === 'undefined') return 'newest';
     return (localStorage.getItem('article-sort') as SortOption) ?? 'newest';
   });
-  const [sourceFilter, setSourceFilter] = useState('');
-  const [tagFilter, setTagFilter] = useState('');
+  const [sourceFilter, setSourceFilter] = useState(initialSource ?? '');
+  const [tagFilter, setTagFilter] = useState(initialTag ?? '');
   const [readFilter, setReadFilter] = useState<'' | 'read' | 'unread'>(() => {
     if (typeof window === 'undefined') return '';
     return (localStorage.getItem('article-read-filter') as '' | 'read' | 'unread') ?? '';
