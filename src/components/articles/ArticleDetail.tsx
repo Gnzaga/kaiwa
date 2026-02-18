@@ -379,9 +379,17 @@ export default function ArticleDetail({ id }: { id: number }) {
     <div className={`space-y-6 animate-fade-in transition-all${focusMode ? ' max-w-2xl mx-auto' : ' max-w-3xl'}`}>
       {/* Reading progress bar */}
       <div
-        className="fixed top-0 left-0 h-0.5 bg-accent-primary z-50 transition-all duration-150"
+        className={`fixed top-0 left-0 h-0.5 z-50 transition-all duration-150 ${readProgress >= 100 ? 'bg-success' : 'bg-accent-primary'}`}
         style={{ width: `${readProgress}%` }}
       />
+      {/* Completion badge */}
+      {readProgress >= 100 && (
+        <div className="fixed top-3 right-4 z-50 animate-fade-in pointer-events-none">
+          <span className="text-xs bg-success/20 border border-success/40 text-success rounded-full px-2.5 py-1 font-medium">
+            ✓ Finished
+          </span>
+        </div>
+      )}
       {/* Back to top button */}
       {readProgress > 15 && (
         <button

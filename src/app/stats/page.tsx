@@ -112,6 +112,21 @@ export default function StatsPage() {
     else runLen = 0;
   }
 
+  // Goal streak — consecutive days meeting daily goal (uses current goal vs historical counts)
+  const dailyGoal = prefs?.dailyGoal ?? 0;
+  const dailyActivityMap = new Map(dailyActivity.map(a => [a.day, Number(a.count)]));
+  let goalStreak = 0;
+  if (dailyGoal > 0) {
+    const gCheckStart = (dailyActivityMap.get(todayStr) ?? 0) >= dailyGoal ? 0 : 1;
+    for (let i = gCheckStart; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const ds = d.toISOString().split('T')[0];
+      if ((dailyActivityMap.get(ds) ?? 0) < dailyGoal) break;
+      goalStreak++;
+    }
+  }
+
   // All-time longest streak from 365-day data
   let allTimeStreak = 0;
   let allTimeRun = 0;
@@ -180,6 +195,7 @@ export default function StatsPage() {
             />
             <StatCard label="This Year" value={totals.readThisYear} />
             <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
+            {dailyGoal > 0 && <StatCard label="Goal Streak" value={goalStreak} suffix={goalStreak === 1 ? ' day' : ' days'} highlight={goalStreak > 0} />}
             <StatCard label="Best Streak (30d)" value={longestStreak} suffix={longestStreak === 1 ? ' day' : ' days'} />
             <StatCard label="Best Streak (all)" value={allTimeStreak} suffix={allTimeStreak === 1 ? ' day' : ' days'} />
             <StatCard label="Avg/Active Day" value={pace} suffix=" articles" />

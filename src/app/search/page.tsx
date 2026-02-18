@@ -95,19 +95,30 @@ function SearchPageContent() {
           <p className="text-xs text-text-tertiary">Recent searches</p>
           <div className="flex flex-wrap gap-2">
             {recentSearches.map((q) => (
-              <button
-                key={q}
-                onClick={() => setFilters((f) => ({ ...f, query: q }))}
-                className="px-3 py-1 text-sm border border-border rounded-full text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
-              >
-                {q}
-              </button>
+              <div key={q} className="flex items-center gap-0 border border-border rounded-full overflow-hidden text-sm text-text-secondary hover:border-accent-primary transition-colors group">
+                <button
+                  onClick={() => setFilters((f) => ({ ...f, query: q }))}
+                  className="px-3 py-1 hover:text-text-primary transition-colors"
+                >
+                  {q}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = recentSearches.filter(s => s !== q);
+                    setRecentSearches(next);
+                    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+                  }}
+                  className="pr-2 py-1 text-xs text-text-tertiary hover:text-accent-highlight transition-colors opacity-0 group-hover:opacity-100"
+                  title="Remove"
+                >✕</button>
+              </div>
             ))}
             <button
               onClick={() => { localStorage.removeItem(RECENT_KEY); setRecentSearches([]); }}
               className="px-2 py-1 text-xs text-text-tertiary hover:text-text-primary transition-colors"
             >
-              Clear
+              Clear all
             </button>
           </div>
         </div>
