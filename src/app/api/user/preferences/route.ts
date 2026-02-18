@@ -8,6 +8,7 @@ const DEFAULTS = {
   theme: 'system' as const,
   articlesPerPage: 20,
   autoMarkRead: true,
+  dailyGoal: 10,
 };
 
 export async function GET() {
@@ -41,6 +42,9 @@ export async function PATCH(request: NextRequest) {
       updates.articlesPerPage = Math.min(100, Math.max(5, body.articlesPerPage));
     }
     if ('autoMarkRead' in body && typeof body.autoMarkRead === 'boolean') updates.autoMarkRead = body.autoMarkRead;
+    if ('dailyGoal' in body && typeof body.dailyGoal === 'number') {
+      updates.dailyGoal = Math.min(100, Math.max(0, body.dailyGoal));
+    }
 
     const existing = await db.query.userPreferences.findFirst({
       where: eq(schema.userPreferences.userId, userId),

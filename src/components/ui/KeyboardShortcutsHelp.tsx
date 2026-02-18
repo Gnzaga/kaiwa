@@ -20,8 +20,10 @@ const shortcuts = [
   { key: 'r', description: 'Mark Read / Unread' },
   { key: 'a', description: 'Archive / Unarchive' },
   { key: 'o', description: 'Open original source' },
-  { key: 'c', description: 'Copy article link' },
+  { key: 'c', description: 'Copy article link (with feedback)' },
+  { key: 'l', description: 'Toggle save-to-list picker' },
   { key: 'f', description: 'Toggle focus mode (hides sidebar)' },
+  { key: 'b', description: 'Go back' },
   { key: '[ ]', description: 'Prev / Next article list page' },
 ];
 

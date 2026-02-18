@@ -127,7 +127,7 @@ export default function ArticleDetail({ id }: { id: number }) {
     );
   }
 
-  // Article page keyboard shortcuts: s=star, r=read, a=archive
+  // Article page keyboard shortcuts: s=star, r=read, a=archive, c=copy link, l=list picker
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName;
@@ -137,7 +137,8 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.key === 'r') actionMutation.mutate({ type: 'toggleRead' });
       if (e.key === 'a') actionMutation.mutate({ type: 'toggleArchive' });
       if (e.key === 'o' && data?.article?.originalUrl) window.open(data.article.originalUrl, '_blank', 'noopener,noreferrer');
-      if (e.key === 'c') { navigator.clipboard.writeText(window.location.href); }
+      if (e.key === 'c') { navigator.clipboard.writeText(window.location.href).then(() => toast('Link copied')).catch(() => {}); }
+      if (e.key === 'l') setShowListMenu(m => !m);
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);

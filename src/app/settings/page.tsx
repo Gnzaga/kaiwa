@@ -44,6 +44,7 @@ interface UserPrefs {
   theme: string;
   articlesPerPage: number;
   autoMarkRead: boolean;
+  dailyGoal: number;
 }
 
 export default function SettingsPage() {
@@ -158,6 +159,18 @@ export default function SettingsPage() {
               onChange={e => prefsMutation.mutate({ articlesPerPage: Number(e.target.value) })}
               className="w-20 bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-primary"
             />
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="text-sm text-text-secondary w-40">Daily Reading Goal</label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={prefs?.dailyGoal ?? 10}
+              onChange={e => prefsMutation.mutate({ dailyGoal: Number(e.target.value) })}
+              className="w-20 bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-primary"
+            />
+            <span className="text-xs text-text-tertiary">articles/day (0 = disabled)</span>
           </div>
           <div className="flex items-center gap-4">
             <label className="text-sm text-text-secondary w-40">Auto-mark Read</label>

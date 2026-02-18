@@ -14,10 +14,17 @@ export default function ReadingStatus() {
     queryFn: () => fetch('/api/user/stats').then(r => r.json()),
     staleTime: 60000,
   });
+  const { data: prefs } = useQuery<{ dailyGoal: number }>({
+    queryKey: ['user-prefs'],
+    queryFn: () => fetch('/api/user/preferences').then(r => r.json()),
+    staleTime: 5 * 60 * 1000,
+  });
 
   if (!data) return null;
 
   const readToday = Number(data.totals.readToday ?? 0);
+  const goal = prefs?.dailyGoal ?? 10;
+  const goalMet = goal > 0 && readToday >= goal;
 
   // Calculate streak
   const today = new Date();
@@ -34,7 +41,9 @@ export default function ReadingStatus() {
 
   return (
     <Link href="/stats" className="flex items-center gap-3 text-xs text-text-tertiary hover:text-text-secondary transition-colors">
-      <span>{readToday} read today</span>
+      <span className={goalMet ? 'text-success font-medium' : ''}>
+        {goal > 0 ? `${readToday}/${goal} today` : `${readToday} read today`}
+      </span>
       {streak > 0 && (
         <>
           <span className="text-border">·</span>

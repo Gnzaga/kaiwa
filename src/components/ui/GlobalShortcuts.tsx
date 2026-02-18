@@ -28,6 +28,12 @@ export default function GlobalShortcuts() {
         return;
       }
 
+      // b — go back
+      if (e.key === 'b' && !isInput && !e.metaKey && !e.ctrlKey) {
+        window.history.back();
+        return;
+      }
+
       // g-chord navigation
       if (!isInput && e.key === 'g') {
         gPressed.current = true;

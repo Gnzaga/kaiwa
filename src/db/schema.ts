@@ -188,6 +188,7 @@ export const userPreferences = pgTable('user_preferences', {
   theme: text('theme', { enum: ['system', 'dark', 'light'] }).default('system'),
   articlesPerPage: integer('articles_per_page').default(20),
   autoMarkRead: boolean('auto_mark_read').default(true),
+  dailyGoal: integer('daily_goal').default(10),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
