@@ -76,6 +76,10 @@ export default function ArticleList({
     if (typeof window === 'undefined') return 'expanded';
     return (localStorage.getItem('article-view-mode') as 'expanded' | 'compact') ?? 'expanded';
   });
+  const [filtersVisible, setFiltersVisible] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('article-filters-visible') === 'true';
+  });
   const tagFilterRef = useRef<HTMLInputElement>(null);
 
   function getDateFrom(preset: '' | '1h' | '6h' | 'today' | '7d' | '30d' | '60d'): string {
@@ -202,6 +206,13 @@ export default function ArticleList({
           return next;
         });
       }
+      if (e.key === 'f') {
+        setFiltersVisible(v => {
+          const next = !v;
+          localStorage.setItem('article-filters-visible', String(next));
+          return next;
+        });
+      }
       if (e.key === 'u') {
         setReadFilter(f => {
           const next = f === 'unread' ? '' : 'unread';
@@ -228,180 +239,206 @@ export default function ArticleList({
       )}
 
       {/* Controls */}
-      {!hideFilters && (
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Sort */}
-        <select
-          value={sort}
-          onChange={(e) => { const v = e.target.value as SortOption; setSort(v); localStorage.setItem('article-sort', v); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
-        >
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="unread_first">Unread First</option>
-          <option value="quickest">Quickest Read</option>
-          <option value="source">By Source</option>
-          <option value="sentiment">By Sentiment</option>
-        </select>
+      {!hideFilters && (() => {
+        const activeFilterCount = [titleSearch, sourceFilter, tagFilter, readFilter, sentimentFilter, languageFilter, datePreset, readingLength].filter(Boolean).length;
+        return (
+          <div className="space-y-2">
+            {/* Primary row: always visible */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Sort */}
+              <select
+                value={sort}
+                onChange={(e) => { const v = e.target.value as SortOption; setSort(v); localStorage.setItem('article-sort', v); setPage(1); }}
+                className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="unread_first">Unread First</option>
+                <option value="quickest">Quickest Read</option>
+                <option value="source">By Source</option>
+                <option value="sentiment">By Sentiment</option>
+              </select>
 
-        {/* Source filter */}
-        <select
-          value={sourceFilter}
-          onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary max-w-[160px]"
-        >
-          <option value="">All Sources</option>
-          {feedOptions?.filter(f => !regionId || f.regionId === regionId).map(f => (
-            <option key={f.id} value={f.name}>{f.name}</option>
-          ))}
-        </select>
+              {/* Filters toggle */}
+              <button
+                onClick={() => { const next = !filtersVisible; setFiltersVisible(next); localStorage.setItem('article-filters-visible', String(next)); }}
+                title="Toggle filters (f)"
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded transition-colors ${filtersVisible ? 'border-accent-primary text-accent-primary bg-accent-primary/10' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M1 3h12M3 7h8M5 11h4" strokeLinecap="round" />
+                </svg>
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="bg-accent-primary text-bg-primary text-[10px] font-mono rounded-full w-4 h-4 flex items-center justify-center leading-none">{activeFilterCount}</span>
+                )}
+              </button>
 
-        {/* Title search */}
-        <input
-          ref={tagFilterRef}
-          data-shortcut-focus
-          type="text"
-          placeholder="Search title..."
-          value={titleSearch}
-          onChange={(e) => { setTitleSearch(e.target.value); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-36"
-        />
+              {/* View mode toggle */}
+              <div className="flex items-center border border-border rounded overflow-hidden">
+                <button
+                  onClick={() => { setViewMode('expanded'); localStorage.setItem('article-view-mode', 'expanded'); }}
+                  title="Expanded view"
+                  className={`px-2 py-1.5 transition-colors ${viewMode === 'expanded' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="1" y="1" width="12" height="4" rx="1" />
+                    <rect x="1" y="7" width="12" height="4" rx="1" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => { setViewMode('compact'); localStorage.setItem('article-view-mode', 'compact'); }}
+                  title="Compact view"
+                  className={`px-2 py-1.5 transition-colors ${viewMode === 'compact' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <line x1="1" y1="3" x2="13" y2="3" />
+                    <line x1="1" y1="7" x2="13" y2="7" />
+                    <line x1="1" y1="11" x2="13" y2="11" />
+                  </svg>
+                </button>
+              </div>
 
-        {/* Tag filter */}
-        <input
-          type="text"
-          placeholder="Filter tag..."
-          value={tagFilter}
-          onChange={(e) => { setTagFilter(e.target.value); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-32"
-        />
+              <button
+                onClick={() => {
+                  fetch('/api/articles/random')
+                    .then(r => r.json())
+                    .then(d => { if (d.id) router.push(`/article/${d.id}`); });
+                }}
+                title="Go to a random unread article (R)"
+                className="px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
+              >
+                Surprise me
+              </button>
 
-        {/* Read/Unread */}
-        <select
-          value={readFilter}
-          onChange={(e) => { const v = e.target.value as '' | 'read' | 'unread'; setReadFilter(v); localStorage.setItem('article-read-filter', v); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
-        >
-          <option value="">All</option>
-          <option value="unread">Unread</option>
-          <option value="read">Read</option>
-        </select>
+              <button
+                onClick={() => {
+                  if (!data?.data || data.data.length === 0) return;
+                  const urls = data.data.map(a => a.originalUrl).join('\n');
+                  navigator.clipboard.writeText(urls);
+                }}
+                title="Copy all visible article URLs to clipboard"
+                disabled={!data || data.data.length === 0}
+                className="px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Copy URLs
+              </button>
 
-        {/* Sentiment filter */}
-        <select
-          value={sentimentFilter}
-          onChange={(e) => { setSentimentFilter(e.target.value); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
-        >
-          <option value="">All Sentiment</option>
-          <option value="positive">Positive</option>
-          <option value="negative">Negative</option>
-          <option value="neutral">Neutral</option>
-          <option value="mixed">Mixed</option>
-          <option value="bullish">Bullish</option>
-          <option value="bearish">Bearish</option>
-          <option value="restrictive">Restrictive</option>
-          <option value="permissive">Permissive</option>
-        </select>
+              <button
+                onClick={handleMarkAllRead}
+                disabled={markingRead || !data || data.data.length === 0}
+                className={`ml-auto px-3 py-1.5 text-sm border rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors ${confirmMarkRead ? 'border-accent-highlight text-accent-highlight hover:border-accent-highlight' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
+              >
+                {markingRead ? 'Marking...' : confirmMarkRead ? 'Confirm?' : 'Mark all read'}
+              </button>
+            </div>
 
-        {/* Language filter */}
-        <select
-          value={languageFilter}
-          onChange={(e) => { setLanguageFilter(e.target.value); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
-        >
-          <option value="">All Languages</option>
-          <option value="ja">🇯🇵 Japanese</option>
-          <option value="en">🇺🇸 English</option>
-          <option value="zh">🇨🇳 Chinese</option>
-          <option value="ko">🇰🇷 Korean</option>
-          <option value="tl">🇵🇭 Filipino</option>
-        </select>
+            {/* Secondary row: collapsible filters */}
+            {filtersVisible && (
+              <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-border">
+                {/* Source filter */}
+                <select
+                  value={sourceFilter}
+                  onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }}
+                  className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary max-w-[160px]"
+                >
+                  <option value="">All Sources</option>
+                  {feedOptions?.filter(f => !regionId || f.regionId === regionId).map(f => (
+                    <option key={f.id} value={f.name}>{f.name}</option>
+                  ))}
+                </select>
 
-        {/* Reading length */}
-        <select
-          value={readingLength}
-          onChange={(e) => { setReadingLength(e.target.value); setPage(1); }}
-          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
-        >
-          <option value="">Any length</option>
-          <option value="quick">Quick (&lt;5 min)</option>
-          <option value="medium">Medium (5–15 min)</option>
-          <option value="long">Long (&gt;15 min)</option>
-        </select>
+                {/* Title search */}
+                <input
+                  ref={tagFilterRef}
+                  data-shortcut-focus
+                  type="text"
+                  placeholder="Search title..."
+                  value={titleSearch}
+                  onChange={(e) => { setTitleSearch(e.target.value); setPage(1); }}
+                  className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-36"
+                />
 
-        {/* Date presets */}
-        <div className="flex items-center gap-1 border border-border rounded overflow-hidden">
-          {(['', '1h', '6h', 'today', '7d', '30d', '60d'] as const).map((preset) => (
-            <button
-              key={preset || 'all'}
-              onClick={() => { setDatePreset(preset); setPage(1); }}
-              className={`px-2.5 py-1.5 text-xs transition-colors ${datePreset === preset ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
-            >
-              {preset === '' ? 'All' : preset === 'today' ? 'Today' : preset}
-            </button>
-          ))}
-        </div>
+                {/* Tag filter */}
+                <input
+                  type="text"
+                  placeholder="Filter tag..."
+                  value={tagFilter}
+                  onChange={(e) => { setTagFilter(e.target.value); setPage(1); }}
+                  className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-32"
+                />
 
-        {/* View mode toggle */}
-        <div className="flex items-center border border-border rounded overflow-hidden">
-          <button
-            onClick={() => { setViewMode('expanded'); localStorage.setItem('article-view-mode', 'expanded'); }}
-            title="Expanded view"
-            className={`px-2 py-1.5 transition-colors ${viewMode === 'expanded' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <rect x="1" y="1" width="12" height="4" rx="1" />
-              <rect x="1" y="7" width="12" height="4" rx="1" />
-            </svg>
-          </button>
-          <button
-            onClick={() => { setViewMode('compact'); localStorage.setItem('article-view-mode', 'compact'); }}
-            title="Compact view"
-            className={`px-2 py-1.5 transition-colors ${viewMode === 'compact' ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <line x1="1" y1="3" x2="13" y2="3" />
-              <line x1="1" y1="7" x2="13" y2="7" />
-              <line x1="1" y1="11" x2="13" y2="11" />
-            </svg>
-          </button>
-        </div>
+                {/* Read/Unread */}
+                <select
+                  value={readFilter}
+                  onChange={(e) => { const v = e.target.value as '' | 'read' | 'unread'; setReadFilter(v); localStorage.setItem('article-read-filter', v); setPage(1); }}
+                  className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+                >
+                  <option value="">All</option>
+                  <option value="unread">Unread</option>
+                  <option value="read">Read</option>
+                </select>
 
-        <button
-          onClick={() => {
-            fetch('/api/articles/random')
-              .then(r => r.json())
-              .then(d => { if (d.id) router.push(`/article/${d.id}`); });
-          }}
-          title="Go to a random unread article (R)"
-          className="px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
-        >
-          Surprise me
-        </button>
+                {/* Sentiment filter */}
+                <select
+                  value={sentimentFilter}
+                  onChange={(e) => { setSentimentFilter(e.target.value); setPage(1); }}
+                  className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+                >
+                  <option value="">All Sentiment</option>
+                  <option value="positive">Positive</option>
+                  <option value="negative">Negative</option>
+                  <option value="neutral">Neutral</option>
+                  <option value="mixed">Mixed</option>
+                  <option value="bullish">Bullish</option>
+                  <option value="bearish">Bearish</option>
+                  <option value="restrictive">Restrictive</option>
+                  <option value="permissive">Permissive</option>
+                </select>
 
-        <button
-          onClick={() => {
-            if (!data?.data || data.data.length === 0) return;
-            const urls = data.data.map(a => a.originalUrl).join('\n');
-            navigator.clipboard.writeText(urls);
-          }}
-          title="Copy all visible article URLs to clipboard"
-          disabled={!data || data.data.length === 0}
-          className="px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          Copy URLs
-        </button>
+                {/* Language filter */}
+                <select
+                  value={languageFilter}
+                  onChange={(e) => { setLanguageFilter(e.target.value); setPage(1); }}
+                  className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+                >
+                  <option value="">All Languages</option>
+                  <option value="ja">🇯🇵 Japanese</option>
+                  <option value="en">🇺🇸 English</option>
+                  <option value="zh">🇨🇳 Chinese</option>
+                  <option value="ko">🇰🇷 Korean</option>
+                  <option value="tl">🇵🇭 Filipino</option>
+                </select>
 
-        <button
-          onClick={handleMarkAllRead}
-          disabled={markingRead || !data || data.data.length === 0}
-          className={`ml-auto px-3 py-1.5 text-sm border rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors ${confirmMarkRead ? 'border-accent-highlight text-accent-highlight hover:border-accent-highlight' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
-        >
-          {markingRead ? 'Marking...' : confirmMarkRead ? 'Confirm?' : 'Mark all read'}
-        </button>
-      </div>
-      )}
+                {/* Reading length */}
+                <select
+                  value={readingLength}
+                  onChange={(e) => { setReadingLength(e.target.value); setPage(1); }}
+                  className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+                >
+                  <option value="">Any length</option>
+                  <option value="quick">Quick (&lt;5 min)</option>
+                  <option value="medium">Medium (5–15 min)</option>
+                  <option value="long">Long (&gt;15 min)</option>
+                </select>
+
+                {/* Date presets */}
+                <div className="flex items-center gap-1 border border-border rounded overflow-hidden">
+                  {(['', '1h', '6h', 'today', '7d', '30d', '60d'] as const).map((preset) => (
+                    <button
+                      key={preset || 'all'}
+                      onClick={() => { setDatePreset(preset); setPage(1); }}
+                      className={`px-2.5 py-1.5 text-xs transition-colors ${datePreset === preset ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
+                    >
+                      {preset === '' ? 'All' : preset === 'today' ? 'Today' : preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Active filter chips */}
       {!hideFilters && (titleSearch || sourceFilter || tagFilter || readFilter || sentimentFilter || languageFilter || datePreset || readingLength) && (

@@ -329,6 +329,19 @@ export default function ArticleDetail({ id }: { id: number }) {
         className="fixed top-0 left-0 h-0.5 bg-accent-primary z-50 transition-all duration-150"
         style={{ width: `${readProgress}%` }}
       />
+      {/* Back to top button */}
+      {readProgress > 15 && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          title="Back to top"
+          className="fixed bottom-6 right-6 z-40 w-9 h-9 flex items-center justify-center rounded-full bg-bg-elevated border border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary shadow-lg transition-all opacity-70 hover:opacity-100"
+          aria-label="Back to top"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7 11V3M3 6l4-4 4 4" />
+          </svg>
+        </button>
+      )}
       {/* Text selection quote popup */}
       {quotePopup && (
         <div
