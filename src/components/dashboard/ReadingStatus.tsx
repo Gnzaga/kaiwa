@@ -20,11 +20,18 @@ export default function ReadingStatus() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: unreadCounts } = useQuery<Record<string, number>>({
+    queryKey: ['unread-counts'],
+    queryFn: () => fetch('/api/regions/unread-counts').then(r => r.json()),
+    staleTime: 60000,
+  });
+
   if (!data) return null;
 
   const readToday = Number(data.totals.readToday ?? 0);
   const goal = prefs?.dailyGoal ?? 10;
   const goalMet = goal > 0 && readToday >= goal;
+  const totalUnread = unreadCounts ? Object.values(unreadCounts).reduce((sum, n) => sum + n, 0) : 0;
 
   // Calculate streak
   const today = new Date();
@@ -44,6 +51,12 @@ export default function ReadingStatus() {
       <span className={goalMet ? 'text-success font-medium' : ''}>
         {goal > 0 ? `${readToday}/${goal} today` : `${readToday} read today`}
       </span>
+      {totalUnread > 0 && (
+        <>
+          <span className="text-border">·</span>
+          <span>{totalUnread.toLocaleString()} unread</span>
+        </>
+      )}
       {streak > 0 && (
         <>
           <span className="text-border">·</span>

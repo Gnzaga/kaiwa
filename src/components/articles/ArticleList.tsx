@@ -286,6 +286,46 @@ export default function ArticleList({
       </div>
       )}
 
+      {/* Active filter chips */}
+      {!hideFilters && (sourceFilter || tagFilter || readFilter || sentimentFilter || languageFilter || datePreset) && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-text-tertiary">Filters:</span>
+          {sourceFilter && (
+            <button onClick={() => { setSourceFilter(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              Source: {sourceFilter} ✕
+            </button>
+          )}
+          {tagFilter && (
+            <button onClick={() => { setTagFilter(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              Tag: {tagFilter} ✕
+            </button>
+          )}
+          {readFilter && (
+            <button onClick={() => { setReadFilter(''); localStorage.setItem('article-read-filter', ''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              {readFilter === 'read' ? 'Read only' : 'Unread only'} ✕
+            </button>
+          )}
+          {sentimentFilter && (
+            <button onClick={() => { setSentimentFilter(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              Sentiment: {sentimentFilter} ✕
+            </button>
+          )}
+          {languageFilter && (
+            <button onClick={() => { setLanguageFilter(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              Lang: {languageFilter} ✕
+            </button>
+          )}
+          {datePreset && (
+            <button onClick={() => { setDatePreset(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              Date: {datePreset} ✕
+            </button>
+          )}
+          <button onClick={() => { setSourceFilter(''); setTagFilter(''); setReadFilter(''); setSentimentFilter(''); setLanguageFilter(''); setDatePreset(''); setPage(1); }} className="text-xs text-text-tertiary hover:text-text-primary ml-1 transition-colors">
+            Clear all
+          </button>
+        </div>
+      )}
+
       {/* Articles */}
       {isLoading && (
         <div className="space-y-3">
