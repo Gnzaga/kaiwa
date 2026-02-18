@@ -19,7 +19,7 @@ export default function QuickRead() {
     staleTime: 120000,
   });
 
-  const articles = data?.data ?? [];
+  const articles = (data?.data ?? []).slice(0, 3);
   if (articles.length === 0) return null;
 
   return (
