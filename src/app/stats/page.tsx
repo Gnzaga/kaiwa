@@ -317,6 +317,47 @@ export default function StatsPage() {
         );
       })()}
 
+      {/* Monthly trend — last 12 months */}
+      {dailyActivity.length > 0 && (() => {
+        const now = new Date();
+        const months: { label: string; key: string; count: number }[] = [];
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const label = d.toLocaleDateString('en-US', { month: 'short' });
+          months.push({ label, key, count: 0 });
+        }
+        dailyActivity.forEach(({ day, count }) => {
+          const key = day.slice(0, 7);
+          const m = months.find(m => m.key === key);
+          if (m) m.count += Number(count);
+        });
+        const maxMonth = Math.max(...months.map(m => m.count), 1);
+        const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        return (
+          <section className="space-y-3">
+            <h2 className="text-base font-medium text-text-primary">Monthly Trend</h2>
+            <div className="flex items-end gap-1.5 h-20">
+              {months.map(({ label, key, count }) => {
+                const pct = (count / maxMonth) * 100;
+                const isCurrent = key === currentKey;
+                return (
+                  <div key={key} className="flex flex-col items-center gap-1 flex-1" title={`${label}: ${count} articles`}>
+                    <div className="w-full flex items-end justify-center h-16">
+                      <div
+                        className={`w-full rounded-t transition-all ${isCurrent ? 'bg-accent-primary' : 'bg-accent-primary/50'}`}
+                        style={{ height: `${Math.max(2, pct)}%` }}
+                      />
+                    </div>
+                    <span className={`text-[9px] font-mono ${isCurrent ? 'text-accent-primary' : 'text-text-tertiary'}`}>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })()}
+
       {/* Day-of-week distribution */}
       {dailyActivity.length > 0 && (() => {
         const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

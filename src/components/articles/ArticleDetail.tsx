@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import Tag from '@/components/ui/Tag';
@@ -175,16 +175,40 @@ export default function ArticleDetail({ id }: { id: number }) {
   }, [data?.article?.id, prefs?.autoMarkRead]);
 
   const [readProgress, setReadProgress] = useState(0);
+  const scrollSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     function onScroll() {
       const el = document.documentElement;
       const scrolled = el.scrollTop || document.body.scrollTop;
       const total = el.scrollHeight - el.clientHeight;
       setReadProgress(total > 0 ? Math.min(100, Math.round((scrolled / total) * 100)) : 0);
+      // Debounce save scroll position
+      if (scrollSaveTimer.current) clearTimeout(scrollSaveTimer.current);
+      scrollSaveTimer.current = setTimeout(() => {
+        if (scrolled > 100) {
+          localStorage.setItem(`article-scroll-${id}`, String(Math.round(scrolled)));
+        } else {
+          localStorage.removeItem(`article-scroll-${id}`);
+        }
+      }, 500);
     }
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // Restore scroll position when article loads
+  useEffect(() => {
+    if (!data?.article) return;
+    const saved = localStorage.getItem(`article-scroll-${id}`);
+    if (saved) {
+      const pos = parseInt(saved, 10);
+      if (pos > 100) {
+        requestAnimationFrame(() => window.scrollTo({ top: pos, behavior: 'instant' }));
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.article?.id]);
 
   const [copied, setCopied] = useState(false);
   const [summaryCopied, setSummaryCopied] = useState(false);

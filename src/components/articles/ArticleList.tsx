@@ -199,6 +199,11 @@ export default function ArticleList({
           }).then(() => queryClient.invalidateQueries({ queryKey: ['articles'] }));
         }
       }
+      if (e.key === 'S' && selectedIdxRef.current >= 0) {
+        const article = articlesRef.current[selectedIdxRef.current];
+        const src = (article as typeof article & { feedSourceName?: string })?.feedSourceName;
+        if (src) { setSourceFilter(prev => prev === src ? '' : src); setPage(1); }
+      }
       if (e.key === 'v') {
         setViewMode(m => {
           const next = m === 'expanded' ? 'compact' : 'expanded';
