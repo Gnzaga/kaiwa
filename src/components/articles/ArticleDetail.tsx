@@ -191,6 +191,41 @@ export default function ArticleDetail({ id }: { id: number }) {
   const [citationCopied, setCitationCopied] = useState(false);
   const [threadCopied, setThreadCopied] = useState(false);
   const [mdCopied, setMdCopied] = useState(false);
+
+  const downloadMd = useCallback(() => {
+    if (!data?.article) return;
+    const a = data.article;
+    const t = a.translatedTitle || a.originalTitle;
+    const date = new Date(a.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const lines: string[] = [
+      `# ${t}`,
+      '',
+      `**Source**: ${a.sourceName ?? 'Unknown'}`,
+      `**Published**: ${date}`,
+      `**URL**: ${a.originalUrl}`,
+    ];
+    if (a.summaryTldr) lines.push('', `> ${a.summaryTldr}`);
+    if (a.summaryBullets && a.summaryBullets.length > 0) {
+      lines.push('', '## Key Points', ...a.summaryBullets.map((b: string) => `- ${b}`));
+    }
+    if (a.summaryTags && a.summaryTags.length > 0) {
+      lines.push('', `**Tags**: ${a.summaryTags.join(', ')}`);
+    }
+    const rawContent = a.translatedContent || a.originalContent;
+    if (rawContent) {
+      const div = document.createElement('div');
+      div.innerHTML = rawContent;
+      const text = div.innerText || div.textContent || '';
+      if (text.trim()) lines.push('', '---', '', text.trim());
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${t.replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 80)}.md`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }, [data?.article]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -482,6 +517,10 @@ export default function ArticleDetail({ id }: { id: number }) {
           active={mdCopied}
         >
           {mdCopied ? 'Copied!' : 'Copy MD'}
+        </ActionButton>
+
+        <ActionButton onClick={downloadMd}>
+          Download MD
         </ActionButton>
 
         <ActionButton onClick={copyCitation} active={citationCopied}>

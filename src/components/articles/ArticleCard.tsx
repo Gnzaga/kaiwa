@@ -42,11 +42,13 @@ export default function ArticleCard({
   sourceName,
   categorySlug,
   variant = 'default',
+  selected = false,
 }: {
   article: Article & { imageUrl?: string | null; categorySlug?: string | null; isRead?: boolean | null; isStarred?: boolean | null; readingMinutes?: number | null };
   sourceName?: string;
   categorySlug?: string | null;
   variant?: 'default' | 'hero' | 'compact';
+  selected?: boolean;
 }) {
   const displayCategory = categorySlug ?? (article as Article & { categorySlug?: string | null }).categorySlug;
   const isRead = (article as Article & { isRead?: boolean | null }).isRead;
@@ -61,7 +63,7 @@ export default function ArticleCard({
   if (variant === 'hero' && imageUrl) {
     return (
       <Link href={`/article/${article.id}`}>
-        <article className="group relative rounded-xl overflow-hidden bg-bg-secondary border border-border card-hover animate-fade-in cursor-pointer">
+        <article className={`group relative rounded-xl overflow-hidden bg-bg-secondary border card-hover animate-fade-in cursor-pointer${selected ? ' border-accent-primary ring-1 ring-accent-primary' : ' border-border'}`}>
           <div className="aspect-[16/9] w-full bg-bg-elevated">
             <img
               src={imageUrl}
@@ -103,7 +105,7 @@ export default function ArticleCard({
   if (variant === 'compact') {
     return (
       <Link href={`/article/${article.id}`}>
-        <article className="flex items-center gap-3 py-2.5 px-3 rounded-lg card-hover animate-fade-in cursor-pointer group">
+        <article className={`flex items-center gap-3 py-2.5 px-3 rounded-lg card-hover animate-fade-in cursor-pointer group${selected ? ' bg-accent-primary/5 border border-accent-primary/40' : ''}`}>
           {imageUrl && (
             <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-bg-elevated">
               <img src={imageUrl} alt="" className="w-full h-full object-cover" loading="lazy"
@@ -152,7 +154,7 @@ export default function ArticleCard({
   return (
     <Link href={`/article/${article.id}`}>
       <article
-        className={`flex gap-3 p-3 bg-bg-secondary border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${read ? ' opacity-60 hover:opacity-100' : ''}${starred ? ' border-accent-highlight/30' : ' border-border'}`}
+        className={`flex gap-3 p-3 bg-bg-secondary border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${read ? ' opacity-60 hover:opacity-100' : ''}${selected ? ' border-accent-primary ring-1 ring-accent-primary' : starred ? ' border-accent-highlight/30' : ' border-border'}`}
         onDoubleClick={(e) => { e.preventDefault(); window.open(article.originalUrl, '_blank', 'noopener,noreferrer'); }}
       >
         <div className="flex-1 min-w-0 flex flex-col justify-between">

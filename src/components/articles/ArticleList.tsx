@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
 import { setArticleNavList } from './ArticleNav';
@@ -37,6 +38,7 @@ export default function ArticleList({
   emptyMessage?: React.ReactNode;
 }) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { data: prefs } = useQuery<{ articlesPerPage: number }>({
     queryKey: ['user-prefs'],
     queryFn: () => fetch('/api/user/preferences').then(r => r.json()),
@@ -63,6 +65,9 @@ export default function ArticleList({
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [languageFilter, setLanguageFilter] = useState('');
   const [titleSearch, setTitleSearch] = useState('');
+  const [selectedIdx, setSelectedIdx] = useState(-1);
+  const selectedIdxRef = useRef(-1);
+  const articlesRef = useRef<(Article & { feedSourceName?: string; imageUrl?: string | null })[]>([]);
   const [markingRead, setMarkingRead] = useState(false);
   const [confirmMarkRead, setConfirmMarkRead] = useState(false);
   const [datePreset, setDatePreset] = useState<'' | '1h' | '6h' | 'today' | '7d' | '30d' | '60d'>('');
@@ -143,7 +148,19 @@ export default function ArticleList({
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
-  // Keyboard navigation: [ = prev page, ] = next page, v = toggle view, u = toggle unread
+  // Keep refs in sync for use in keyboard handler without stale closure
+  useEffect(() => { selectedIdxRef.current = selectedIdx; }, [selectedIdx]);
+  useEffect(() => { articlesRef.current = data?.data ?? []; }, [data]);
+  // Reset selection when page/filter changes
+  useEffect(() => { setSelectedIdx(-1); }, [data]);
+  // Scroll selected article into view
+  useEffect(() => {
+    if (selectedIdx < 0) return;
+    const el = document.querySelector(`[data-article-idx="${selectedIdx}"]`);
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedIdx]);
+
+  // Keyboard navigation: [ = prev page, ] = next page, v = toggle view, u = toggle unread, j/k = select article, Enter = open
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName;
@@ -151,6 +168,18 @@ export default function ArticleList({
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === '[' || e.key === 'p') setPage(p => Math.max(1, p - 1));
       if (e.key === ']' || e.key === 'n') setPage(p => Math.min(totalPages, p + 1));
+      if (e.key === 'j') {
+        e.preventDefault();
+        setSelectedIdx(prev => Math.min(prev + 1, articlesRef.current.length - 1));
+      }
+      if (e.key === 'k') {
+        e.preventDefault();
+        setSelectedIdx(prev => Math.max(0, prev - 1));
+      }
+      if (e.key === 'Enter' && selectedIdxRef.current >= 0) {
+        const article = articlesRef.current[selectedIdxRef.current];
+        if (article) router.push(`/article/${article.id}`);
+      }
       if (e.key === 'v') {
         setViewMode(m => {
           const next = m === 'expanded' ? 'compact' : 'expanded';
@@ -169,7 +198,7 @@ export default function ArticleList({
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [totalPages]);
+  }, [totalPages, router]);
 
   return (
     <div className="space-y-4">
@@ -398,12 +427,14 @@ export default function ArticleList({
         <div className="space-y-2">
           {(() => { setArticleNavList(data.data.map(a => a.id)); return null; })()}
           {data.data.map((article, i) => (
-            <ArticleCard
-              key={article.id}
-              article={article}
-              sourceName={article.feedSourceName}
-              variant={viewMode === 'compact' ? 'compact' : page === 1 && i === 0 && article.imageUrl ? 'hero' : 'default'}
-            />
+            <div key={article.id} data-article-idx={i} onMouseEnter={() => setSelectedIdx(i)}>
+              <ArticleCard
+                article={article}
+                sourceName={article.feedSourceName}
+                variant={viewMode === 'compact' ? 'compact' : page === 1 && i === 0 && article.imageUrl ? 'hero' : 'default'}
+                selected={i === selectedIdx}
+              />
+            </div>
           ))}
         </div>
       )}
