@@ -22,6 +22,12 @@ export default function GlobalShortcuts() {
         return;
       }
 
+      // R (shift+r) — random unread article
+      if (e.key === 'R' && !isInput && !e.metaKey && !e.ctrlKey) {
+        fetch('/api/articles/random').then(r => r.json()).then(d => { if (d.id) router.push(`/article/${d.id}`); });
+        return;
+      }
+
       // t — scroll to top
       if (e.key === 't' && !isInput && !e.metaKey && !e.ctrlKey) {
         window.scrollTo({ top: 0, behavior: 'smooth' });

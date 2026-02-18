@@ -180,6 +180,16 @@ export default function ArticleList({
         const article = articlesRef.current[selectedIdxRef.current];
         if (article) router.push(`/article/${article.id}`);
       }
+      if (e.key === 'x' && selectedIdxRef.current >= 0) {
+        const article = articlesRef.current[selectedIdxRef.current];
+        if (article) {
+          fetch(`/api/articles/${article.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'toggleArchive' }),
+          }).then(() => queryClient.invalidateQueries({ queryKey: ['articles'] }));
+        }
+      }
       if (e.key === 'v') {
         setViewMode(m => {
           const next = m === 'expanded' ? 'compact' : 'expanded';
@@ -340,6 +350,18 @@ export default function ArticleList({
             </svg>
           </button>
         </div>
+
+        <button
+          onClick={() => {
+            fetch('/api/articles/random')
+              .then(r => r.json())
+              .then(d => { if (d.id) router.push(`/article/${d.id}`); });
+          }}
+          title="Go to a random unread article (R)"
+          className="px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
+        >
+          Surprise me
+        </button>
 
         <button
           onClick={handleMarkAllRead}
