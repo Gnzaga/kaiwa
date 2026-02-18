@@ -6,6 +6,43 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 230 — Dashboard ReadingStatus: in-progress article count
+`src/components/dashboard/ReadingStatus.tsx`: scans localStorage on mount for `article-scroll-*` keys with scroll > 100px; shows "N in progress" in accent-secondary next to streak count.
+
+### Feature 229 — Stats: All-Time Best Day stat card
+`src/app/stats/page.tsx`: computes highest single-day read count across the full 365-day `dailyActivity` window and displays date label; distinct from existing "Best Day (30d)" card.
+
+### Feature 228 — Dashboard: Continue Reading widget + articles `ids` filter
+`src/components/dashboard/ContinueReading.tsx`: reads localStorage `article-scroll-*` positions, fetches in-progress unread articles by ID, shows them in the dashboard right sidebar with dismiss button.
+`src/app/api/articles/route.ts`: added `ids` query param (comma-separated) using `inArray()` for batch article fetching.
+
+### Feature 227 — Stats: Velocity stat card
+`src/app/stats/page.tsx`: "Velocity" card shows average articles per day over the last 30 days (total / 30).
+
+### Feature 226 — CommandPalette: `@` region prefix
+`src/components/ui/CommandPalette.tsx`: `@` prefix loads regions from `/api/regions` and fuzzy-filters by name/id; each result navigates to `/region/{id}`.
+
+### Feature 225 — ArticleCard: ▶ IN PROGRESS badge
+`src/components/articles/ArticleCard.tsx`: checks `article-scroll-{id}` on mount; shows styled "▶ IN PROGRESS" badge (accent-secondary) for partially-read unread articles.
+
+### Feature 224 — ArticleDetail: "Find similar" tag link
+`src/components/articles/ArticleDetail.tsx`: a "Find similar →" link after the tags row navigates to `/articles?tag={firstTag}`.
+
+### Feature 223 — ArticleList: Shift+N toggles 6h date preset
+`src/components/articles/ArticleList.tsx`: `N` key (shift) toggles `datePreset` between `'6h'` and `''`.
+
+### Feature 222 — ArticleDetail: note auto-save (debounced 2s)
+`src/components/articles/ArticleDetail.tsx`: removed "Save Note" button; note auto-saves 2s after last keystroke using a `useRef` timer; shows "Saving…" / "✓ Saved" / "Auto-saves after 2s" status.
+
+### Feature 221 — Settings: updated keyboard shortcuts reference
+`src/app/settings/page.tsx`: keyboard shortcuts table updated to reflect all new shortcuts (j/k, m, */x, S, O, v, u, f, R, ?, navigation, article detail).
+
+### Feature 220 — Stats: Consistency stat card
+`src/app/stats/page.tsx`: "Consistency" card shows percentage of last 30 days with any reading activity (activeDays / 30 × 100%).
+
+### Feature 219 — ArticleList: Shift+O opens original URL
+`src/components/articles/ArticleList.tsx`: `O` key (shift) opens the j/k-selected article's `originalUrl` in a new tab.
+
 ### Feature 218 — Stats: 12-month trend bar chart
 `src/app/stats/page.tsx`: "Monthly Trend" section shows a 12-month bar chart grouped from 365-day `dailyActivity` data; current month highlighted in accent-primary.
 
