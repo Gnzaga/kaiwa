@@ -30,6 +30,13 @@ function relativeTime(date: Date | string): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function absoluteTime(date: Date | string): string {
+  return new Date(date).toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
 export default function ArticleCard({
   article,
   sourceName,
@@ -67,7 +74,7 @@ export default function ArticleCard({
           <div className="p-4">
             <div className="flex items-center gap-2 text-xs text-text-tertiary mb-2">
               {sourceName && <span className="font-medium text-accent-primary">{sourceName}</span>}
-              <span>{relativeTime(article.publishedAt)}</span>
+              <span title={absoluteTime(article.publishedAt)}>{relativeTime(article.publishedAt)}</span>
               <SentimentBadge sentiment={article.summarySentiment} />
             </div>
             <h3 className="text-base font-semibold text-text-primary leading-snug mb-1">{title}</h3>
@@ -106,7 +113,7 @@ export default function ArticleCard({
             <h3 className="text-sm font-medium text-text-primary leading-snug line-clamp-2 group-hover:text-accent-highlight transition-colors">{title}</h3>
             <div className="flex items-center gap-2 text-xs text-text-tertiary mt-0.5">
               {sourceName && <span>{sourceName}</span>}
-              <span>{relativeTime(article.publishedAt)}</span>
+              <span title={absoluteTime(article.publishedAt)}>{relativeTime(article.publishedAt)}</span>
             </div>
           </div>
         </article>
@@ -160,7 +167,7 @@ export default function ArticleCard({
                   {displayCategory}
                 </span>
               )}
-              <span>{relativeTime(article.publishedAt)}</span>
+              <span title={absoluteTime(article.publishedAt)}>{relativeTime(article.publishedAt)}</span>
               {rt && <span>{rt} read</span>}
               {isNew && (
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider bg-accent-primary/20 text-accent-primary border border-accent-primary/30">
