@@ -4,6 +4,89 @@ Autonomous feature development session. Each entry timestamped.
 
 ---
 
+## 2026-02-18
+
+### Feature 218 — Stats: 12-month trend bar chart
+`src/app/stats/page.tsx`: "Monthly Trend" section shows a 12-month bar chart grouped from 365-day `dailyActivity` data; current month highlighted in accent-primary.
+
+### Feature 217 — ArticleDetail: save/restore scroll position
+`src/components/articles/ArticleDetail.tsx`: debounced 500ms scroll handler writes `article-scroll-{id}` to localStorage; on article load restores scroll if saved position > 100px.
+
+### Feature 216 — ArticleList: Shift+S quick-filter by source
+`src/components/articles/ArticleList.tsx`: `S` key with a j/k-selected article toggles `sourceFilter` to/from that article's source name.
+
+### Feature 215 — Global keyboard shortcuts modal (?)
+`src/components/ui/GlobalShortcuts.tsx`: `?` key opens a full-screen modal listing all shortcuts grouped by Navigation, Global, Article List, and Article Detail.
+
+### Feature 214 — Stats: Hours Read stat card
+`src/app/stats/page.tsx`: "Hours Read" card derived as `totalWordsRead / 250 / 60`; shows hours if ≥1 else minutes.
+
+### Feature 213 — Stats: day-of-week reading distribution
+`src/app/stats/page.tsx`: "Reading by Day of Week" bar chart aggregates 365-day activity by weekday (Sun–Sat); today's bar highlighted in accent-primary, peak bar in accent-primary/70.
+
+### Feature 212 — ArticleDetail: floating back-to-top button
+`src/components/articles/ArticleDetail.tsx`: a floating circular button appears (bottom-right, z-40) when `readProgress > 15`; `window.scrollTo({ top: 0, behavior: 'smooth' })`.
+
+### Feature 211 — ArticleList: collapsible filter panel
+`src/components/articles/ArticleList.tsx`: secondary filter row (source, search, tag, read, sentiment, language, reading length, date presets) is now collapsible via "Filters" toggle button or `f` key; active filter count badge on button; persisted in `article-filters-visible` localStorage key.
+
+### Feature 210 — Stats: month-over-month comparison
+`src/app/api/user/stats/route.ts`: added `readLastMonth` (60–30 days ago); `src/app/stats/page.tsx`: "This Month" card shows `↑N vs last` / `↓N vs last` delta.
+
+### Feature 209 — Article detail: keyboard shortcuts overlay updated
+`src/components/articles/ArticleDetail.tsx`: shortcuts overlay now lists n/p, ←/→ (next/prev article), and R (random unread).
+
+### Feature 208 — Article detail: email share button
+`src/components/articles/ArticleDetail.tsx`: "Email" button opens `mailto:` link with title as subject and URL + TL;DR as body.
+
+### Feature 207 — Article detail: translation provider badge
+`src/components/articles/ArticleDetail.tsx`: shows "LT" or "LLM" abbreviation badge (with full tooltip) next to status indicators when translation is complete.
+
+### Feature 206 — Sidebar: document.title unread count prefix
+`src/components/layout/Sidebar.tsx`: `useEffect` sets `document.title` to `(N) Kaiwa` when totalUnread > 0 (capped at `999+`); restores base title at zero.
+
+### Feature 205 — ArticleList: Copy URLs button
+`src/components/articles/ArticleList.tsx`: "Copy URLs" button copies all visible article `originalUrl`s as newline-separated list to clipboard.
+
+### Feature 204 — ArticleDetail: "More from this source" section
+`src/app/api/articles/[id]/route.ts`: `fromSameSource` query (last 5 articles with same `sourceName`); `src/components/articles/ArticleDetail.tsx`: "More from {source}" section below related articles.
+
+### Feature 203 — CommandPalette: fix "Surprise me" navigation
+`src/components/ui/CommandPalette.tsx`: "Surprise me" uses `__random__` sentinel href + `navigateTo()` helper that fetches `/api/articles/random` and calls `router.push`.
+
+### Feature 202 — ArticleList: reading length filter
+`src/app/api/articles/route.ts`: `minReadingMinutes`/`maxReadingMinutes` params filter by `CEIL(char_length(content) / 1000.0)`; `src/components/articles/ArticleList.tsx`: "Quick / Medium / Long" select added.
+
+### Feature 201 — ArticleList: * and m inline actions on selected article
+`src/components/articles/ArticleList.tsx`: `*` key toggles star and `m` key toggles read on j/k-selected article (joining existing `x` for archive).
+
+### Feature 200 — ArticleList: x key archives j/k-selected article
+`src/components/articles/ArticleList.tsx`: `x` key PATCHes `toggleArchive` on the currently j/k-selected article and invalidates queries.
+
+### Feature 199 — Surprise me button + R global shortcut
+`src/components/articles/ArticleList.tsx`: "Surprise me" button fetches `/api/articles/random` and navigates; `src/components/ui/GlobalShortcuts.tsx`: `R` (Shift+R) global shortcut does the same.
+
+### Feature 198 — Stats: 52-week GitHub-style heatmap
+`src/app/stats/page.tsx`: replaced 30-day flat grid with 52-week calendar heatmap (week columns, Mon–Fri abbreviated day labels, month markers, 4-level color intensity, overflow-x scrollable).
+
+### Feature 197 — Stats: 365-day dailyActivity window
+`src/app/api/user/stats/route.ts`: changed `INTERVAL '30 days'` to `INTERVAL '365 days'` for accurate streak/heatmap data.
+
+### Feature 196 — ArticleList: j/k keyboard navigation
+`src/components/articles/ArticleList.tsx`: `j`/`k` move selection, `Enter` opens article, selection synced to `selectedIdxRef`/`articlesRef` to avoid stale closures; `ArticleCard` gains `selected?: boolean` prop with `ring-1 ring-accent-primary` highlight in all three variants.
+
+### Feature 195 — ArticleDetail: download as Markdown
+`src/components/articles/ArticleDetail.tsx`: "Download .md" button builds Markdown with title, source, date, URL, TL;DR, bullets, tags, and plain text body; downloads via `URL.createObjectURL` + anchor click.
+
+### Feature 194 — ArticleDetail: Copy Thread
+`src/components/articles/ArticleDetail.tsx`: "Copy Thread" button formats summary as numbered tweet thread (1/ title+URL, 2/ TL;DR, 3/ bullets, 4/ tags).
+
+### Feature 193 — ArticleDetail: Copy Outline (moved from 189)
+`src/components/articles/ArticleDetail.tsx`: "Copy Outline" button formats as Markdown outline — this was completed and committed alongside 194.
+
+### Feature 192 — ArticleList: title search with q param
+`src/app/api/articles/route.ts`: `q` URL param adds `ILIKE '%query%'` condition on `COALESCE(translatedTitle, originalTitle)`; `src/components/articles/ArticleList.tsx`: "Search title..." input, chip on active filter row.
+
 ## 2026-02-17
 
 ### Feature 191 — Stats: weekly goal progress bar
@@ -706,9 +789,12 @@ Autonomous feature development session. Each entry timestamped.
 ---
 
 ## Active Build
-- **kaiwa-build-f101-116-czpd2**: features 101-116 — triggered 2026-02-18
+- **kaiwa-build-f199-218**: features 199-218 — triggered 2026-02-18
 
 ## Build History
+- **kaiwa-build-f187-198**: Succeeded — features 187-198 (heatmap, surprise me, etc.)
+- **kaiwa-build-f179-186d**: Succeeded — features 179-186
+- **kaiwa-build-f101-116-czpd2**: features 101-116
 - **kaiwa-build-tg98g** through **kaiwa-build-dtgvv**: FAILED — missing `fsGroup: 65532` in PipelineRun taskRunTemplate podTemplate securityContext
   Root cause: NFS volume owned by root:root 755; git-clone task runs as UID 65532 and can't write without fsGroup chown
   Fix: add `taskRunTemplate.podTemplate.securityContext.fsGroup: 65532` + `serviceAccountName: build-bot`
