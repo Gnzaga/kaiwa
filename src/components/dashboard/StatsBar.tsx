@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 interface Stats {
   articlesToday: number;
+  totalArticles: number;
   translationsPending: number;
   summariesPending: number;
 }
@@ -17,12 +18,13 @@ export default function StatsBar() {
 
   const stats = [
     { label: 'Articles Today', value: data?.articlesToday ?? 0 },
+    { label: 'Total Articles', value: data?.totalArticles?.toLocaleString() ?? '—' },
     { label: 'Translations Pending', value: data?.translationsPending ?? 0 },
     { label: 'Summaries Pending', value: data?.summariesPending ?? 0 },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <div
           key={stat.label}

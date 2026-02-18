@@ -60,6 +60,7 @@ export default function ArticleList({
   });
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [markingRead, setMarkingRead] = useState(false);
+  const [confirmMarkRead, setConfirmMarkRead] = useState(false);
   const [datePreset, setDatePreset] = useState<'' | 'today' | '7d' | '30d'>('');
   const [viewMode, setViewMode] = useState<'expanded' | 'compact'>(() => {
     if (typeof window === 'undefined') return 'expanded';
@@ -92,6 +93,12 @@ export default function ArticleList({
   if (dateFrom) params.set('dateFrom', dateFrom);
 
   const handleMarkAllRead = async () => {
+    if (!confirmMarkRead) {
+      setConfirmMarkRead(true);
+      setTimeout(() => setConfirmMarkRead(false), 3000);
+      return;
+    }
+    setConfirmMarkRead(false);
     setMarkingRead(true);
     try {
       const markParams = new URLSearchParams();
@@ -256,9 +263,9 @@ export default function ArticleList({
         <button
           onClick={handleMarkAllRead}
           disabled={markingRead || !data || data.data.length === 0}
-          className="ml-auto px-3 py-1.5 text-sm border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className={`ml-auto px-3 py-1.5 text-sm border rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors ${confirmMarkRead ? 'border-accent-highlight text-accent-highlight hover:border-accent-highlight' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
         >
-          {markingRead ? 'Marking...' : 'Mark all read'}
+          {markingRead ? 'Marking...' : confirmMarkRead ? 'Confirm?' : 'Mark all read'}
         </button>
       </div>
       )}

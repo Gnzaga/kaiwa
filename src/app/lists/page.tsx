@@ -16,6 +16,9 @@ export default function ListsPage() {
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: lists, isLoading } = useQuery<ReadingList[]>({
     queryKey: ['reading-lists'],
@@ -39,7 +42,17 @@ export default function ListsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) =>
       fetch(`/api/reading-lists/${id}`, { method: 'DELETE' }).then(r => r.json()),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reading-lists'] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['reading-lists'] }); setConfirmDeleteId(null); },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: ({ id, name }: { id: number; name: string }) =>
+      fetch(`/api/reading-lists/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      }).then(r => r.json()),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['reading-lists'] }); setEditingId(null); },
   });
 
   return (
@@ -87,17 +100,49 @@ export default function ListsPage() {
         <div className="space-y-3">
           {lists.map(list => (
             <div key={list.id} className="flex items-center justify-between bg-bg-elevated border border-border rounded px-5 py-4">
-              <Link href={`/lists/${list.id}`} className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-text-primary hover:text-accent-primary transition-colors">{list.name}</div>
-                {list.description && <div className="text-xs text-text-tertiary mt-0.5 truncate">{list.description}</div>}
-                <div className="text-xs text-text-tertiary mt-1">{list.articleCount} article{list.articleCount !== 1 ? 's' : ''}</div>
-              </Link>
-              <button
-                onClick={() => deleteMutation.mutate(list.id)}
-                className="text-xs text-text-tertiary hover:text-accent-highlight transition-colors ml-4"
-              >
-                Delete
-              </button>
+              {editingId === list.id ? (
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && editName.trim()) renameMutation.mutate({ id: list.id, name: editName.trim() });
+                      if (e.key === 'Escape') setEditingId(null);
+                    }}
+                    autoFocus
+                    className="flex-1 bg-bg-primary border border-accent-primary rounded px-3 py-1 text-sm text-text-primary focus:outline-none"
+                  />
+                  <button
+                    onClick={() => editName.trim() && renameMutation.mutate({ id: list.id, name: editName.trim() })}
+                    className="text-xs px-2 py-1 bg-accent-primary text-bg-primary rounded hover:opacity-90"
+                  >Save</button>
+                  <button onClick={() => setEditingId(null)} className="text-xs text-text-tertiary hover:text-text-primary">Cancel</button>
+                </div>
+              ) : (
+                <Link href={`/lists/${list.id}`} className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-text-primary hover:text-accent-primary transition-colors">{list.name}</div>
+                  {list.description && <div className="text-xs text-text-tertiary mt-0.5 truncate">{list.description}</div>}
+                  <div className="text-xs text-text-tertiary mt-1">{list.articleCount} article{list.articleCount !== 1 ? 's' : ''}</div>
+                </Link>
+              )}
+              {editingId !== list.id && (
+                <div className="flex items-center gap-3 ml-4">
+                  <button
+                    onClick={() => { setEditingId(list.id); setEditName(list.name); }}
+                    className="text-xs text-text-tertiary hover:text-text-primary transition-colors"
+                  >Rename</button>
+                  <button
+                    onClick={() => {
+                      if (confirmDeleteId === list.id) { deleteMutation.mutate(list.id); }
+                      else { setConfirmDeleteId(list.id); setTimeout(() => setConfirmDeleteId(null), 3000); }
+                    }}
+                    className={`text-xs transition-colors ${confirmDeleteId === list.id ? 'text-accent-highlight' : 'text-text-tertiary hover:text-accent-highlight'}`}
+                  >
+                    {confirmDeleteId === list.id ? 'Sure?' : 'Delete'}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

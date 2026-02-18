@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, and, sql, gte } from 'drizzle-orm';
+import { eq, and, sql, gte, count } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
 
     const [
       totalArticlesToday,
+      totalArticles,
       translationsPending,
       summariesPending,
     ] = await Promise.all([
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
             ? and(gte(schema.articles.createdAt, todayStart), regionCondition)
             : gte(schema.articles.createdAt, todayStart),
         ),
+      db.select({ count: count() }).from(schema.articles).where(regionCondition ? regionCondition : undefined),
       db
         .select({ count: sql<number>`count(*)` })
         .from(schema.articles)
@@ -45,6 +47,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       articlesToday: Number(totalArticlesToday[0].count),
+      totalArticles: Number(totalArticles[0].count),
       translationsPending: Number(translationsPending[0].count),
       summariesPending: Number(summariesPending[0].count),
     });
