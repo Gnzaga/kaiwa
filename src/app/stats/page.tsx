@@ -168,6 +168,7 @@ export default function StatsPage() {
             <StatCard label="Archived" value={totals.totalArchived} />
             <StatCard label="Total in DB" value={totalArticles} />
             <StatCard label="Coverage" value={totalArticles > 0 ? `${Math.round((totals.totalRead / totalArticles) * 100)}%` : '0%'} />
+            <StatCard label="Consistency" value={`${Math.round((activeDays / 30) * 100)}%`} suffix=" of 30d" />
             <StatCard
               label="Words Read"
               value={totalWordsRead >= 1000000 ? `${(totalWordsRead / 1000000).toFixed(1)}M` : totalWordsRead >= 1000 ? `${Math.round(totalWordsRead / 1000)}k` : totalWordsRead}

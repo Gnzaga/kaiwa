@@ -204,6 +204,10 @@ export default function ArticleList({
         const src = (article as typeof article & { feedSourceName?: string })?.feedSourceName;
         if (src) { setSourceFilter(prev => prev === src ? '' : src); setPage(1); }
       }
+      if (e.key === 'O' && selectedIdxRef.current >= 0) {
+        const article = articlesRef.current[selectedIdxRef.current];
+        if (article?.originalUrl) window.open(article.originalUrl, '_blank', 'noopener,noreferrer');
+      }
       if (e.key === 'v') {
         setViewMode(m => {
           const next = m === 'expanded' ? 'compact' : 'expanded';
