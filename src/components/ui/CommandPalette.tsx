@@ -58,6 +58,8 @@ const NAV_PAGES = [
   { label: 'Admin', href: '/admin', hint: 'Administration' },
 ];
 
+interface Region { id: string; name: string; flagEmoji: string; }
+
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -73,6 +75,13 @@ export default function CommandPalette() {
       fetch(`/api/articles/search?q=${encodeURIComponent(query)}&pageSize=6`).then((r) => r.json()),
     enabled: open && query.length > 1,
     staleTime: 10000,
+  });
+
+  const { data: regions } = useQuery<Region[]>({
+    queryKey: ['regions'],
+    queryFn: () => fetch('/api/regions').then(r => r.json()),
+    staleTime: 10 * 60 * 1000,
+    enabled: open,
   });
 
   useEffect(() => {
@@ -104,16 +113,19 @@ export default function CommandPalette() {
   const results = data?.data ?? [];
   const isNavMode = query.startsWith('>');
   const isActionMode = query.startsWith('#');
-  const navQuery = isNavMode ? query.slice(1).trim().toLowerCase() : isActionMode ? query.slice(1).trim().toLowerCase() : '';
+  const isRegionMode = query.startsWith('@');
+  const navQuery = (isNavMode || isActionMode || isRegionMode) ? query.slice(1).trim().toLowerCase() : '';
   const navResults = isNavMode
     ? NAV_PAGES.filter(p => !navQuery || p.label.toLowerCase().includes(navQuery) || p.hint.toLowerCase().includes(navQuery))
     : isActionMode
       ? QUICK_ACTIONS.filter(p => !navQuery || p.label.toLowerCase().includes(navQuery) || p.hint.toLowerCase().includes(navQuery))
-      : [];
-  const isSearchMode = !isNavMode && !isActionMode && query.length > 1;
+      : isRegionMode
+        ? (regions ?? []).filter(r => !navQuery || r.name.toLowerCase().includes(navQuery) || r.id.toLowerCase().includes(navQuery)).map(r => ({ label: `${r.flagEmoji} ${r.name}`, hint: 'Go to region', href: `/region/${r.id}` }))
+        : [];
+  const isSearchMode = !isNavMode && !isActionMode && !isRegionMode && query.length > 1;
 
   // Unified items list for keyboard navigation
-  const navItems: { id: number; href: string }[] = (isNavMode || isActionMode)
+  const navItems: { id: number; href: string }[] = (isNavMode || isActionMode || isRegionMode)
     ? navResults.map((p, i) => ({ id: -(i + 2), href: p.href }))
     : isSearchMode
       ? [...results.map(r => ({ id: r.id, href: `/article/${r.id}` })),
@@ -169,13 +181,13 @@ export default function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search articles... (> pages, # actions)"
+            placeholder="Search articles... (> pages, # actions, @ regions)"
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none"
           />
           <kbd className="text-xs text-text-tertiary font-mono">Esc</kbd>
         </div>
 
-        {(isNavMode || isActionMode) && navResults.length > 0 && (
+        {(isNavMode || isActionMode || isRegionMode) && navResults.length > 0 && (
           <div ref={listRef} className="divide-y divide-border max-h-80 overflow-y-auto">
             {navResults.map((page, i) => (
               <button
@@ -190,8 +202,8 @@ export default function CommandPalette() {
             ))}
           </div>
         )}
-        {(isNavMode || isActionMode) && navResults.length === 0 && (
-          <div className="px-4 py-6 text-center text-sm text-text-tertiary">No {isActionMode ? 'actions' : 'pages'} match</div>
+        {(isNavMode || isActionMode || isRegionMode) && navResults.length === 0 && (
+          <div className="px-4 py-6 text-center text-sm text-text-tertiary">No {isActionMode ? 'actions' : isRegionMode ? 'regions' : 'pages'} match</div>
         )}
 
         {isSearchMode && results.length > 0 && (

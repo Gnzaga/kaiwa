@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -132,6 +132,11 @@ export default function ArticleCard({
   const [localStarred, setLocalStarred] = useState<boolean | null>(null);
   const [localRead, setLocalRead] = useState<boolean | null>(null);
   const [localArchived, setLocalArchived] = useState<boolean | null>(null);
+  const [inProgress, setInProgress] = useState(false);
+  useEffect(() => {
+    const saved = localStorage.getItem(`article-scroll-${article.id}`);
+    setInProgress(!!saved && parseInt(saved, 10) > 100);
+  }, [article.id]);
   const starred = localStarred !== null ? localStarred : !!isStarred;
   const read = localRead !== null ? localRead : !!isRead;
   const archived = localArchived !== null ? localArchived : !!(article as Article & { isArchived?: boolean | null }).isArchived;
@@ -191,6 +196,11 @@ export default function ArticleCard({
               {isNew && (
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider bg-accent-primary/20 text-accent-primary border border-accent-primary/30">
                   NEW
+                </span>
+              )}
+              {inProgress && !read && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wider bg-accent-secondary/20 text-accent-secondary border border-accent-secondary/30">
+                  ▶ IN PROGRESS
                 </span>
               )}
               {article.sourceLanguage && article.sourceLanguage !== 'en' && (
