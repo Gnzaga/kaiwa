@@ -6,6 +6,15 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 263 — ArticleList: date group headers show article count
+`src/components/articles/ArticleList.tsx`: when group-by-date is enabled, each bucket header (Today/Yesterday/This Week/This Month/Older) now shows the count of articles in that group as a small monospace number on the right side of the header.
+
+### Feature 262 — Stats: "Avg Article" stat card
+`src/app/stats/page.tsx`: new stat card showing average article length as reading time + word count (`totalWordsRead / totalRead`), displayed as "Xm · Nk wds"; only rendered when totalRead > 0.
+
+### Feature 261 — Reading list detail: "Export MD" markdown download
+`src/app/lists/[id]/page.tsx`: `exportListMarkdown()` generates a `.md` file with H2 per article, TLDR, tags, and per-item notes; downloaded client-side. "Export MD" button added alongside existing "Export JSON" button.
+
 ### Feature 260 — Stats: "Reading by Hour" chart
 `src/app/stats/page.tsx`: 24-bar histogram showing reading activity by hour of day; current hour accent-primary, peak hour accent-primary/70, zero-count bars rendered as tiny 1px lines; axis labels at 12AM/6AM/12PM/6PM/11PM. Uses hourlyActivity from existing /api/user/stats.
 

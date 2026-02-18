@@ -180,6 +180,10 @@ export default function ArticleList({
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'Escape') {
+        if (selectedIdxRef.current >= 0) { setSelectedIdx(-1); return; }
+        if (filtersVisible) { setFiltersVisible(false); localStorage.setItem('article-filters-visible', 'false'); return; }
+      }
       if (e.key === '[' || e.key === 'p') setPage(p => Math.max(1, p - 1));
       if (e.key === ']' || e.key === 'n') setPage(p => Math.min(totalPages, p + 1));
       if (e.key === 'g') { setSelectedIdx(0); setTimeout(() => document.querySelector('[data-article-idx="0"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }
@@ -201,10 +205,10 @@ export default function ArticleList({
         const article = articlesRef.current[selectedIdxRef.current];
         if (article) router.push(`/article/${article.id}`);
       }
-      if ((e.key === 'x' || e.key === '*' || e.key === 'm') && selectedIdxRef.current >= 0) {
+      if ((e.key === 'x' || e.key === 'a' || e.key === '*' || e.key === 's' || e.key === 'm' || e.key === 'r') && selectedIdxRef.current >= 0) {
         const article = articlesRef.current[selectedIdxRef.current];
         if (article) {
-          const type = e.key === 'x' ? 'toggleArchive' : e.key === '*' ? 'toggleStar' : 'toggleRead';
+          const type = (e.key === 'x' || e.key === 'a') ? 'toggleArchive' : (e.key === '*' || e.key === 's') ? 'toggleStar' : 'toggleRead';
           fetch(`/api/articles/${article.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
