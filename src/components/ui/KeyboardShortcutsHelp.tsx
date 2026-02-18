@@ -21,6 +21,7 @@ const shortcuts = [
   { key: 'a', description: 'Archive / Unarchive' },
   { key: 'o', description: 'Open original source' },
   { key: 'c', description: 'Copy article link (with feedback)' },
+  { key: 'i', description: 'Toggle original text' },
   { key: 'l', description: 'Toggle save-to-list picker' },
   { key: 'f', description: 'Toggle focus mode (hides sidebar)' },
   { key: 'b', description: 'Go back' },

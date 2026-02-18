@@ -106,6 +106,7 @@ export async function GET(request: NextRequest) {
           isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
           isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
           isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
+          readAt: schema.userArticleStates.readAt,
           sourceLanguage: schema.articles.sourceLanguage,
           imageUrl: schema.articles.imageUrl,
           feedSourceName: schema.feeds.sourceName,

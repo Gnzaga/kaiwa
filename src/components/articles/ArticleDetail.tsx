@@ -29,6 +29,7 @@ export default function ArticleDetail({ id }: { id: number }) {
   const { toast } = useToast();
   const [showOriginal, setShowOriginal] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
+  const [showSummary, setShowSummary] = useState(true);
   const [fontSize, setFontSize] = useState<FontSize>(() => {
     if (typeof window === 'undefined') return 'base';
     return (localStorage.getItem('article-font-size') as FontSize) ?? 'base';
@@ -139,6 +140,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.key === 'o' && data?.article?.originalUrl) window.open(data.article.originalUrl, '_blank', 'noopener,noreferrer');
       if (e.key === 'c') { navigator.clipboard.writeText(window.location.href).then(() => toast('Link copied')).catch(() => {}); }
       if (e.key === 'l') setShowListMenu(m => !m);
+      if (e.key === 'i') setShowOriginal(m => !m);
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -461,26 +463,38 @@ export default function ArticleDetail({ id }: { id: number }) {
 
       {/* AI Summary */}
       {article.summaryStatus === 'complete' && (
-        <section className="bg-bg-elevated border border-border rounded p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-text-primary">AI Summary</h2>
-            <SentimentBadge sentiment={article.summarySentiment} />
-          </div>
-          {article.summaryTldr && (
-            <p className="text-sm text-text-secondary leading-relaxed">{article.summaryTldr}</p>
-          )}
-          {article.summaryBullets && article.summaryBullets.length > 0 && (
-            <ul className="space-y-1.5 pl-4">
-              {article.summaryBullets.map((bullet, i) => (
-                <li key={i} className="text-sm text-text-secondary list-disc">{bullet}</li>
-              ))}
-            </ul>
-          )}
-          {article.summaryTags && article.summaryTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {article.summaryTags.map((tag) => (
-                <Tag key={tag} label={tag} />
-              ))}
+        <section className="bg-bg-elevated border border-border rounded overflow-hidden">
+          <button
+            onClick={() => setShowSummary(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-3 text-sm hover:bg-bg-secondary transition-colors"
+          >
+            <span className="font-medium text-text-primary">AI Summary</span>
+            <div className="flex items-center gap-2">
+              <SentimentBadge sentiment={article.summarySentiment} />
+              <svg className={`w-4 h-4 text-text-tertiary transition-transform ${showSummary ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+          {showSummary && (
+            <div className="px-5 pb-5 space-y-3 border-t border-border">
+              {article.summaryTldr && (
+                <p className="text-sm text-text-secondary leading-relaxed pt-3">{article.summaryTldr}</p>
+              )}
+              {article.summaryBullets && article.summaryBullets.length > 0 && (
+                <ul className="space-y-1.5 pl-4">
+                  {article.summaryBullets.map((bullet, i) => (
+                    <li key={i} className="text-sm text-text-secondary list-disc">{bullet}</li>
+                  ))}
+                </ul>
+              )}
+              {article.summaryTags && article.summaryTags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {article.summaryTags.map((tag) => (
+                    <Tag key={tag} label={tag} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>

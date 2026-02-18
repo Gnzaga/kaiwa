@@ -6,7 +6,7 @@ import type { Article } from '@/db/schema';
 
 interface RecentArticle extends Article {
   feedSourceName: string | null;
-  readAt: string | null;
+  readAt: string | Date | null;
 }
 
 interface Response {
@@ -67,7 +67,7 @@ export default function RecentActivity() {
                   </div>
                 </div>
                 <span className="text-xs text-text-tertiary shrink-0">
-                  {relativeTime(article.publishedAt)}
+                  {relativeTime(article.readAt ?? article.publishedAt)}
                 </span>
               </div>
             </Link>
