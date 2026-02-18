@@ -151,7 +151,10 @@ export default function ArticleCard({
   const isNew = !read && (Date.now() - new Date(article.publishedAt).getTime()) < 6 * 60 * 60 * 1000;
   return (
     <Link href={`/article/${article.id}`}>
-      <article className={`flex gap-3 p-3 bg-bg-secondary border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${read ? ' opacity-60 hover:opacity-100' : ''}${starred ? ' border-accent-highlight/30' : ' border-border'}`}>
+      <article
+        className={`flex gap-3 p-3 bg-bg-secondary border rounded-xl card-hover animate-fade-in cursor-pointer group transition-opacity${read ? ' opacity-60 hover:opacity-100' : ''}${starred ? ' border-accent-highlight/30' : ' border-border'}`}
+        onDoubleClick={(e) => { e.preventDefault(); window.open(article.originalUrl, '_blank', 'noopener,noreferrer'); }}
+      >
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           {/* Source + time */}
           <div>

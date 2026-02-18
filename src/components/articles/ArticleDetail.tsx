@@ -631,6 +631,36 @@ export default function ArticleDetail({ id }: { id: number }) {
         </section>
       )}
 
+      {/* Article metadata (collapsible) */}
+      {(() => {
+        const [metaOpen, setMetaOpen] = useState(false);
+        return (
+          <section className="border border-border rounded overflow-hidden">
+            <button
+              onClick={() => setMetaOpen(m => !m)}
+              className="flex items-center justify-between w-full px-4 py-2.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors bg-bg-elevated"
+            >
+              <span>Article Metadata</span>
+              <svg className={`w-3 h-3 transition-transform ${metaOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {metaOpen && (
+              <dl className="px-4 py-3 space-y-1.5 text-xs text-text-tertiary font-mono border-t border-border">
+                <div className="flex gap-2"><dt className="w-32 shrink-0 text-text-tertiary/60">Article ID</dt><dd>{article.id}</dd></div>
+                <div className="flex gap-2"><dt className="w-32 shrink-0 text-text-tertiary/60">Published</dt><dd>{new Date(article.publishedAt).toLocaleString()}</dd></div>
+                <div className="flex gap-2"><dt className="w-32 shrink-0 text-text-tertiary/60">Ingested</dt><dd>{article.createdAt ? new Date(article.createdAt).toLocaleString() : '—'}</dd></div>
+                <div className="flex gap-2"><dt className="w-32 shrink-0 text-text-tertiary/60">Words</dt><dd>{wordCount.toLocaleString()}</dd></div>
+                <div className="flex gap-2"><dt className="w-32 shrink-0 text-text-tertiary/60">Source lang</dt><dd>{article.sourceLanguage ?? '—'}</dd></div>
+                <div className="flex gap-2"><dt className="w-32 shrink-0 text-text-tertiary/60">Translation</dt><dd>{article.translationStatus}</dd></div>
+                <div className="flex gap-2"><dt className="w-32 shrink-0 text-text-tertiary/60">Summary</dt><dd>{article.summaryStatus}</dd></div>
+                <div className="flex gap-2 items-start"><dt className="w-32 shrink-0 text-text-tertiary/60">Original URL</dt><dd className="break-all"><a href={article.originalUrl} target="_blank" rel="noopener noreferrer" className="hover:text-accent-primary transition-colors">{article.originalUrl}</a></dd></div>
+              </dl>
+            )}
+          </section>
+        );
+      })()}
+
       {/* Related articles */}
       {related && related.length > 0 && (
         <>

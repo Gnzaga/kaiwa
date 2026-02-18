@@ -216,6 +216,19 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
               >
                 Copy URLs
               </button>
+              <button
+                onClick={() => {
+                  const md = `# ${data.list.name}\n\n` +
+                    data.data.map(item => {
+                      const title = item.translatedTitle || item.originalTitle;
+                      return `- [${title}](${item.originalUrl})${item.summaryTldr ? `\n  > ${item.summaryTldr}` : ''}`;
+                    }).join('\n');
+                  navigator.clipboard.writeText(md);
+                }}
+                className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
+              >
+                Copy Markdown
+              </button>
             </>
           )}
           <button

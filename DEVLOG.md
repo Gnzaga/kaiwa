@@ -6,6 +6,20 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 178 — Article detail: metadata panel
+`src/components/articles/ArticleDetail.tsx`: collapsible "Article Metadata" panel above related articles shows ID, published/ingested dates, word count, source lang, translation/summary status, and original URL.
+
+### Feature 177 — Article card: double-click opens original URL
+`src/components/articles/ArticleCard.tsx`: default variant `onDoubleClick` opens `article.originalUrl` in new tab.
+
+### Feature 176 — Reading list detail: Copy Markdown button
+`src/app/lists/[id]/page.tsx`: added "Copy Markdown" button alongside "Copy URLs" that formats list as `# Name\n- [title](url)\n  > tldr`.
+
+### Feature 175 — Dashboard: QuickRead widget
+`src/components/dashboard/QuickRead.tsx`: new widget fetching `?sort=quickest&isRead=false` articles; shows top 3 shortest unread articles in right column.
+
+### Feature 174 — (skipped — feeds link already done)
+
 ### Feature 173 — Tags page: A-Z letter section headers
 `src/app/tags/page.tsx`: when "A-Z" sort active and no letter filter, tags are grouped under letter section headers (e.g. "A", "B", ...) with dividers.
 
