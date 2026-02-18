@@ -177,12 +177,21 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   const [readProgress, setReadProgress] = useState(0);
   const scrollSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollMarkFired = useRef(false);
+  useEffect(() => { scrollMarkFired.current = false; }, [id]);
   useEffect(() => {
     function onScroll() {
       const el = document.documentElement;
       const scrolled = el.scrollTop || document.body.scrollTop;
       const total = el.scrollHeight - el.clientHeight;
-      setReadProgress(total > 0 ? Math.min(100, Math.round((scrolled / total) * 100)) : 0);
+      const progress = total > 0 ? Math.min(100, Math.round((scrolled / total) * 100)) : 0;
+      setReadProgress(progress);
+      // Auto-mark read at 90% when autoMarkRead is disabled (scroll-completion fallback)
+      if (progress >= 90 && !scrollMarkFired.current && data?.article && !data.article.isRead && prefs?.autoMarkRead === false) {
+        scrollMarkFired.current = true;
+        actionMutation.mutate({ type: 'toggleRead' });
+        toast('Marked as read');
+      }
       // Debounce save scroll position
       if (scrollSaveTimer.current) clearTimeout(scrollSaveTimer.current);
       scrollSaveTimer.current = setTimeout(() => {
@@ -196,7 +205,7 @@ export default function ArticleDetail({ id }: { id: number }) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, data?.article?.isRead, prefs?.autoMarkRead]);
 
   // Restore scroll position when article loads
   useEffect(() => {

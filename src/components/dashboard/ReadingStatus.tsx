@@ -76,8 +76,27 @@ export default function ReadingStatus() {
   }
   const sparkMax = Math.max(...sparkDays, 1);
 
+  const ringPct = goal > 0 ? Math.min(100, Math.round((readToday / goal) * 100)) : 0;
+  const r = 7;
+  const circ = 2 * Math.PI * r;
+
   return (
-    <Link href="/stats" className="flex items-center gap-3 text-xs text-text-tertiary hover:text-text-secondary transition-colors">
+    <Link href="/stats" className="flex items-center gap-2 text-xs text-text-tertiary hover:text-text-secondary transition-colors">
+      {goal > 0 && (
+        <svg width="18" height="18" className="shrink-0" aria-label={`${ringPct}% of daily goal`}>
+          <circle cx="9" cy="9" r={r} fill="none" stroke="currentColor" className="text-border" strokeWidth="2" />
+          <circle
+            cx="9" cy="9" r={r} fill="none"
+            stroke="currentColor"
+            className={goalMet ? 'text-success' : 'text-accent-primary'}
+            strokeWidth="2"
+            strokeDasharray={circ}
+            strokeDashoffset={circ - (ringPct / 100) * circ}
+            strokeLinecap="round"
+            transform="rotate(-90 9 9)"
+          />
+        </svg>
+      )}
       <span className={goalMet ? 'text-success font-medium' : ''}>
         {goal > 0 ? `${readToday}/${goal} today` : `${readToday} read today`}
       </span>
