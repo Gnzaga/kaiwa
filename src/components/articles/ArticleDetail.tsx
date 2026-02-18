@@ -637,6 +637,14 @@ export default function ArticleDetail({ id }: { id: number }) {
         </a>
 
         <button
+          onClick={() => window.print()}
+          title="Print article"
+          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+        >
+          Print
+        </button>
+
+        <button
           onClick={() => setFocusMode(m => !m)}
           title="Focus mode (f)"
           className={`px-3 py-1.5 text-xs border rounded transition-colors ${focusMode ? 'border-accent-primary text-accent-primary' : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'}`}

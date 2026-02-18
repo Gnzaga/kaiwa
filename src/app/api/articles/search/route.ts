@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams;
     const q = params.get('q');
     const page = Math.max(1, parseInt(params.get('page') ?? '1', 10));
+    const sort = params.get('sort') ?? 'relevance'; // 'relevance' | 'newest' | 'oldest'
     const region = params.get('region');
     const category = params.get('category');
     const source = params.get('source');
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
           ),
         )
         .where(where)
-        .orderBy(sql`rank DESC`)
+        .orderBy(sort === 'newest' ? sql`${schema.articles.publishedAt} DESC` : sort === 'oldest' ? sql`${schema.articles.publishedAt} ASC` : sql`rank DESC`)
         .limit(PAGE_SIZE)
         .offset(offset),
       db

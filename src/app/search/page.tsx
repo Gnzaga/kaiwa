@@ -50,6 +50,7 @@ function SearchPageContent() {
 
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [searchPage, setSearchPage] = useState(1);
+  const [searchSort, setSearchSort] = useState<'relevance' | 'newest' | 'oldest'>('relevance');
 
   useEffect(() => {
     setRecentSearches(getRecentSearches());
@@ -63,9 +64,10 @@ function SearchPageContent() {
   if (filters.dateRange) params.set('dateRange', filters.dateRange);
   if (filters.sentiment) params.set('sentiment', filters.sentiment);
   params.set('page', String(searchPage));
+  params.set('sort', searchSort);
 
   const { data, isLoading } = useQuery<SearchResponse>({
-    queryKey: ['search', filters, searchPage],
+    queryKey: ['search', filters, searchPage, searchSort],
     queryFn: () => fetch(`/api/articles/search?${params}`).then((r) => r.json()),
     enabled: hasQuery,
   });
@@ -134,7 +136,18 @@ function SearchPageContent() {
 
       {data && data.data.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs text-text-tertiary">{data.total.toLocaleString()} result{data.total !== 1 ? 's' : ''}</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-text-tertiary">{data.total.toLocaleString()} result{data.total !== 1 ? 's' : ''}</p>
+            <select
+              value={searchSort}
+              onChange={(e) => { setSearchSort(e.target.value as 'relevance' | 'newest' | 'oldest'); setSearchPage(1); }}
+              className="text-xs bg-bg-elevated border border-border rounded px-2 py-1 text-text-secondary focus:outline-none focus:border-accent-primary"
+            >
+              <option value="relevance">Relevance</option>
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+          </div>
           {data.data.map((article) => (
             <ArticleCard key={article.id} article={article} sourceName={article.feedSourceName} />
           ))}
