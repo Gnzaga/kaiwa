@@ -32,6 +32,20 @@ interface SearchResponse {
   data: SearchResult[];
 }
 
+const NAV_PAGES = [
+  { label: 'Dashboard', href: '/', hint: 'Home' },
+  { label: 'All Articles', href: '/articles', hint: 'Browse all articles' },
+  { label: 'Starred', href: '/starred', hint: 'Your starred articles' },
+  { label: 'Archived', href: '/archived', hint: 'Your archived articles' },
+  { label: 'My Lists', href: '/lists', hint: 'Reading lists' },
+  { label: 'Tags', href: '/tags', hint: 'Browse by tag' },
+  { label: 'Feeds', href: '/feeds', hint: 'Feed management' },
+  { label: 'Stats', href: '/stats', hint: 'Reading statistics' },
+  { label: 'Search', href: '/search', hint: 'Full text search' },
+  { label: 'Settings', href: '/settings', hint: 'Preferences' },
+  { label: 'Admin', href: '/admin', hint: 'Administration' },
+];
+
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -76,15 +90,20 @@ export default function CommandPalette() {
   if (!open) return null;
 
   const results = data?.data ?? [];
-  const isSearchMode = query.length > 1;
+  const isNavMode = query.startsWith('>');
+  const navQuery = isNavMode ? query.slice(1).trim().toLowerCase() : '';
+  const navResults = isNavMode
+    ? NAV_PAGES.filter(p => !navQuery || p.label.toLowerCase().includes(navQuery) || p.hint.toLowerCase().includes(navQuery))
+    : [];
+  const isSearchMode = !isNavMode && query.length > 1;
 
   // Unified items list for keyboard navigation
-  // Search mode: results + "see all" sentinel (id=-1)
-  // Recent mode: recent articles
-  const navItems: { id: number; href: string }[] = isSearchMode
-    ? [...results.map(r => ({ id: r.id, href: `/article/${r.id}` })),
-       ...(results.length > 0 ? [{ id: -1, href: `/search?q=${encodeURIComponent(query)}` }] : [])]
-    : recentArticles.map(a => ({ id: a.id, href: `/article/${a.id}` }));
+  const navItems: { id: number; href: string }[] = isNavMode
+    ? navResults.map((p, i) => ({ id: -(i + 2), href: p.href }))
+    : isSearchMode
+      ? [...results.map(r => ({ id: r.id, href: `/article/${r.id}` })),
+         ...(results.length > 0 ? [{ id: -1, href: `/search?q=${encodeURIComponent(query)}` }] : [])]
+      : recentArticles.map(a => ({ id: a.id, href: `/article/${a.id}` }));
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'ArrowDown') {
@@ -127,11 +146,30 @@ export default function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search articles... (Enter for full results)"
+            placeholder="Search articles... (> for pages)"
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none"
           />
           <kbd className="text-xs text-text-tertiary font-mono">Esc</kbd>
         </div>
+
+        {isNavMode && navResults.length > 0 && (
+          <div ref={listRef} className="divide-y divide-border max-h-80 overflow-y-auto">
+            {navResults.map((page, i) => (
+              <button
+                key={page.href}
+                data-idx={i}
+                onClick={() => { setOpen(false); router.push(page.href); }}
+                className={`w-full text-left px-4 py-3 transition-colors ${selectedIdx === i ? 'bg-bg-primary' : 'hover:bg-bg-primary'}`}
+              >
+                <div className="text-sm text-text-primary">{page.label}</div>
+                <div className="text-xs text-text-tertiary mt-0.5">{page.hint}</div>
+              </button>
+            ))}
+          </div>
+        )}
+        {isNavMode && navResults.length === 0 && (
+          <div className="px-4 py-6 text-center text-sm text-text-tertiary">No pages match</div>
+        )}
 
         {isSearchMode && results.length > 0 && (
           <div ref={listRef} className="divide-y divide-border max-h-80 overflow-y-auto">

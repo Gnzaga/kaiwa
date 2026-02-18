@@ -296,10 +296,57 @@ Autonomous feature development session. Each entry timestamped.
 - Article list: `[` = previous page, `]` = next page
 - Registered in KeyboardShortcutsHelp
 
+### Feature 73 — autoMarkRead toggle in Settings (commit 73b4448)
+- Settings > My Preferences: toggle switch for "Mark articles as read when opened"
+- Wired to existing `autoMarkRead` user preference (was already in API, no UI)
+
+### Feature 74 — Archive quick action on article cards (commit 73b4448)
+- ArticleCard hover: ■ button to toggle archive alongside ★ and ○/✓
+- Optimistic `localArchived` state like star/read
+
+### Feature 75 — OPML feed export (commit 73b4448)
+- New API: `/api/feeds/opml` — exports all enabled feeds as grouped OPML XML
+- Feeds page: "Export OPML" download link in header
+
+### Feature 76 — Light theme implementation (commit 73b4448)
+- `globals.css`: `[data-theme="light"]` CSS variable overrides
+- `ThemeApplier` client component reads user preference, applies `data-theme` to `<html>`
+- Handles dark/light/system (OS prefers-color-scheme) with live MQ listener
+
+### Feature 77 — 't' scroll-to-top shortcut (commit 7c656d1)
+- GlobalShortcuts: `t` key smoothly scrolls to top
+- Registered in KeyboardShortcutsHelp
+
+### Feature 78 — Auto-expand active region in sidebar (commit 7c656d1)
+- Sidebar: useEffect watches pathname, auto-expands matching region when navigating to `/region/*`
+
+### Feature 79 — Export starred articles as markdown (commit 7c656d1)
+- New API: `/api/user/starred-export` → .md download with titles, TLDRs, bullets, tags (up to 200)
+- Stats page: "Export starred" download link in header
+
+### Feature 80 — p/n article navigation shortcuts (commit 7c656d1)
+- ArticleNav: `p` = previous article, `n` = next article (in addition to ← →)
+
+### Feature 81 — 'c' shortcut to copy article link (commit 7c656d1)
+- ArticleDetail keyboard handler: `c` copies current page URL to clipboard
+
+### Feature 82 — articlesPerPage preference wired to article list (commit 7c656d1)
+- ArticleList fetches user prefs and uses `articlesPerPage` (default 20) instead of hardcoded 20
+
+### Feature 83 — Archived count in stats page (commit 0ff925f)
+- Stats page: "Archived" stat card added (API already returned `totalArchived`)
+
+### Feature 84 — Starred article card highlight (commit 0ff925f)
+- Starred articles in article list show subtle gold border (`border-accent-highlight/30`)
+
+### Feature 85 — "This Month" stat (commit 0ff925f)
+- User stats API: `readThisMonth` (30-day count)
+- Stats page: 4-col grid with 7 stat cards including "This Month"
+
 ---
 
 ## Active Build
-- **kaiwa-build-crw7q**: features 60-72 — triggered 2026-02-17 (targeting master)
+- **kaiwa-build-f73-82**: features 73-85 — triggered 2026-02-18 (targeting master)
 
 ## Build History
 - **kaiwa-build-tg98g** through **kaiwa-build-dtgvv**: FAILED — missing `fsGroup: 65532` in PipelineRun taskRunTemplate podTemplate securityContext
