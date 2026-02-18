@@ -5,6 +5,7 @@ resources:
   - deployment-worker.yaml
   - service.yaml
   - ingress.yaml
+  - ingress-auth-bypass.yaml
   - external-secret.yaml
   - externalsecret-harbor.yaml
   - pvc-db.yaml

@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kaiwa-auth-bypass
+  labels:
+    app.kubernetes.io/name: kaiwa
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kaiwa.gnzaga.com
+      http:
+        paths:
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: kaiwa-web
+                port:
+                  name: http
