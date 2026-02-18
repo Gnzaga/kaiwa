@@ -96,6 +96,14 @@ export default function StatsPage() {
     streak++;
   }
 
+  // Longest streak in 30-day window
+  let longestStreak = 0;
+  let runLen = 0;
+  for (const day of days) {
+    if (day.count > 0) { runLen++; longestStreak = Math.max(longestStreak, runLen); }
+    else runLen = 0;
+  }
+
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8">
       <header className="flex items-start justify-between gap-4 flex-wrap">
@@ -135,6 +143,7 @@ export default function StatsPage() {
             <StatCard label="This Month" value={totals.readThisMonth} />
             <StatCard label="This Year" value={totals.readThisYear} />
             <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
+            <StatCard label="Best Streak (30d)" value={longestStreak} suffix={longestStreak === 1 ? ' day' : ' days'} />
             <StatCard label="Avg/Active Day" value={pace} suffix=" articles" />
             <StatCard label="Best Day (30d)" value={bestDay.count > 0 ? bestDay.count : '—'} suffix={bestDay.count > 0 ? ` · ${bestDayLabel}` : ''} />
             <StatCard label="Reading Lists" value={listCount} />

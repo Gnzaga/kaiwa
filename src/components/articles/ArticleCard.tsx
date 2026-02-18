@@ -164,11 +164,23 @@ export default function ArticleCard({
                   {sourceName}
                 </button>
               )}
-              {displayCategory && (
-                <span className="px-1.5 py-0.5 rounded bg-bg-elevated text-text-tertiary border border-border capitalize text-[10px]">
-                  {displayCategory}
-                </span>
-              )}
+              {displayCategory && (() => {
+                const regionId = (article as Article & { feedRegionId?: string | null }).feedRegionId;
+                const catHref = regionId ? `/region/${regionId}/${displayCategory}` : null;
+                return catHref ? (
+                  <a
+                    href={catHref}
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-1.5 py-0.5 rounded bg-bg-elevated text-text-tertiary border border-border capitalize text-[10px] hover:border-accent-primary hover:text-accent-primary transition-colors"
+                  >
+                    {displayCategory}
+                  </a>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded bg-bg-elevated text-text-tertiary border border-border capitalize text-[10px]">
+                    {displayCategory}
+                  </span>
+                );
+              })()}
               <span title={absoluteTime(article.publishedAt)}>{relativeTime(article.publishedAt)}</span>
               {rt && <span>{rt} read</span>}
               {isNew && (

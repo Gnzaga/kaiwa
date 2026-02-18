@@ -6,6 +6,12 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 153 — Article card category badge links to region page
+`src/components/articles/ArticleCard.tsx`: category badge in default variant now renders as `<a>` linking to `/region/${regionId}/${categorySlug}` when `feedRegionId` is available; falls back to plain `<span>` when not.
+
+### Feature 152 — Stats: Best Streak (30d)
+`src/app/stats/page.tsx`: computed `longestStreak` from 30-day `days` array (consecutive days with count > 0); added "Best Streak (30d)" stat card.
+
 ### 17:15 — Auth deployment (trustHost fix)
 **Issue:** NextAuth v5 throwing `UntrustedHost` for all requests to `kaiwa.gnzaga.com`.
 **Root cause:** NextAuth v5 defaults to blocking non-localhost hosts in production unless explicitly opted in.
