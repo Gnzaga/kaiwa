@@ -21,9 +21,6 @@ export const authConfig: NextAuthConfig = {
   providers: authentikProvider ? [authentikProvider] : [],
   secret: process.env.NEXTAUTH_SECRET ?? 'dev-secret-change-in-production',
   trustHost: true,
-  pages: {
-    signIn: '/api/auth/signin',
-  },
   callbacks: {
     authorized({ auth }) {
       return !!auth;
