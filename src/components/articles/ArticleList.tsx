@@ -62,6 +62,7 @@ export default function ArticleList({
   });
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [languageFilter, setLanguageFilter] = useState('');
+  const [titleSearch, setTitleSearch] = useState('');
   const [markingRead, setMarkingRead] = useState(false);
   const [confirmMarkRead, setConfirmMarkRead] = useState(false);
   const [datePreset, setDatePreset] = useState<'' | '1h' | '6h' | 'today' | '7d' | '30d' | '60d'>('');
@@ -99,6 +100,7 @@ export default function ArticleList({
   if (languageFilter) params.set('language', languageFilter);
   const dateFrom = getDateFrom(datePreset);
   if (dateFrom) params.set('dateFrom', dateFrom);
+  if (titleSearch) params.set('q', titleSearch);
 
   const handleMarkAllRead = async () => {
     if (!confirmMarkRead) {
@@ -121,7 +123,7 @@ export default function ArticleList({
   };
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, languageFilter, datePreset, pageSize],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, languageFilter, datePreset, pageSize, titleSearch],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
     refetchInterval: 120000, // background refresh every 2 min
   });
@@ -210,10 +212,19 @@ export default function ArticleList({
           ))}
         </select>
 
-        {/* Tag filter */}
+        {/* Title search */}
         <input
           ref={tagFilterRef}
           data-shortcut-focus
+          type="text"
+          placeholder="Search title..."
+          value={titleSearch}
+          onChange={(e) => { setTitleSearch(e.target.value); setPage(1); }}
+          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-36"
+        />
+
+        {/* Tag filter */}
+        <input
           type="text"
           placeholder="Filter tag..."
           value={tagFilter}
@@ -312,9 +323,14 @@ export default function ArticleList({
       )}
 
       {/* Active filter chips */}
-      {!hideFilters && (sourceFilter || tagFilter || readFilter || sentimentFilter || languageFilter || datePreset) && (
+      {!hideFilters && (titleSearch || sourceFilter || tagFilter || readFilter || sentimentFilter || languageFilter || datePreset) && (
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs text-text-tertiary">Filters:</span>
+          {titleSearch && (
+            <button onClick={() => { setTitleSearch(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              "{titleSearch}" ✕
+            </button>
+          )}
           {sourceFilter && (
             <button onClick={() => { setSourceFilter(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
               Source: {sourceFilter} ✕
@@ -345,7 +361,7 @@ export default function ArticleList({
               Date: {datePreset} ✕
             </button>
           )}
-          <button onClick={() => { setSourceFilter(''); setTagFilter(''); setReadFilter(''); setSentimentFilter(''); setLanguageFilter(''); setDatePreset(''); setPage(1); }} className="text-xs text-text-tertiary hover:text-text-primary ml-1 transition-colors">
+          <button onClick={() => { setTitleSearch(''); setSourceFilter(''); setTagFilter(''); setReadFilter(''); setSentimentFilter(''); setLanguageFilter(''); setDatePreset(''); setPage(1); }} className="text-xs text-text-tertiary hover:text-text-primary ml-1 transition-colors">
             Clear all
           </button>
         </div>

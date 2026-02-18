@@ -189,6 +189,7 @@ export default function ArticleDetail({ id }: { id: number }) {
   const [summaryCopied, setSummaryCopied] = useState(false);
   const [outlineCopied, setOutlineCopied] = useState(false);
   const [citationCopied, setCitationCopied] = useState(false);
+  const [threadCopied, setThreadCopied] = useState(false);
   const [mdCopied, setMdCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
@@ -229,6 +230,22 @@ export default function ArticleDetail({ id }: { id: number }) {
     navigator.clipboard.writeText(lines.join('\n'));
     setOutlineCopied(true);
     setTimeout(() => setOutlineCopied(false), 2000);
+  }, [data?.article]);
+
+  const copyThread = useCallback(() => {
+    if (!data?.article) return;
+    const a = data.article;
+    const t = a.translatedTitle || a.originalTitle;
+    const posts: string[] = [`1/ ${t}\n${a.originalUrl}`];
+    if (a.summaryTldr) posts.push(`2/ ${a.summaryTldr}`);
+    if (a.summaryBullets && a.summaryBullets.length > 0) {
+      a.summaryBullets.slice(0, 5).forEach((b: string) => {
+        posts.push(`${posts.length + 1}/ ${b}`);
+      });
+    }
+    navigator.clipboard.writeText(posts.join('\n\n'));
+    setThreadCopied(true);
+    setTimeout(() => setThreadCopied(false), 2000);
   }, [data?.article]);
 
   const copyCitation = useCallback(() => {
@@ -478,6 +495,9 @@ export default function ArticleDetail({ id }: { id: number }) {
             </ActionButton>
             <ActionButton onClick={copyOutline} active={outlineCopied}>
               {outlineCopied ? 'Copied!' : 'Copy Outline'}
+            </ActionButton>
+            <ActionButton onClick={copyThread} active={threadCopied}>
+              {threadCopied ? 'Copied!' : 'Copy Thread'}
             </ActionButton>
           </>
         )}

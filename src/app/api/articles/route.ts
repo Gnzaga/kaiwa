@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     const sentiment = params.get('sentiment');
     const language = params.get('language');
     const sort = params.get('sort') ?? 'newest';
+    const q = params.get('q');
 
     const conditions = [];
 
@@ -72,6 +73,9 @@ export async function GET(request: NextRequest) {
     }
     if (language) {
       conditions.push(eq(schema.articles.sourceLanguage, language));
+    }
+    if (q) {
+      conditions.push(sql`(COALESCE(${schema.articles.translatedTitle}, ${schema.articles.originalTitle}) ILIKE ${'%' + q.replace(/%/g, '\\%').replace(/_/g, '\\_') + '%'})`);
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
