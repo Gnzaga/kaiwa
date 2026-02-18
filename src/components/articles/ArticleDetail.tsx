@@ -357,6 +357,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'f') setFocusMode(m => !m);
       if (e.key === 'n') setNoteOpen(m => !m);
+      if (e.key === 't') { copyThread(); toast('Thread copied'); }
       if (e.key === '?') setShowShortcuts(m => !m);
       if (e.key === 'Escape') { setShowShortcuts(false); setQuotePopup(null); }
     }
@@ -421,6 +422,7 @@ export default function ArticleDetail({ id }: { id: number }) {
               ['a', 'Toggle archive'],
               ['f', 'Focus mode'],
               ['n', 'Toggle note panel'],
+              ['t', 'Copy as thread'],
               ['o', 'Open original'],
               ['c', 'Copy link'],
               ['d', 'Copy TL;DR'],
@@ -501,10 +503,12 @@ export default function ArticleDetail({ id }: { id: number }) {
           </span>
           {readingMins > 0 && (
             <span>
-              {readProgress > 2
-                ? `${Math.max(1, Math.ceil((1 - readProgress / 100) * readingMins))}m remaining`
-                : `${readingMins} min read`
-              } · {wordCount.toLocaleString()} words
+              {readProgress > 2 ? (() => {
+                const minsLeft = Math.max(1, Math.ceil((1 - readProgress / 100) * readingMins));
+                const doneAt = new Date(Date.now() + minsLeft * 60000);
+                const doneStr = doneAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                return `${minsLeft}m remaining · done by ${doneStr}`;
+              })() : `${readingMins} min read`} · {wordCount.toLocaleString()} words
             </span>
           )}
           <StatusIndicator status={article.translationStatus ?? 'pending'} tooltip={`Translation: ${article.translationStatus}`} />

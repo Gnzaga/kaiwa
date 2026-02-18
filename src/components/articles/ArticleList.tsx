@@ -80,6 +80,10 @@ export default function ArticleList({
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('article-filters-visible') === 'true';
   });
+  const [groupByDate, setGroupByDate] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('article-group-by-date') === 'true';
+  });
   const tagFilterRef = useRef<HTMLInputElement>(null);
 
   function getDateFrom(preset: '' | '1h' | '6h' | 'today' | '7d' | '30d' | '60d'): string {
@@ -312,6 +316,12 @@ export default function ArticleList({
               </div>
 
               <button
+                onClick={() => { const next = !groupByDate; setGroupByDate(next); localStorage.setItem('article-group-by-date', String(next)); }}
+                title="Group articles by date"
+                className={`px-2.5 py-1.5 text-xs border rounded transition-colors ${groupByDate ? 'border-accent-primary text-accent-primary bg-accent-primary/10' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
+              >§</button>
+
+              <button
                 onClick={() => {
                   fetch('/api/articles/random')
                     .then(r => r.json())
@@ -532,16 +542,48 @@ export default function ArticleList({
       {data && data.data.length > 0 && (
         <div className="space-y-2">
           {(() => { setArticleNavList(data.data.map(a => a.id)); return null; })()}
-          {data.data.map((article, i) => (
-            <div key={article.id} data-article-idx={i} onMouseEnter={() => setSelectedIdx(i)}>
-              <ArticleCard
-                article={article}
-                sourceName={article.feedSourceName}
-                variant={viewMode === 'compact' ? 'compact' : page === 1 && i === 0 && article.imageUrl ? 'hero' : 'default'}
-                selected={i === selectedIdx}
-              />
-            </div>
-          ))}
+          {data.data.map((article, i) => {
+            let dateBucket: string | null = null;
+            if (groupByDate) {
+              const now = new Date();
+              const d = new Date(article.publishedAt);
+              const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+              if (d.toDateString() === now.toDateString()) dateBucket = 'Today';
+              else if (diffDays < 2) dateBucket = 'Yesterday';
+              else if (diffDays < 7) dateBucket = 'This Week';
+              else if (diffDays < 30) dateBucket = 'This Month';
+              else dateBucket = 'Older';
+            }
+            const prevBucket = i > 0 && groupByDate ? (() => {
+              const prev = data.data[i - 1];
+              const now = new Date();
+              const d = new Date(prev.publishedAt);
+              const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+              if (d.toDateString() === now.toDateString()) return 'Today';
+              if (diffDays < 2) return 'Yesterday';
+              if (diffDays < 7) return 'This Week';
+              if (diffDays < 30) return 'This Month';
+              return 'Older';
+            })() : null;
+            const showHeader = groupByDate && dateBucket && dateBucket !== prevBucket;
+            return (
+              <React.Fragment key={article.id}>
+                {showHeader && (
+                  <div className="text-xs font-semibold text-text-tertiary uppercase tracking-wider pt-3 pb-0.5 px-1 border-b border-border/50">
+                    {dateBucket}
+                  </div>
+                )}
+                <div data-article-idx={i} onMouseEnter={() => setSelectedIdx(i)}>
+                  <ArticleCard
+                    article={article}
+                    sourceName={article.feedSourceName}
+                    variant={viewMode === 'compact' ? 'compact' : page === 1 && i === 0 && article.imageUrl ? 'hero' : 'default'}
+                    selected={i === selectedIdx}
+                  />
+                </div>
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 
