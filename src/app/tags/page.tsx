@@ -12,15 +12,17 @@ interface TagCount {
 export default function TagsPage() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const [sortAlpha, setSortAlpha] = useState(false);
 
   const { data: tags, isLoading } = useQuery<TagCount[]>({
     queryKey: ['tags'],
     queryFn: () => fetch('/api/tags').then((r) => r.json()),
   });
 
-  const filtered = search.trim()
+  const filtered = (search.trim()
     ? (tags ?? []).filter((t) => t.tag.toLowerCase().includes(search.toLowerCase()))
-    : (tags ?? []);
+    : (tags ?? [])
+  ).slice().sort((a, b) => sortAlpha ? a.tag.localeCompare(b.tag) : 0);
   const maxCount = tags ? Math.max(...tags.map((t) => Number(t.count)), 1) : 1;
 
   return (
@@ -32,7 +34,7 @@ export default function TagsPage() {
         </p>
       </header>
 
-      <div className="mb-5">
+      <div className="mb-5 flex items-center gap-3 flex-wrap">
         <input
           type="text"
           placeholder="Filter tags..."
@@ -40,11 +42,17 @@ export default function TagsPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-56"
         />
+        <button
+          onClick={() => setSortAlpha(v => !v)}
+          className={`px-3 py-1.5 text-xs border rounded transition-colors ${sortAlpha ? 'border-accent-primary text-accent-primary' : 'border-border text-text-tertiary hover:text-text-primary'}`}
+        >
+          {sortAlpha ? 'A–Z' : 'By count'}
+        </button>
         {search && filtered.length === 0 && (
-          <span className="ml-3 text-xs text-text-tertiary">No tags match</span>
+          <span className="text-xs text-text-tertiary">No tags match</span>
         )}
         {search && filtered.length > 0 && (
-          <span className="ml-3 text-xs text-text-tertiary">{filtered.length} tags</span>
+          <span className="text-xs text-text-tertiary">{filtered.length} tags</span>
         )}
       </div>
 

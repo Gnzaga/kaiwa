@@ -535,10 +535,24 @@ Autonomous feature development session. Each entry timestamped.
 - Header reading time changes from "X min read" to "Xm remaining" once the user scrolls 2%+ down
 - Uses existing `readProgress` state + `readingMins` calculation
 
-### Feature 139 — Admin panel ingestion throughput metric
-- New "Ingested (1h)" metric card shows articles added to the DB in the last hour
-- Backend: added `ingestedLastHour` field to `/api/admin/metrics` using `gte(createdAt, oneHourAgo)`
-- Also added "User Feeds" count to overview section
+### Feature 140 — Dashboard greeting shows current day + date
+- "Tuesday, February 17" subtitle appears above greeting in dashboard header
+- Server-rendered using `toLocaleDateString` with weekday + month + day format
+
+### Feature 141 — Sidebar collapsed mode shows unread dot
+- When sidebar is collapsed, a small accent-colored dot appears on the logo icon when there are unread articles
+- Keeps users informed of unread count even with sidebar collapsed
+
+### Feature 142 — Article list "60d" date preset
+- Added "60d" button to the All/Today/7d/30d date filter group
+- `getDateFrom` function handles 60-day lookback
+
+### Feature 143 — Tags page alphabetical sort toggle
+- New "A–Z / By count" toggle button in tags filter bar
+- Sorts filtered tag cloud alphabetically when toggled; defaults to by-count (API order)
+
+### Feature 144 — Article list "60d" / tags A–Z (see 142+143 above)
+_(numbering adjusted: 140-143 cover the new features; 139 was already logged above)_
 
 ---
 

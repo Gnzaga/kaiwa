@@ -81,7 +81,12 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 h-16 border-b border-border shrink-0">
-        <span className="text-accent-primary text-xl">{'\u26E9'}</span>
+        <div className="relative shrink-0">
+          <span className="text-accent-primary text-xl">{'\u26E9'}</span>
+          {collapsed && totalUnread > 0 && (
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-accent-primary" />
+          )}
+        </div>
         {!collapsed && (
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-text-primary font-semibold tracking-widest text-lg">KAIWA</span>

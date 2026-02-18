@@ -64,18 +64,19 @@ export default function ArticleList({
   const [languageFilter, setLanguageFilter] = useState('');
   const [markingRead, setMarkingRead] = useState(false);
   const [confirmMarkRead, setConfirmMarkRead] = useState(false);
-  const [datePreset, setDatePreset] = useState<'' | 'today' | '7d' | '30d'>('');
+  const [datePreset, setDatePreset] = useState<'' | 'today' | '7d' | '30d' | '60d'>('');
   const [viewMode, setViewMode] = useState<'expanded' | 'compact'>(() => {
     if (typeof window === 'undefined') return 'expanded';
     return (localStorage.getItem('article-view-mode') as 'expanded' | 'compact') ?? 'expanded';
   });
 
-  function getDateFrom(preset: '' | 'today' | '7d' | '30d'): string {
+  function getDateFrom(preset: '' | 'today' | '7d' | '30d' | '60d'): string {
     if (!preset) return '';
     const d = new Date();
     if (preset === 'today') d.setHours(0, 0, 0, 0);
     else if (preset === '7d') d.setDate(d.getDate() - 7);
     else if (preset === '30d') d.setDate(d.getDate() - 30);
+    else if (preset === '60d') d.setDate(d.getDate() - 60);
     return d.toISOString();
   }
 
@@ -258,7 +259,7 @@ export default function ArticleList({
 
         {/* Date presets */}
         <div className="flex items-center gap-1 border border-border rounded overflow-hidden">
-          {(['', 'today', '7d', '30d'] as const).map((preset) => (
+          {(['', 'today', '7d', '30d', '60d'] as const).map((preset) => (
             <button
               key={preset || 'all'}
               onClick={() => { setDatePreset(preset); setPage(1); }}

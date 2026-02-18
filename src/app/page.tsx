@@ -17,15 +17,25 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
+function getDateLabel(): string {
+  return new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 export default async function DashboardPage() {
   const session = await auth();
   const name = session?.user?.name;
   const greeting = getGreeting();
+  const dateLabel = getDateLabel();
 
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-6xl mx-auto">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
+          <p className="text-xs text-text-tertiary mb-0.5">{dateLabel}</p>
           <h1 className="text-2xl font-semibold text-text-primary">
             {name ? `${greeting}, ${name}` : greeting}
           </h1>
