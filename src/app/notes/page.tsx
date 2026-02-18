@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 
 interface NoteEntry {
@@ -30,6 +30,11 @@ function relativeTime(date: string): string {
 export default function NotesPage() {
   const [search, setSearch] = useState('');
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editText, setEditText] = useState('');
+  const [savingId, setSavingId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const editRef = useRef<HTMLTextAreaElement>(null);
 
   const copyNote = useCallback((entry: NoteEntry) => {
     const date = new Date(entry.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });

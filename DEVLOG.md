@@ -4,6 +4,20 @@ Autonomous feature development session. Each entry timestamped.
 
 ---
 
+## 2026-02-17
+
+### Feature 278 — Search results export
+`src/app/search/page.tsx`: added "Export" button in search results header; on click, fetches up to 200 results for the current query+filters and downloads as a markdown file (`search-<query>.md`) with title, source, date, TL;DR, and URL per article.
+
+### Feature 277 — Per-user source muting
+`src/db/schema.ts`: added `userMutedSources` table (userId, feedId, mutedAt; composite PK).
+`src/app/api/user/muted-sources/route.ts` (new): GET returns list of muted feedIds; POST mutes; DELETE unmutes; all require session auth.
+`src/app/feeds/page.tsx`: added `mutedFeedIds` query + `muteMutation` with optimistic UI; each feed row shows a "mute"/"muted" pill toggle that switches color (accent-highlight when muted).
+`src/app/api/articles/route.ts`: queries `userMutedSources` for the authenticated user and excludes those feedIds from results via `NOT IN (...)`.
+
+### Feature 276 — Saved searches (localStorage)
+`src/app/search/page.tsx`: added `SavedSearch` interface + `SAVED_KEY` localStorage key; "★/☆" save button appears when a query is active and detects if current search is already saved; saved searches section shows below recent searches with starred label + filter badges; hover to delete; restores full filter state (query, region, dateRange, sentiment) on click.
+
 ## 2026-02-18
 
 ### Feature 275 — Tags and Feeds pages: `/` focuses filter input
