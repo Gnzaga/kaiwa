@@ -13,10 +13,10 @@ export default function GlobalShortcuts() {
       const tag = (e.target as HTMLElement).tagName;
       const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 
-      // / — focus first search input on page
+      // / — focus first focusable search/filter input on page
       if (e.key === '/' && !isInput) {
         e.preventDefault();
-        const input = document.querySelector<HTMLInputElement>('input[type="search"], input[placeholder*="earch"]');
+        const input = document.querySelector<HTMLInputElement>('[data-shortcut-focus], input[type="search"], input[placeholder*="earch" i]');
         if (input) { input.focus(); input.select(); }
         else router.push('/search');
         return;

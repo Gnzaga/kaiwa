@@ -75,6 +75,20 @@ export async function GET() {
       .orderBy(sql`count(*) DESC`)
       .limit(8);
 
+    // Top sources (by articles read)
+    const topSources = await db
+      .select({
+        sourceName: schema.feeds.sourceName,
+        count: count(),
+      })
+      .from(schema.userArticleStates)
+      .innerJoin(schema.articles, eq(schema.userArticleStates.articleId, schema.articles.id))
+      .innerJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+      .where(and(eq(schema.userArticleStates.userId, userId), eq(schema.userArticleStates.isRead, true)))
+      .groupBy(schema.feeds.sourceName)
+      .orderBy(sql`count(*) DESC`)
+      .limit(8);
+
     // Sentiment distribution of read articles
     const sentimentDist = await db
       .select({
@@ -126,6 +140,7 @@ export async function GET() {
     return NextResponse.json({
       totals,
       topRegions,
+      topSources,
       topTags,
       listCount,
       totalArticles,

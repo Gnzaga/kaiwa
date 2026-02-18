@@ -15,6 +15,7 @@ interface StatsResponse {
     readThisYear: number;
   };
   topRegions: { regionId: string; regionName: string; flagEmoji: string; count: number }[];
+  topSources: { sourceName: string; count: number }[];
   topTags: { tag: string; count: number }[];
   listCount: number;
   totalArticles: number;
@@ -54,9 +55,10 @@ export default function StatsPage() {
     );
   }
 
-  const { totals, topRegions, topTags, listCount, totalArticles, totalWordsRead, dailyActivity, sentimentDist } = data ?? {
+  const { totals, topRegions, topSources, topTags, listCount, totalArticles, totalWordsRead, dailyActivity, sentimentDist } = data ?? {
     totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readLastWeek: 0, readThisMonth: 0, readThisYear: 0 },
     topRegions: [],
+    topSources: [],
     topTags: [],
     listCount: 0,
     totalArticles: 0,
@@ -193,6 +195,30 @@ export default function StatsPage() {
         );
       })()}
 
+      {/* Weekly goal progress */}
+      {prefs && prefs.dailyGoal > 0 && (() => {
+        const weeklyGoal = prefs.dailyGoal * 7;
+        const pct = Math.min(100, Math.round((totals.readThisWeek / weeklyGoal) * 100));
+        const done = totals.readThisWeek >= weeklyGoal;
+        return (
+          <section className="bg-bg-elevated border border-border rounded p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-secondary font-medium">Weekly Goal</span>
+              <span className={`font-mono ${done ? 'text-accent-secondary' : 'text-text-tertiary'}`}>
+                {totals.readThisWeek}/{weeklyGoal} {done ? '✓' : `(${pct}%)`}
+              </span>
+            </div>
+            <div className="h-2 bg-bg-secondary rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${done ? 'bg-accent-secondary' : 'bg-accent-primary'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            {done && <p className="text-xs text-accent-secondary">Weekly goal reached!</p>}
+          </section>
+        );
+      })()}
+
       {/* Activity heatmap */}
       <section className="space-y-3">
         <h2 className="text-base font-medium text-text-primary">30-Day Activity</h2>
@@ -263,6 +289,35 @@ export default function StatsPage() {
             </div>
           )}
         </section>
+
+        {/* Top sources */}
+        {topSources.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-base font-medium text-text-primary">Top Sources</h2>
+            <div className="space-y-2">
+              {topSources.map((s) => {
+                const maxCount = Math.max(...topSources.map((x) => Number(x.count)));
+                const pct = Math.round((Number(s.count) / maxCount) * 100);
+                return (
+                  <div key={s.sourceName} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <a
+                        href={`/articles?source=${encodeURIComponent(s.sourceName)}`}
+                        className="text-text-secondary hover:text-accent-primary transition-colors truncate max-w-[200px]"
+                      >
+                        {s.sourceName}
+                      </a>
+                      <span className="text-text-tertiary font-mono shrink-0 ml-2">{s.count}</span>
+                    </div>
+                    <div className="h-1.5 bg-bg-elevated rounded-full overflow-hidden">
+                      <div className="h-full bg-accent-secondary rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Sentiment distribution */}
         {sentimentDist.length > 0 && (

@@ -187,6 +187,8 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   const [copied, setCopied] = useState(false);
   const [summaryCopied, setSummaryCopied] = useState(false);
+  const [outlineCopied, setOutlineCopied] = useState(false);
+  const [citationCopied, setCitationCopied] = useState(false);
   const [mdCopied, setMdCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
@@ -210,6 +212,34 @@ export default function ArticleDetail({ id }: { id: number }) {
     navigator.clipboard.writeText(parts.join('\n\n'));
     setSummaryCopied(true);
     setTimeout(() => setSummaryCopied(false), 2000);
+  }, [data?.article]);
+
+  const copyOutline = useCallback(() => {
+    if (!data?.article) return;
+    const a = data.article;
+    const t = a.translatedTitle || a.originalTitle;
+    const lines: string[] = [`# ${t}`, '', `> ${a.originalUrl}`];
+    if (a.summaryTldr) { lines.push('', `**TL;DR**: ${a.summaryTldr}`); }
+    if (a.summaryBullets && a.summaryBullets.length > 0) {
+      lines.push('', '## Key Points', ...a.summaryBullets.map((b: string) => `- ${b}`));
+    }
+    if (a.summaryTags && a.summaryTags.length > 0) {
+      lines.push('', `**Tags**: ${a.summaryTags.join(', ')}`);
+    }
+    navigator.clipboard.writeText(lines.join('\n'));
+    setOutlineCopied(true);
+    setTimeout(() => setOutlineCopied(false), 2000);
+  }, [data?.article]);
+
+  const copyCitation = useCallback(() => {
+    if (!data?.article) return;
+    const a = data.article;
+    const t = a.translatedTitle || a.originalTitle;
+    const date = new Date(a.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const citation = `${t}. ${a.sourceName ?? 'Unknown Source'}, ${date}. ${a.originalUrl}`;
+    navigator.clipboard.writeText(citation);
+    setCitationCopied(true);
+    setTimeout(() => setCitationCopied(false), 2000);
   }, [data?.article]);
 
   const { article, related } = data;
@@ -437,10 +467,19 @@ export default function ArticleDetail({ id }: { id: number }) {
           {mdCopied ? 'Copied!' : 'Copy MD'}
         </ActionButton>
 
+        <ActionButton onClick={copyCitation} active={citationCopied}>
+          {citationCopied ? 'Copied!' : 'Copy Citation'}
+        </ActionButton>
+
         {article.summaryStatus === 'complete' && (article.summaryTldr || (article.summaryBullets && article.summaryBullets.length > 0)) && (
-          <ActionButton onClick={copySummary} active={summaryCopied}>
-            {summaryCopied ? 'Copied!' : 'Copy Summary'}
-          </ActionButton>
+          <>
+            <ActionButton onClick={copySummary} active={summaryCopied}>
+              {summaryCopied ? 'Copied!' : 'Copy Summary'}
+            </ActionButton>
+            <ActionButton onClick={copyOutline} active={outlineCopied}>
+              {outlineCopied ? 'Copied!' : 'Copy Outline'}
+            </ActionButton>
+          </>
         )}
 
         <button

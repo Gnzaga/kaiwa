@@ -49,7 +49,10 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
   const [editingName, setEditingName] = useState(false);
   const [nameText, setNameText] = useState('');
   const [listFilter, setListFilter] = useState('');
-  const [listSort, setListSort] = useState<'order' | 'newest_added' | 'oldest_added' | 'published' | 'shuffle'>('order');
+  const [listSort, setListSort] = useState<'order' | 'newest_added' | 'oldest_added' | 'published' | 'shuffle'>(() => {
+    if (typeof window === 'undefined') return 'order';
+    return (localStorage.getItem('reading-list-sort') as 'order' | 'newest_added' | 'oldest_added' | 'published' | 'shuffle') ?? 'order';
+  });
   const [shuffleSeed, setShuffleSeed] = useState(0);
 
   const removeMutation = useMutation({
@@ -281,7 +284,7 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
           />
           <select
             value={listSort}
-            onChange={(e) => { const v = e.target.value as typeof listSort; setListSort(v); if (v === 'shuffle') setShuffleSeed(Date.now()); }}
+            onChange={(e) => { const v = e.target.value as typeof listSort; setListSort(v); localStorage.setItem('reading-list-sort', v); if (v === 'shuffle') setShuffleSeed(Date.now()); }}
             className="bg-bg-elevated border border-border rounded px-2 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
           >
             <option value="order">Manual order</option>

@@ -6,6 +6,21 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 191 — Stats: weekly goal progress bar
+`src/app/stats/page.tsx`: if dailyGoal > 0, shows a weekly goal progress bar (dailyGoal × 7) alongside the existing daily goal bar.
+
+### Feature 190 — Article detail: Copy as citation
+`src/components/articles/ArticleDetail.tsx`: "Copy Citation" button formats as `Title. Source, Date. URL`.
+
+### Feature 189 — Article detail: Copy as outline
+`src/components/articles/ArticleDetail.tsx`: "Copy Outline" button formats summary as Markdown outline (# Title, > URL, **TL;DR**, ## Key Points bullets, **Tags**).
+
+### Feature 188 — Reading list sort persistence
+`src/app/lists/[id]/page.tsx`: `listSort` state persisted to `localStorage` key `reading-list-sort`.
+
+### Feature 187 — Stats: Top Sources section
+`src/app/api/user/stats/route.ts` + `src/app/stats/page.tsx`: added `topSources` (by sourceName, most-read articles); "Top Sources" section with progress bars links to `/articles?source=`.
+
 ### Feature 186 — Category page: stats in header
 `src/app/region/[regionId]/[categorySlug]/page.tsx` + `src/app/api/stats/route.ts`: added `?category=` param to stats API; category page header now shows today/hour/total subtitle.
 
@@ -18,8 +33,8 @@ Autonomous feature development session. Each entry timestamped.
 ### Feature 183 — Stats: week-over-week delta
 `src/app/api/user/stats/route.ts` + `src/app/stats/page.tsx`: added `readLastWeek` count (8–14 days ago); "This Week" stat card shows `↑N vs last` / `↓N vs last` delta.
 
-### Feature 182 — ArticleList: `/` key focuses tag filter
-`src/components/articles/ArticleList.tsx`: pressing `/` focuses the tag filter input (preventDefault so `/` isn't typed).
+### Feature 182 — ArticleList: `/` key focuses tag filter via GlobalShortcuts
+`src/components/articles/ArticleList.tsx`: tag filter input has `data-shortcut-focus` attribute; `src/components/ui/GlobalShortcuts.tsx`: `/` shortcut now checks for `[data-shortcut-focus]` first before navigating to /search.
 
 ### Feature 181 — ArticleList n/p pagination shortcuts
 `src/components/articles/ArticleList.tsx`: `n`/`p` keys now work as aliases for `]`/`[` to go to next/previous page.
