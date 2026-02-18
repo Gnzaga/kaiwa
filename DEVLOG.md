@@ -6,6 +6,17 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 272 — Stats: reading list completion breakdown
+`src/app/api/user/stats/route.ts`: added `listBreakdown` query joining readingLists+readingListItems+userArticleStates to compute per-list `total` and `readCount`; returned in stats response.
+`src/app/stats/page.tsx`: added "Reading List Progress" section with per-list progress bars; completed lists shown in accent-secondary with ✓; links to list detail page.
+
+### Feature 271 — Sidebar: notes count badge
+`src/app/api/user/notes/count/route.ts` (new): lightweight GET endpoint returning `{ count }` of non-empty user notes (no full join, just COUNT).
+`src/components/layout/Sidebar.tsx`: fetches note count with 5-min staleTime and passes as `badge` to the Notes NavItem.
+
+### Feature 270 — Notes page: per-note copy button
+`src/app/notes/page.tsx`: added `copyNote()` function formatting as `# Title\n\n> Note\n\n— Source, Date\nURL`; "Copy" button per card with 2s "Copied!" feedback via `copiedId` state.
+
 ### Feature 269 — Notes page: overview of all articles with user notes
 `src/app/api/user/notes/route.ts` (new): GET endpoint returning all articles where the user has a non-empty note, joining userArticleStates+articles+feeds, ordered by updatedAt DESC.
 `src/app/notes/page.tsx` (new): Notes overview page with search filter, blockquote-styled note display, source/date metadata, and "Edit note →" links back to the article. Empty state with keyboard hint.

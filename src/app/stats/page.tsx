@@ -19,6 +19,7 @@ interface StatsResponse {
   topSources: { sourceName: string; count: number }[];
   topTags: { tag: string; count: number }[];
   listCount: number;
+  listBreakdown: { id: number; name: string; total: number; readCount: number }[];
   totalArticles: number;
   totalWordsRead: number;
   dailyActivity: { day: string; count: number }[];
@@ -57,12 +58,13 @@ export default function StatsPage() {
     );
   }
 
-  const { totals, topRegions, topSources, topTags, listCount, totalArticles, totalWordsRead, dailyActivity, sentimentDist, hourlyActivity } = data ?? {
+  const { totals, topRegions, topSources, topTags, listCount, listBreakdown, totalArticles, totalWordsRead, dailyActivity, sentimentDist, hourlyActivity } = data ?? {
     totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readLastWeek: 0, readThisMonth: 0, readLastMonth: 0, readThisYear: 0 },
     topRegions: [],
     topSources: [],
     topTags: [],
     listCount: 0,
+    listBreakdown: [],
     totalArticles: 0,
     totalWordsRead: 0,
     dailyActivity: [],
@@ -583,6 +585,37 @@ export default function StatsPage() {
                       <div className="h-full bg-accent-secondary rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Reading list completion */}
+        {listBreakdown.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-base font-medium text-text-primary">Reading List Progress</h2>
+            <div className="space-y-2">
+              {listBreakdown.map((list) => {
+                const total = Number(list.total);
+                const read = Number(list.readCount);
+                const pct = total > 0 ? Math.round((read / total) * 100) : 0;
+                const done = total > 0 && read >= total;
+                return (
+                  <a key={list.id} href={`/lists/${list.id}`} className="block group">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className={`text-text-secondary group-hover:text-accent-primary transition-colors truncate max-w-[60%]`}>{list.name}</span>
+                      <span className={`font-mono ${done ? 'text-accent-secondary' : 'text-text-tertiary'}`}>
+                        {read}/{total} {done ? '✓' : `${pct}%`}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-bg-primary rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${done ? 'bg-accent-secondary' : 'bg-accent-primary'}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </a>
                 );
               })}
             </div>

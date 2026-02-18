@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
@@ -29,6 +29,23 @@ function relativeTime(date: string): string {
 
 export default function NotesPage() {
   const [search, setSearch] = useState('');
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  const copyNote = useCallback((entry: NoteEntry) => {
+    const date = new Date(entry.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const text = [
+      `# ${entry.title}`,
+      '',
+      `> ${entry.note.split('\n').join('\n> ')}`,
+      '',
+      `— ${entry.sourceName ?? 'Unknown'}, ${date}`,
+      entry.originalUrl,
+    ].join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedId(entry.articleId);
+      setTimeout(() => setCopiedId(null), 2000);
+    }).catch(() => {});
+  }, []);
 
   const { data: notes, isLoading } = useQuery<NoteEntry[]>({
     queryKey: ['user-notes'],
@@ -120,12 +137,21 @@ export default function NotesPage() {
               <span>{new Date(entry.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
               {entry.isStarred && <span className="text-accent-secondary">★</span>}
               {entry.isRead && <span className="text-text-tertiary">read</span>}
-              <Link
-                href={`/article/${entry.articleId}`}
-                className="ml-auto hover:text-accent-primary transition-colors"
-              >
-                Edit note →
-              </Link>
+              <div className="ml-auto flex items-center gap-3">
+                <button
+                  onClick={() => copyNote(entry)}
+                  className="hover:text-accent-primary transition-colors"
+                  title="Copy note as markdown"
+                >
+                  {copiedId === entry.articleId ? 'Copied!' : 'Copy'}
+                </button>
+                <Link
+                  href={`/article/${entry.articleId}`}
+                  className="hover:text-accent-primary transition-colors"
+                >
+                  Edit note →
+                </Link>
+              </div>
             </div>
           </div>
         ))}

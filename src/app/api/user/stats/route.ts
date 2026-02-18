@@ -110,6 +110,27 @@ export async function GET() {
       .groupBy(schema.articles.summarySentiment)
       .orderBy(sql`count(*) DESC`);
 
+    // Per-reading-list completion breakdown
+    const listBreakdown = await db
+      .select({
+        id: schema.readingLists.id,
+        name: schema.readingLists.name,
+        total: sql<number>`count(distinct ${schema.readingListItems.articleId})`,
+        readCount: sql<number>`count(distinct case when ${schema.userArticleStates.isRead} = true then ${schema.readingListItems.articleId} end)`,
+      })
+      .from(schema.readingLists)
+      .leftJoin(schema.readingListItems, eq(schema.readingListItems.readingListId, schema.readingLists.id))
+      .leftJoin(
+        schema.userArticleStates,
+        and(
+          eq(schema.userArticleStates.articleId, schema.readingListItems.articleId),
+          eq(schema.userArticleStates.userId, userId),
+        ),
+      )
+      .where(eq(schema.readingLists.userId, userId))
+      .groupBy(schema.readingLists.id, schema.readingLists.name)
+      .orderBy(schema.readingLists.createdAt);
+
     // Reading lists count + total articles in DB + total words read
     const [[{ listCount }], [{ totalArticles }], [{ totalWordsRead }]] = await Promise.all([
       db.select({ listCount: count() }).from(schema.readingLists).where(eq(schema.readingLists.userId, userId)),
@@ -164,6 +185,7 @@ export async function GET() {
       topSources,
       topTags,
       listCount,
+      listBreakdown,
       totalArticles,
       totalWordsRead: Number(totalWordsRead),
       dailyActivity,

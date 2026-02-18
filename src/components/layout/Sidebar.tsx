@@ -53,6 +53,12 @@ export default function Sidebar() {
     refetchInterval: 60000, // refresh every 60s
   });
 
+  const { data: notesCountData } = useQuery<{ count: number }>({
+    queryKey: ['notes-count'],
+    queryFn: () => fetch('/api/user/notes/count').then((r) => r.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
   function toggleRegion(regionId: string) {
     setExpandedRegions((prev) => {
       const next = new Set(prev);
@@ -193,7 +199,7 @@ export default function Sidebar() {
         <NavItem href="/starred" label="Starred" icon={StarIcon} collapsed={collapsed} pathname={pathname} />
 
         {/* Notes */}
-        <NavItem href="/notes" label="Notes" icon={NotesIcon} collapsed={collapsed} pathname={pathname} />
+        <NavItem href="/notes" label="Notes" icon={NotesIcon} collapsed={collapsed} pathname={pathname} badge={notesCountData?.count} />
 
         {/* Stats */}
         <NavItem href="/stats" label="Stats" icon={StatsIcon} collapsed={collapsed} pathname={pathname} />
