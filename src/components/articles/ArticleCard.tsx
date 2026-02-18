@@ -119,6 +119,7 @@ export default function ArticleCard({
               {sourceName && <span>{sourceName}</span>}
               <span title={absoluteTime(article.publishedAt)}>{relativeTime(article.publishedAt)}</span>
               {rt && <span className="opacity-70">{rt}</span>}
+              <SentimentBadge sentiment={article.summarySentiment} />
             </div>
           </div>
         </article>

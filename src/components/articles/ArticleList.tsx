@@ -379,6 +379,27 @@ export default function ArticleList({
                 Copy URLs
               </button>
 
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={() => {
+                    setTitleSearch('');
+                    setSourceFilter('');
+                    setTagFilter('');
+                    setReadFilter('');
+                    setSentimentFilter('');
+                    setLanguageFilter('');
+                    setDatePreset('');
+                    setReadingLength('');
+                    setPage(1);
+                    localStorage.removeItem('article-read-filter');
+                  }}
+                  className="px-3 py-1.5 text-sm border border-border rounded text-accent-highlight hover:border-accent-highlight transition-colors"
+                  title="Clear all active filters"
+                >
+                  Clear filters
+                </button>
+              )}
+
               <button
                 onClick={handleMarkAllRead}
                 disabled={markingRead || !data || data.data.length === 0}

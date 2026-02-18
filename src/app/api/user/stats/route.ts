@@ -123,6 +123,24 @@ export async function GET() {
         .where(and(eq(schema.userArticleStates.userId, userId), eq(schema.userArticleStates.isRead, true))),
     ]);
 
+    // Peak reading hour (0-23)
+    const hourlyActivity = await db
+      .select({
+        hour: sql<number>`EXTRACT(HOUR FROM ${schema.userArticleStates.readAt} AT TIME ZONE 'UTC')::int`,
+        count: count(),
+      })
+      .from(schema.userArticleStates)
+      .where(
+        and(
+          eq(schema.userArticleStates.userId, userId),
+          eq(schema.userArticleStates.isRead, true),
+          sql`${schema.userArticleStates.readAt} IS NOT NULL`,
+        ),
+      )
+      .groupBy(sql`EXTRACT(HOUR FROM ${schema.userArticleStates.readAt} AT TIME ZONE 'UTC')::int`)
+      .orderBy(sql`count(*) DESC`)
+      .limit(24);
+
     // Daily activity for last 365 days (reading streak + heatmap)
     const dailyActivity = await db
       .select({
@@ -150,6 +168,7 @@ export async function GET() {
       totalWordsRead: Number(totalWordsRead),
       dailyActivity,
       sentimentDist,
+      hourlyActivity,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';

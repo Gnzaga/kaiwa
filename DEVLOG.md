@@ -6,6 +6,18 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 254 — ArticleList: `w` key saves selected article to first reading list
+`src/components/articles/ArticleList.tsx`: pressing `w` with an article selected fetches the user's reading lists, then POSTs the article to the first list's items endpoint; shows toast "Saved to 'List Name'" or an error if no lists exist. `GlobalShortcuts.tsx` updated with w, c, e docs.
+
+### Feature 253 — Stats: reading history CSV export
+`src/app/api/user/reading-history/route.ts` (new): exports up to 5000 read articles as a CSV download with read_at, title, source, region, url, published_at, sentiment, tags, starred, word_count columns.
+`src/app/stats/page.tsx`: "Export history" download link added alongside existing digest/starred exports.
+
+### Feature 252 — Dashboard: "For You" recommended articles widget
+`src/app/api/articles/recommended/route.ts` (new): scores recent unread articles against the user's 30-day reading tags (2pts/tag match) and top sources (1pt/source match); returns up to 5 results.
+`src/components/dashboard/RecommendedForYou.tsx` (new): sidebar card showing personalized picks with sentiment color and tag preview.
+`src/app/page.tsx`: added RecommendedForYou to the dashboard sidebar above QuickRead.
+
 ### Feature 251 — Stats: Goal Streak stat card
 `src/app/stats/page.tsx`: "Goal Streak" card shows consecutive days where the user met their daily reading goal; only rendered when `dailyGoal > 0`. Iterates backwards from today using `dailyActivityMap`.
 

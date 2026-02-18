@@ -23,6 +23,7 @@ interface StatsResponse {
   totalWordsRead: number;
   dailyActivity: { day: string; count: number }[];
   sentimentDist: { sentiment: string | null; count: number }[];
+  hourlyActivity: { hour: number; count: number }[];
 }
 
 export default function StatsPage() {
@@ -56,7 +57,7 @@ export default function StatsPage() {
     );
   }
 
-  const { totals, topRegions, topSources, topTags, listCount, totalArticles, totalWordsRead, dailyActivity, sentimentDist } = data ?? {
+  const { totals, topRegions, topSources, topTags, listCount, totalArticles, totalWordsRead, dailyActivity, sentimentDist, hourlyActivity } = data ?? {
     totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readLastWeek: 0, readThisMonth: 0, readLastMonth: 0, readThisYear: 0 },
     topRegions: [],
     topSources: [],
@@ -66,6 +67,7 @@ export default function StatsPage() {
     totalWordsRead: 0,
     dailyActivity: [],
     sentimentDist: [],
+    hourlyActivity: [],
   };
 
   const SENTIMENT_COLOR: Record<string, string> = {
@@ -229,6 +231,16 @@ export default function StatsPage() {
               return <StatCard label="Hours Read" value={hrs >= 1 ? `${hrs.toFixed(1)}h` : `${Math.round(hrs * 60)}m`} />;
             })()}
             <StatCard label="Pages Read" value={Math.round(totalWordsRead / 250)} suffix=" pg" />
+            {(() => {
+              const peak = hourlyActivity.length > 0
+                ? hourlyActivity.reduce((best, h) => h.count > best.count ? h : best, hourlyActivity[0])
+                : null;
+              if (!peak) return null;
+              const h = peak.hour;
+              const ampm = h < 12 ? 'AM' : 'PM';
+              const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+              return <StatCard label="Peak Hour" value={`${h12}${ampm}`} />;
+            })()}
           </section>
         );
       })()}
