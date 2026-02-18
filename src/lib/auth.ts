@@ -36,9 +36,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, profile }: any) {
-      if (profile) {
-        token.isAdmin = hasAdminGroup((profile as Record<string, unknown>).groups);
+    async jwt({ token, user }: any) {
+      // On initial sign-in, read isAdmin from DB (set by signIn callback above)
+      if (user?.id) {
+        const [dbUser] = await db
+          .select({ isAdmin: users.isAdmin })
+          .from(users)
+          .where(eq(users.id, user.id))
+          .limit(1);
+        token.isAdmin = dbUser?.isAdmin ?? false;
       }
       return token;
     },

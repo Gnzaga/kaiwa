@@ -34,7 +34,7 @@ export default function TopSources() {
     <div className="bg-bg-secondary border border-border rounded p-4 accent-line-top">
       <h2 className="text-xs font-medium text-text-tertiary uppercase tracking-wider mb-3">Top Sources Today</h2>
       <div className="space-y-2">
-        {data.map((source, i) => (
+        {data.slice(0, 5).map((source, i) => (
           <div key={source.name} className="flex items-center gap-2">
             <span className="text-xs text-text-tertiary w-4 text-right font-mono">{i + 1}</span>
             <div className="flex-1 min-w-0">
