@@ -6,6 +6,16 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 242 — ArticleDetail: Print button
+`src/components/articles/ArticleDetail.tsx`: "Print" button in the toolbar calls `window.print()`; pairs with existing print CSS in globals.css that hides sidebar/buttons for clean output.
+
+### Feature 241 — GlobalShortcuts modal: updated shortcut reference
+`src/components/ui/GlobalShortcuts.tsx`: Article List group now includes g/G (first/last), S (filter by source), O (open original URL), N (6h preset); Article Detail group now includes t (thread), n (note); removed stale n/p placeholder.
+
+### Feature 240 — Search: sort by relevance / newest / oldest
+`src/app/api/articles/search/route.ts`: added `sort` param (relevance/newest/oldest) to the search API, using `publishedAt ASC/DESC` or `rank DESC` ordering.
+`src/app/search/page.tsx`: sort dropdown in results header; resets to page 1 on sort change.
+
 ### Feature 239 — ReadingStatus: 7-day mini sparkline
 `src/components/dashboard/ReadingStatus.tsx`: computes last 7 days of activity from `dailyActivity`, renders 7 tiny `1×N px` bars; empty days shown in border color, active days in accent-primary; today at full opacity.
 

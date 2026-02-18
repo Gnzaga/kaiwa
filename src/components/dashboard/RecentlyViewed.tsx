@@ -30,7 +30,7 @@ export default function RecentlyViewed() {
         {articles.map((a) => (
           <Link
             key={a.id}
-            href={`/articles/${a.id}`}
+            href={`/article/${a.id}`}
             className="flex items-center gap-2 group"
           >
             <div className="w-1 h-1 rounded-full bg-text-tertiary/50 group-hover:bg-accent-primary shrink-0 transition-colors" />

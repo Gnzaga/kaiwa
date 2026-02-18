@@ -182,6 +182,7 @@ export default function ArticleList({
       if (e.key === ']' || e.key === 'n') setPage(p => Math.min(totalPages, p + 1));
       if (e.key === 'g') { setSelectedIdx(0); setTimeout(() => document.querySelector('[data-article-idx="0"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }
       if (e.key === 'G') { const last = articlesRef.current.length - 1; setSelectedIdx(last); setTimeout(() => document.querySelector(`[data-article-idx="${last}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0); }
+      if (e.key === 'e') { setGroupByDate(v => { const next = !v; localStorage.setItem('article-group-by-date', String(next)); return next; }); }
       if (e.key === 'j') {
         e.preventDefault();
         setSelectedIdx(prev => Math.min(prev + 1, articlesRef.current.length - 1));

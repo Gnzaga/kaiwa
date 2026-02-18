@@ -205,6 +205,7 @@ export default function StatsPage() {
               const hrs = totalWordsRead / 250 / 60;
               return <StatCard label="Hours Read" value={hrs >= 1 ? `${hrs.toFixed(1)}h` : `${Math.round(hrs * 60)}m`} />;
             })()}
+            <StatCard label="Pages Read" value={Math.round(totalWordsRead / 250)} suffix=" pg" />
           </section>
         );
       })()}

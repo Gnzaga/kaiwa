@@ -357,6 +357,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'f') setFocusMode(m => !m);
       if (e.key === 'n') setNoteOpen(m => !m);
+      if (e.key === 'p') window.print();
       if (e.key === 't') { copyThread(); toast('Thread copied'); }
       if (e.key === '?') setShowShortcuts(m => !m);
       if (e.key === 'Escape') { setShowShortcuts(false); setQuotePopup(null); }
@@ -422,6 +423,7 @@ export default function ArticleDetail({ id }: { id: number }) {
               ['a', 'Toggle archive'],
               ['f', 'Focus mode'],
               ['n', 'Toggle note panel'],
+              ['p', 'Print article'],
               ['t', 'Copy as thread'],
               ['o', 'Open original'],
               ['c', 'Copy link'],
