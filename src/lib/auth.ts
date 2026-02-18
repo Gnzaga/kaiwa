@@ -21,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     verificationTokensTable: verificationTokens,
   }),
   session: {
-    strategy: 'database',
+    strategy: 'jwt',
   },
   callbacks: {
     ...authConfig.callbacks,
@@ -35,12 +35,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    session({ session, user }) {
-      if (user) {
-        session.user.id = user.id;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (session as any).isAdmin = (user as any).isAdmin;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async jwt({ token, profile }: any) {
+      if (profile) {
+        token.isAdmin = hasAdminGroup((profile as Record<string, unknown>).groups);
       }
+      return token;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    session({ session, token }: any) {
+      if (token?.sub) {
+        session.user.id = token.sub;
+      }
+      session.isAdmin = token?.isAdmin ?? false;
       return session;
     },
   },
