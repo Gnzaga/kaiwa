@@ -93,6 +93,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Exclude muted sources for this user
+    const mutedRows = await db
+      .select({ feedId: schema.userMutedSources.feedId })
+      .from(schema.userMutedSources)
+      .where(eq(schema.userMutedSources.userId, userId));
+    if (mutedRows.length > 0) {
+      conditions.push(sql`${schema.articles.feedId} NOT IN (${sql.join(mutedRows.map(r => sql`${r.feedId}`), sql`, `)})`);
+    }
+
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     let orderBy;

@@ -193,6 +193,16 @@ export const userPreferences = pgTable('user_preferences', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
+// ─── User muted sources ─────────────────────────────────────────────
+
+export const userMutedSources = pgTable('user_muted_sources', {
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  feedId: integer('feed_id').notNull().references(() => feeds.id, { onDelete: 'cascade' }),
+  mutedAt: timestamp('muted_at', { withTimezone: true }).defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.feedId] }),
+]);
+
 // ─── Relations ──────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many, one }) => ({

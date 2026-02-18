@@ -8,11 +8,19 @@ import SearchBar, { type SearchFilters } from '@/components/search/SearchBar';
 import ArticleCard from '@/components/articles/ArticleCard';
 
 const RECENT_KEY = 'kaiwa-recent-searches';
+const SAVED_KEY = 'kaiwa-saved-searches';
 const MAX_RECENT = 8;
+
+interface SavedSearch { label: string; query: string; region: string; dateRange: '' | '24h' | '7d' | '30d'; sentiment: string; savedAt: string; }
 
 function getRecentSearches(): string[] {
   if (typeof window === 'undefined') return [];
   try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); } catch { return []; }
+}
+
+function getSavedSearches(): SavedSearch[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY) ?? '[]'); } catch { return []; }
 }
 
 function saveSearch(query: string) {
@@ -49,12 +57,42 @@ function SearchPageContent() {
   }, [searchParams]);
 
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [searchPage, setSearchPage] = useState(1);
   const [searchSort, setSearchSort] = useState<'relevance' | 'newest' | 'oldest'>('relevance');
 
   useEffect(() => {
     setRecentSearches(getRecentSearches());
+    setSavedSearches(getSavedSearches());
   }, []);
+
+  function saveCurrentSearch() {
+    if (!filters.query.trim()) return;
+    const entry: SavedSearch = {
+      label: filters.query,
+      query: filters.query,
+      region: filters.region,
+      dateRange: filters.dateRange as SavedSearch['dateRange'],
+      sentiment: filters.sentiment,
+      savedAt: new Date().toISOString(),
+    };
+    const prev = getSavedSearches().filter(
+      (s) => !(s.query === entry.query && s.region === entry.region && s.dateRange === entry.dateRange && s.sentiment === entry.sentiment),
+    );
+    const next = [entry, ...prev];
+    localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+    setSavedSearches(next);
+  }
+
+  function deleteSavedSearch(savedAt: string) {
+    const next = getSavedSearches().filter((s) => s.savedAt !== savedAt);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+    setSavedSearches(next);
+  }
+
+  const isCurrentSaved = savedSearches.some(
+    (s) => s.query === filters.query && s.region === filters.region && s.dateRange === filters.dateRange && s.sentiment === filters.sentiment,
+  );
 
   const hasQuery = filters.query.length > 0;
 
@@ -87,7 +125,20 @@ function SearchPageContent() {
         <h1 className="text-2xl font-semibold text-text-primary">Search</h1>
       </header>
 
-      <SearchBar onSearch={handleSearch} />
+      <div className="flex items-start gap-2">
+        <div className="flex-1">
+          <SearchBar onSearch={handleSearch} />
+        </div>
+        {hasQuery && (
+          <button
+            onClick={saveCurrentSearch}
+            title={isCurrentSaved ? 'Search saved' : 'Save this search'}
+            className={`mt-0.5 px-2.5 py-2 border rounded text-xs transition-colors ${isCurrentSaved ? 'border-accent-primary text-accent-primary' : 'border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary'}`}
+          >
+            {isCurrentSaved ? '★' : '☆'}
+          </button>
+        )}
+      </div>
 
       {/* Recent searches */}
       {!hasQuery && recentSearches.length > 0 && (
@@ -124,8 +175,37 @@ function SearchPageContent() {
         </div>
       )}
 
+      {/* Saved searches */}
+      {!hasQuery && savedSearches.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-text-tertiary">Saved searches</p>
+          <div className="flex flex-wrap gap-2">
+            {savedSearches.map((s) => (
+              <div key={s.savedAt} className="flex items-center gap-0 border border-accent-primary/40 rounded-full overflow-hidden text-sm text-text-secondary hover:border-accent-primary transition-colors group">
+                <button
+                  onClick={() => setFilters({ query: s.query, region: s.region, dateRange: s.dateRange, sentiment: s.sentiment })}
+                  className="px-3 py-1 hover:text-text-primary transition-colors"
+                >
+                  ★ {s.label}
+                  {(s.region || s.dateRange || s.sentiment) && (
+                    <span className="ml-1 text-xs text-text-tertiary">
+                      {[s.region, s.dateRange, s.sentiment].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteSavedSearch(s.savedAt); }}
+                  className="pr-2 py-1 text-xs text-text-tertiary hover:text-accent-highlight transition-colors opacity-0 group-hover:opacity-100"
+                  title="Remove"
+                >✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Results */}
-      {!hasQuery && recentSearches.length === 0 && (
+      {!hasQuery && recentSearches.length === 0 && savedSearches.length === 0 && (
         <div className="text-center py-16 text-text-tertiary text-sm">
           Enter a search term to find articles
         </div>
@@ -149,15 +229,42 @@ function SearchPageContent() {
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-text-tertiary">{data.total.toLocaleString()} result{data.total !== 1 ? 's' : ''}</p>
-            <select
-              value={searchSort}
-              onChange={(e) => { setSearchSort(e.target.value as 'relevance' | 'newest' | 'oldest'); setSearchPage(1); }}
-              className="text-xs bg-bg-elevated border border-border rounded px-2 py-1 text-text-secondary focus:outline-none focus:border-accent-primary"
-            >
-              <option value="relevance">Relevance</option>
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-            </select>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={async () => {
+                  const exportParams = new URLSearchParams(params);
+                  exportParams.set('pageSize', '200');
+                  exportParams.delete('page');
+                  const resp = await fetch(`/api/articles/search?${exportParams}`).then(r => r.json());
+                  const articles = resp.data ?? [];
+                  const lines = [
+                    `# Search: "${filters.query}"`,
+                    `_${articles.length} results · ${new Date().toLocaleDateString()}_`,
+                    '',
+                    ...articles.map((a: { translatedTitle?: string | null; originalTitle: string; feedSourceName?: string; publishedAt: string; originalUrl: string; summaryTldr?: string | null }) =>
+                      `## ${a.translatedTitle || a.originalTitle}\n**Source:** ${a.feedSourceName ?? 'Unknown'} · ${new Date(a.publishedAt).toLocaleDateString()}\n${a.summaryTldr ? `> ${a.summaryTldr}\n` : ''}\n${a.originalUrl}`
+                    ),
+                  ];
+                  const blob = new Blob([lines.join('\n\n')], { type: 'text/markdown' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = `search-${filters.query.replace(/\s+/g, '-')}.md`; a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="text-xs px-2 py-1 border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
+              >
+                Export
+              </button>
+              <select
+                value={searchSort}
+                onChange={(e) => { setSearchSort(e.target.value as 'relevance' | 'newest' | 'oldest'); setSearchPage(1); }}
+                className="text-xs bg-bg-elevated border border-border rounded px-2 py-1 text-text-secondary focus:outline-none focus:border-accent-primary"
+              >
+                <option value="relevance">Relevance</option>
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+              </select>
+            </div>
           </div>
           {data.data.map((article) => (
             <ArticleCard key={article.id} article={article} sourceName={article.feedSourceName} />

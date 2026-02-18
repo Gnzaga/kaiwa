@@ -35,6 +35,33 @@ export default function FeedsPage() {
   const [feedSort, setFeedSort] = useState<'default' | 'articles' | 'stale'>('default');
   const queryClient = useQueryClient();
 
+  const { data: mutedFeedIds } = useQuery<number[]>({
+    queryKey: ['muted-sources'],
+    queryFn: () => fetch('/api/user/muted-sources').then((r) => r.json()),
+    initialData: [],
+  });
+
+  const muteMutation = useMutation({
+    mutationFn: ({ feedId, mute }: { feedId: number; mute: boolean }) =>
+      fetch('/api/user/muted-sources', {
+        method: mute ? 'POST' : 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedId }),
+      }).then((r) => r.json()),
+    onMutate: async ({ feedId, mute }) => {
+      await queryClient.cancelQueries({ queryKey: ['muted-sources'] });
+      const prev = queryClient.getQueryData<number[]>(['muted-sources']) ?? [];
+      queryClient.setQueryData<number[]>(['muted-sources'],
+        mute ? [...prev, feedId] : prev.filter((id) => id !== feedId),
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['muted-sources'], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['muted-sources'] }),
+  });
+
   const { data: feeds, isLoading } = useQuery<FeedStat[]>({
     queryKey: ['feed-stats'],
     queryFn: () => fetch('/api/feeds/stats').then((r) => r.json()),
@@ -245,6 +272,21 @@ export default function FeedsPage() {
                   }`}
                 />
               </button>
+
+              {/* Mute/unmute toggle */}
+              {(() => {
+                const isMuted = (mutedFeedIds ?? []).includes(feed.id);
+                return (
+                  <button
+                    onClick={() => muteMutation.mutate({ feedId: feed.id, mute: !isMuted })}
+                    disabled={muteMutation.isPending}
+                    title={isMuted ? 'Unmute source (articles hidden from list)' : 'Mute source (hide from article list)'}
+                    className={`shrink-0 text-xs px-2 py-0.5 rounded border transition-colors disabled:opacity-50 ${isMuted ? 'border-accent-highlight text-accent-highlight hover:border-text-tertiary hover:text-text-tertiary' : 'border-border text-text-tertiary hover:border-accent-highlight hover:text-accent-highlight'}`}
+                  >
+                    {isMuted ? 'muted' : 'mute'}
+                  </button>
+                );
+              })()}
 
               {/* Link to region */}
               <Link
