@@ -12,6 +12,8 @@ export async function GET() {
     today.setHours(0, 0, 0, 0);
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
+    const monthAgo = new Date(today);
+    monthAgo.setDate(monthAgo.getDate() - 30);
 
     // Overall counts
     const [totals] = await db
@@ -21,6 +23,7 @@ export async function GET() {
         totalArchived: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isArchived} = true)`,
         readToday: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${today.toISOString()})`,
         readThisWeek: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${weekAgo.toISOString()})`,
+        readThisMonth: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${monthAgo.toISOString()})`,
       })
       .from(schema.userArticleStates)
       .where(eq(schema.userArticleStates.userId, userId));

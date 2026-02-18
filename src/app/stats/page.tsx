@@ -10,6 +10,7 @@ interface StatsResponse {
     totalArchived: number;
     readToday: number;
     readThisWeek: number;
+    readThisMonth: number;
   };
   topRegions: { regionId: string; regionName: string; flagEmoji: string; count: number }[];
   topTags: { tag: string; count: number }[];
@@ -45,7 +46,7 @@ export default function StatsPage() {
   }
 
   const { totals, topRegions, topTags, listCount, dailyActivity, sentimentDist } = data ?? {
-    totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0 },
+    totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readThisMonth: 0 },
     topRegions: [],
     topTags: [],
     listCount: 0,
@@ -114,13 +115,14 @@ export default function StatsPage() {
       </header>
 
       {/* Overview cards */}
-      <section className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Read Today" value={totals.readToday} highlight />
         <StatCard label="This Week" value={totals.readThisWeek} />
+        <StatCard label="This Month" value={totals.readThisMonth} />
         <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
         <StatCard label="Total Read" value={totals.totalRead} />
         <StatCard label="Starred" value={totals.totalStarred} />
-        <StatCard label="Reading Lists" value={listCount} />
+        <StatCard label="Archived" value={totals.totalArchived} />
       </section>
 
       {/* Activity heatmap */}
