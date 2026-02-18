@@ -208,6 +208,9 @@ export default function ArticleList({
         const article = articlesRef.current[selectedIdxRef.current];
         if (article?.originalUrl) window.open(article.originalUrl, '_blank', 'noopener,noreferrer');
       }
+      if (e.key === 'N') {
+        setDatePreset(p => { const next = p === '6h' ? '' : '6h'; setPage(1); return next; });
+      }
       if (e.key === 'v') {
         setViewMode(m => {
           const next = m === 'expanded' ? 'compact' : 'expanded';

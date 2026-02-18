@@ -170,6 +170,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       const title = data.article.translatedTitle || data.article.originalTitle;
       trackArticleView(id, title, data.article.sourceName);
       setNoteText(data.article.note ?? '');
+      noteInitialized.current = true;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.article?.id, prefs?.autoMarkRead]);
@@ -256,6 +257,22 @@ export default function ArticleDetail({ id }: { id: number }) {
   const [noteOpen, setNoteOpen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [noteSaveStatus, setNoteSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const noteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const noteInitialized = useRef(false);
+
+  // Auto-save note after 2s idle
+  useEffect(() => {
+    if (!noteInitialized.current) return; // skip initial load
+    if (noteSaveTimer.current) clearTimeout(noteSaveTimer.current);
+    setNoteSaveStatus('saving');
+    noteSaveTimer.current = setTimeout(() => {
+      actionMutation.mutate({ type: 'updateNote', note: noteText } as { type: string });
+      setNoteSaveStatus('saved');
+      setTimeout(() => setNoteSaveStatus('idle'), 2000);
+    }, 2000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteText]);
   const copyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -702,7 +719,7 @@ export default function ArticleDetail({ id }: { id: number }) {
           <span>{noteOpen ? '▲' : '▼'}</span>
         </button>
         {noteOpen && (
-          <div className="border-t border-border p-3 space-y-2">
+          <div className="border-t border-border p-3 space-y-1.5">
             <textarea
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
@@ -710,22 +727,16 @@ export default function ArticleDetail({ id }: { id: number }) {
               rows={4}
               className="w-full bg-bg-primary border border-border rounded px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary resize-none"
             />
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  actionMutation.mutate({ type: 'updateNote', note: noteText } as { type: string });
-                  toast(noteText.trim() ? 'Note saved' : 'Note cleared');
-                }}
-                className="px-3 py-1 text-xs bg-accent-primary text-bg-primary rounded hover:bg-accent-highlight transition-colors"
-              >
-                Save Note
-              </button>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-text-tertiary">
+                {noteSaveStatus === 'saving' ? 'Saving...' : noteSaveStatus === 'saved' ? '✓ Saved' : 'Auto-saves after 2s'}
+              </span>
               {noteText && (
                 <button
-                  onClick={() => { setNoteText(''); actionMutation.mutate({ type: 'updateNote', note: '' } as { type: string }); toast('Note cleared'); }}
-                  className="px-3 py-1 text-xs border border-border rounded text-text-tertiary hover:text-text-primary transition-colors"
+                  onClick={() => { setNoteText(''); if (noteSaveTimer.current) clearTimeout(noteSaveTimer.current); actionMutation.mutate({ type: 'updateNote', note: '' } as { type: string }); setNoteSaveStatus('saved'); setTimeout(() => setNoteSaveStatus('idle'), 2000); }}
+                  className="text-[10px] text-text-tertiary hover:text-accent-highlight transition-colors"
                 >
-                  Clear
+                  Clear note
                 </button>
               )}
             </div>
@@ -763,10 +774,17 @@ export default function ArticleDetail({ id }: { id: number }) {
                 </ul>
               )}
               {article.summaryTags && article.summaryTags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
                   {article.summaryTags.map((tag) => (
                     <Tag key={tag} label={tag} />
                   ))}
+                  <a
+                    href={`/articles?tag=${encodeURIComponent((article.summaryTags as string[])[0])}`}
+                    className="text-[10px] text-text-tertiary hover:text-accent-primary transition-colors ml-1"
+                    title="Find similar articles by top tag"
+                  >
+                    Find similar →
+                  </a>
                 </div>
               )}
             </div>
