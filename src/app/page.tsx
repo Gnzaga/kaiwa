@@ -11,6 +11,7 @@ import ReadingStatus from '@/components/dashboard/ReadingStatus';
 import RecentlyViewed from '@/components/dashboard/RecentlyViewed';
 import QuickRead from '@/components/dashboard/QuickRead';
 import ContinueReading from '@/components/dashboard/ContinueReading';
+import QuickSync from '@/components/dashboard/QuickSync';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -43,7 +44,10 @@ export default async function DashboardPage() {
           </h1>
           <ReadingStatus />
         </div>
-        <SurpriseButton />
+        <div className="flex items-center gap-2">
+          <QuickSync />
+          <SurpriseButton />
+        </div>
       </header>
 
       <StatsBar />

@@ -112,6 +112,21 @@ export default function StatsPage() {
     else runLen = 0;
   }
 
+  // All-time longest streak from 365-day data
+  let allTimeStreak = 0;
+  let allTimeRun = 0;
+  let prevDay: Date | null = null;
+  for (const entry of dailyActivity) {
+    const d = new Date(entry.day + 'T00:00:00');
+    if (prevDay) {
+      const gap = Math.round((d.getTime() - prevDay.getTime()) / 86400000);
+      if (gap === 1) { allTimeRun++; }
+      else { allTimeRun = 1; }
+    } else { allTimeRun = 1; }
+    allTimeStreak = Math.max(allTimeStreak, allTimeRun);
+    prevDay = d;
+  }
+
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8">
       <header className="flex items-start justify-between gap-4 flex-wrap">
@@ -166,6 +181,7 @@ export default function StatsPage() {
             <StatCard label="This Year" value={totals.readThisYear} />
             <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
             <StatCard label="Best Streak (30d)" value={longestStreak} suffix={longestStreak === 1 ? ' day' : ' days'} />
+            <StatCard label="Best Streak (all)" value={allTimeStreak} suffix={allTimeStreak === 1 ? ' day' : ' days'} />
             <StatCard label="Avg/Active Day" value={pace} suffix=" articles" />
             <StatCard label="Best Day (30d)" value={bestDay.count > 0 ? bestDay.count : '—'} suffix={bestDay.count > 0 ? ` · ${bestDayLabel}` : ''} />
             <StatCard label="All-Time Best" value={allTimeBest && Number(allTimeBest.count) > 0 ? Number(allTimeBest.count) : '—'} suffix={allTimeBestLabel ? ` · ${allTimeBestLabel}` : ''} />

@@ -105,3 +105,7 @@ body {
   a { color: black; text-decoration: underline; }
   .fixed { display: none !important; }
 }
+
+/* Zen / focus reading mode */
+html.zen-mode #kaiwa-sidebar { display: none !important; }
+html.zen-mode #main-content { max-width: 72ch; margin: 0 auto; padding: 2rem; }
