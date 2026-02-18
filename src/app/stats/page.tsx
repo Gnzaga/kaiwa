@@ -144,6 +144,12 @@ export default function StatsPage() {
         const bestDayLabel = bestDay.count > 0
           ? new Date(bestDay.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           : '—';
+        const allTimeBest = dailyActivity.length > 0
+          ? dailyActivity.reduce((best, d) => Number(d.count) > Number(best.count) ? d : best, dailyActivity[0])
+          : null;
+        const allTimeBestLabel = allTimeBest && Number(allTimeBest.count) > 0
+          ? new Date(allTimeBest.day + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+          : null;
         return (
           <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Read Today" value={totals.readToday} highlight />
@@ -162,6 +168,7 @@ export default function StatsPage() {
             <StatCard label="Best Streak (30d)" value={longestStreak} suffix={longestStreak === 1 ? ' day' : ' days'} />
             <StatCard label="Avg/Active Day" value={pace} suffix=" articles" />
             <StatCard label="Best Day (30d)" value={bestDay.count > 0 ? bestDay.count : '—'} suffix={bestDay.count > 0 ? ` · ${bestDayLabel}` : ''} />
+            <StatCard label="All-Time Best" value={allTimeBest && Number(allTimeBest.count) > 0 ? Number(allTimeBest.count) : '—'} suffix={allTimeBestLabel ? ` · ${allTimeBestLabel}` : ''} />
             <StatCard label="Reading Lists" value={listCount} />
             <StatCard label="Total Read" value={totals.totalRead} />
             <StatCard label="Starred" value={totals.totalStarred} />

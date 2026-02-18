@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
@@ -25,6 +26,19 @@ export default function ReadingStatus() {
     queryFn: () => fetch('/api/regions/unread-counts').then(r => r.json()),
     staleTime: 60000,
   });
+
+  const [inProgressCount, setInProgressCount] = useState(0);
+  useEffect(() => {
+    let count = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('article-scroll-')) {
+        const val = parseInt(localStorage.getItem(key) ?? '0', 10);
+        if (val > 100) count++;
+      }
+    }
+    setInProgressCount(count);
+  }, []);
 
   if (!data) return null;
 
@@ -75,6 +89,12 @@ export default function ReadingStatus() {
         <>
           <span className="text-border">·</span>
           <span>{streak} day{streak !== 1 ? 's' : ''} streak</span>
+        </>
+      )}
+      {inProgressCount > 0 && (
+        <>
+          <span className="text-border">·</span>
+          <span className="text-accent-secondary">{inProgressCount} in progress</span>
         </>
       )}
     </Link>

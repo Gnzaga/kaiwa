@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, desc, asc, and, sql } from 'drizzle-orm';
+import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { requireSession } from '@/lib/auth-helpers';
 
@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     const q = params.get('q');
     const minReadingMinutes = params.get('minReadingMinutes');
     const maxReadingMinutes = params.get('maxReadingMinutes');
+    const ids = params.get('ids');
 
     const conditions = [];
 
@@ -84,6 +85,12 @@ export async function GET(request: NextRequest) {
     }
     if (maxReadingMinutes) {
       conditions.push(sql`CEIL(char_length(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 1000.0) <= ${parseInt(maxReadingMinutes, 10)}`);
+    }
+    if (ids) {
+      const idList = ids.split(',').map(n => parseInt(n, 10)).filter(n => !isNaN(n));
+      if (idList.length > 0) {
+        conditions.push(inArray(schema.articles.id, idList));
+      }
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;

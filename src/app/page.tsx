@@ -10,6 +10,7 @@ import SurpriseButton from '@/components/dashboard/SurpriseButton';
 import ReadingStatus from '@/components/dashboard/ReadingStatus';
 import RecentlyViewed from '@/components/dashboard/RecentlyViewed';
 import QuickRead from '@/components/dashboard/QuickRead';
+import ContinueReading from '@/components/dashboard/ContinueReading';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -53,6 +54,7 @@ export default async function DashboardPage() {
           <TrendingTags />
         </div>
         <div className="space-y-4">
+          <ContinueReading />
           <QuickRead />
           <TopSources />
           <RecentlyViewed />
