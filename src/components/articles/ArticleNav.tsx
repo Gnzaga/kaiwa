@@ -32,9 +32,10 @@ export default function ArticleNav({ currentId }: { currentId: number }) {
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'ArrowLeft' && prevId) router.push(`/article/${prevId}`);
-      if (e.key === 'ArrowRight' && nextId) router.push(`/article/${nextId}`);
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if ((e.key === 'ArrowLeft' || e.key === 'p') && prevId) router.push(`/article/${prevId}`);
+      if ((e.key === 'ArrowRight' || e.key === 'n') && nextId) router.push(`/article/${nextId}`);
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);

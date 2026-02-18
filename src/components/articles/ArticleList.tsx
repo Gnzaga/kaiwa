@@ -31,6 +31,12 @@ export default function ArticleList({
   hideFilters?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const { data: prefs } = useQuery<{ articlesPerPage: number }>({
+    queryKey: ['user-prefs'],
+    queryFn: () => fetch('/api/user/preferences').then(r => r.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+  const pageSize = prefs?.articlesPerPage ?? 20;
   const { data: feedOptions } = useQuery<FeedOption[]>({
     queryKey: ['feeds-list'],
     queryFn: () => fetch('/api/feeds').then(r => r.json()),
@@ -67,7 +73,7 @@ export default function ArticleList({
 
   const params = new URLSearchParams();
   params.set('page', String(page));
-  params.set('pageSize', '20');
+  params.set('pageSize', String(pageSize));
   params.set('sort', sort);
   if (regionId) params.set('region', regionId);
   if (categorySlug) params.set('category', categorySlug);
@@ -96,7 +102,7 @@ export default function ArticleList({
   };
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, datePreset],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, datePreset, pageSize],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
     refetchInterval: 120000, // background refresh every 2 min
   });

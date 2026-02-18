@@ -22,6 +22,12 @@ export default function GlobalShortcuts() {
         return;
       }
 
+      // t — scroll to top
+      if (e.key === 't' && !isInput && !e.metaKey && !e.ctrlKey) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
       // g-chord navigation
       if (!isInput && e.key === 'g') {
         gPressed.current = true;

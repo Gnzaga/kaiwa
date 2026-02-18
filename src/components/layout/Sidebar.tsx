@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -27,6 +27,19 @@ export default function Sidebar() {
   });
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
   const pathname = usePathname();
+
+  // Auto-expand the active region when navigating to a region URL
+  useEffect(() => {
+    const match = pathname.match(/^\/region\/([^/]+)/);
+    if (match) {
+      setExpandedRegions((prev) => {
+        if (prev.has(match[1])) return prev;
+        const next = new Set(prev);
+        next.add(match[1]);
+        return next;
+      });
+    }
+  }, [pathname]);
   const { data: session } = useSession();
 
   const { data: regions } = useQuery<Region[]>({

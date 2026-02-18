@@ -137,6 +137,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.key === 'r') actionMutation.mutate({ type: 'toggleRead' });
       if (e.key === 'a') actionMutation.mutate({ type: 'toggleArchive' });
       if (e.key === 'o' && data?.article?.originalUrl) window.open(data.article.originalUrl, '_blank', 'noopener,noreferrer');
+      if (e.key === 'c') { navigator.clipboard.writeText(window.location.href); }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);

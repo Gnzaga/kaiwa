@@ -96,12 +96,21 @@ export default function StatsPage() {
           <h1 className="text-2xl font-semibold text-text-primary">Your Stats</h1>
           <p className="text-xs text-text-tertiary mt-1">Reading activity overview</p>
         </div>
-        <button
-          onClick={copyDigest}
-          className={`px-3 py-1.5 text-xs border rounded transition-colors ${digestCopied ? 'border-accent-primary text-accent-primary' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
-        >
-          {digestCopied ? 'Digest copied!' : 'Copy weekly digest'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={copyDigest}
+            className={`px-3 py-1.5 text-xs border rounded transition-colors ${digestCopied ? 'border-accent-primary text-accent-primary' : 'border-border text-text-tertiary hover:text-text-primary hover:border-accent-primary'}`}
+          >
+            {digestCopied ? 'Digest copied!' : 'Copy weekly digest'}
+          </button>
+          <a
+            href="/api/user/starred-export"
+            download
+            className="px-3 py-1.5 text-xs border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
+          >
+            Export starred
+          </a>
+        </div>
       </header>
 
       {/* Overview cards */}
