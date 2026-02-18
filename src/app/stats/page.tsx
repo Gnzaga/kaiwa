@@ -16,6 +16,7 @@ interface StatsResponse {
   topRegions: { regionId: string; regionName: string; flagEmoji: string; count: number }[];
   topTags: { tag: string; count: number }[];
   listCount: number;
+  totalArticles: number;
   dailyActivity: { day: string; count: number }[];
   sentimentDist: { sentiment: string | null; count: number }[];
 }
@@ -51,11 +52,12 @@ export default function StatsPage() {
     );
   }
 
-  const { totals, topRegions, topTags, listCount, dailyActivity, sentimentDist } = data ?? {
+  const { totals, topRegions, topTags, listCount, totalArticles, dailyActivity, sentimentDist } = data ?? {
     totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readThisMonth: 0, readThisYear: 0 },
     topRegions: [],
     topTags: [],
     listCount: 0,
+    totalArticles: 0,
     dailyActivity: [],
     sentimentDist: [],
   };
@@ -150,6 +152,7 @@ export default function StatsPage() {
             <StatCard label="Total Read" value={totals.totalRead} />
             <StatCard label="Starred" value={totals.totalStarred} />
             <StatCard label="Archived" value={totals.totalArchived} />
+            <StatCard label="Total in DB" value={totalArticles} />
           </section>
         );
       })()}

@@ -16,10 +16,15 @@ export async function GET() {
         isPublic: schema.readingLists.isPublic,
         createdAt: schema.readingLists.createdAt,
         updatedAt: schema.readingLists.updatedAt,
-        articleCount: sql<number>`count(${schema.readingListItems.id})`,
+        articleCount: sql<number>`count(distinct ${schema.readingListItems.id})`,
+        readCount: sql<number>`count(distinct ${schema.userArticleStates.articleId}) filter (where ${schema.userArticleStates.isRead} = true)`,
       })
       .from(schema.readingLists)
       .leftJoin(schema.readingListItems, eq(schema.readingListItems.readingListId, schema.readingLists.id))
+      .leftJoin(
+        schema.userArticleStates,
+        sql`${schema.userArticleStates.articleId} = ${schema.readingListItems.articleId} AND ${schema.userArticleStates.userId} = ${userId}`,
+      )
       .where(eq(schema.readingLists.userId, userId))
       .groupBy(schema.readingLists.id)
       .orderBy(schema.readingLists.createdAt);

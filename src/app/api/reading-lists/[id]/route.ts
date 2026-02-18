@@ -47,10 +47,15 @@ export async function GET(
           imageUrl: schema.articles.imageUrl,
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
+          isRead: sql<boolean>`coalesce(${schema.userArticleStates.isRead}, false)`,
         })
         .from(schema.readingListItems)
         .innerJoin(schema.articles, eq(schema.readingListItems.articleId, schema.articles.id))
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .leftJoin(
+          schema.userArticleStates,
+          sql`${schema.userArticleStates.articleId} = ${schema.articles.id} AND ${schema.userArticleStates.userId} = ${userId}`,
+        )
         .where(eq(schema.readingListItems.readingListId, listId))
         .orderBy(schema.readingListItems.sortOrder)
         .limit(pageSize)

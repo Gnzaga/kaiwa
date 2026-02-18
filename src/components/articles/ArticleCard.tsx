@@ -248,6 +248,15 @@ export default function ArticleCard({
                   title={archived ? 'Unarchive' : 'Archive'}
                   className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${archived ? 'border-text-secondary text-text-secondary' : 'border-border text-text-tertiary hover:border-text-secondary hover:text-text-secondary'}`}
                 >■</button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(article.originalUrl);
+                  }}
+                  title="Copy link"
+                  className="text-[10px] px-1.5 py-0.5 rounded border border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary transition-colors"
+                >⎘</button>
               </div>
             </div>
           </div>

@@ -9,6 +9,7 @@ interface ReadingList {
   name: string;
   description: string | null;
   articleCount: number;
+  readCount: number;
   createdAt: string;
 }
 
@@ -128,7 +129,21 @@ export default function ListsPage() {
                 <Link href={`/lists/${list.id}`} className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-text-primary hover:text-accent-primary transition-colors">{list.name}</div>
                   {list.description && <div className="text-xs text-text-tertiary mt-0.5 truncate">{list.description}</div>}
-                  <div className="text-xs text-text-tertiary mt-1">{list.articleCount} article{list.articleCount !== 1 ? 's' : ''}</div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-text-tertiary">{list.articleCount} article{list.articleCount !== 1 ? 's' : ''}</span>
+                    {list.articleCount > 0 && (
+                      <>
+                        <span className="text-xs text-text-tertiary opacity-50">·</span>
+                        <span className="text-xs text-text-tertiary">{list.readCount}/{list.articleCount} read</span>
+                        <div className="flex-1 max-w-20 h-1 bg-bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-accent-primary rounded-full"
+                            style={{ width: `${Math.round((list.readCount / list.articleCount) * 100)}%` }}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </Link>
               )}
               {editingId !== list.id && (

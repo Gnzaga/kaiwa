@@ -27,6 +27,7 @@ interface ListDetail {
     imageUrl: string | null;
     feedSourceName: string | null;
     feedRegionId: string | null;
+    isRead: boolean;
   }[];
   total: number;
   page: number;
@@ -283,6 +284,9 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
                 <div className="flex items-center gap-2 mt-1.5 text-xs text-text-tertiary">
                   {item.feedSourceName && <span>{item.feedSourceName}</span>}
                   <span>{new Date(item.publishedAt).toLocaleDateString()}</span>
+                  {item.isRead && (
+                    <span className="text-accent-primary opacity-70" title="Read">✓ read</span>
+                  )}
                 </div>
                 {/* Note display / edit */}
                 {editingNote === item.articleId ? (
