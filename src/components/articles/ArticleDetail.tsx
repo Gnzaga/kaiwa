@@ -381,6 +381,14 @@ export default function ArticleDetail({ id }: { id: number }) {
           {focusMode ? 'Exit Focus' : 'Focus'}
         </button>
 
+        {article.translatedContent && (
+          <a
+            href="#article-content"
+            className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+          >
+            ↓ Read
+          </a>
+        )}
         <button
           onClick={() => window.print()}
           className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
@@ -520,7 +528,7 @@ export default function ArticleDetail({ id }: { id: number }) {
 
       {/* Translated content */}
       {article.translatedContent && (
-        <section className={`${FONT_CLASS[fontSize]} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}>
+        <section id="article-content" className={`${FONT_CLASS[fontSize]} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}>
           <div dangerouslySetInnerHTML={{ __html: article.translatedContent }} />
         </section>
       )}

@@ -379,7 +379,7 @@ export default function ArticleList({
               key={article.id}
               article={article}
               sourceName={article.feedSourceName}
-              variant={viewMode === 'compact' ? 'compact' : i === 0 && article.imageUrl ? 'hero' : 'default'}
+              variant={viewMode === 'compact' ? 'compact' : page === 1 && i === 0 && article.imageUrl ? 'hero' : 'default'}
             />
           ))}
         </div>

@@ -28,7 +28,7 @@ export default function TagsPage() {
       <header className="mb-4">
         <h1 className="text-2xl font-semibold text-text-primary">Browse by Tag</h1>
         <p className="text-xs text-text-tertiary mt-1">
-          {tags ? `${tags.length} tags from AI summaries` : 'Loading...'}
+          {tags ? `${tags.length} tags · ${tags.reduce((s, t) => s + Number(t.count), 0).toLocaleString()} tag assignments` : 'Loading...'}
         </p>
       </header>
 

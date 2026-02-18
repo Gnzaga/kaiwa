@@ -39,8 +39,8 @@ export default function RecentActivity() {
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wider">Recently Read</h2>
-        <Link href="/starred" className="text-xs text-text-tertiary hover:text-accent-primary transition-colors">
-          View starred →
+        <Link href="/articles?readFilter=read" className="text-xs text-text-tertiary hover:text-accent-primary transition-colors">
+          View all read →
         </Link>
       </div>
       <div className="space-y-1">

@@ -474,6 +474,19 @@ Autonomous feature development session. Each entry timestamped.
 - Typing '#' in command palette shows quick navigation actions (unread, starred, language filters, sentiments, surprise)
 - Placeholder updated: "Search articles... (> pages, # actions)"
 
+### Feature 121 — Reading list items show article tags (commit 659e5bd)
+- Each article in reading list detail shows summaryTags as small clickable links to /articles?tag=
+
+### Feature 122 — Reading progress bar in article detail (commit 659e5bd)
+- Thin accent-colored bar at top of viewport tracks scroll progress (0-100%) while reading
+
+### Feature 123 — Today vs yesterday comparison in ReadingStatus (commit 659e5bd)
+- Dashboard greeting area shows "+X vs yesterday" in green or "-X" in red when there's data
+
+### Feature 124 — Reading list sort + filter improvements (commit 659e5bd)
+- Sort dropdown: manual order / newest added / oldest added / published date
+- Filter input appears when list has 2+ articles (was 4+)
+
 ---
 
 ## Active Build
