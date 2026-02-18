@@ -368,8 +368,11 @@ export default function ArticleDetail({ id }: { id: number }) {
               ['o', 'Open original'],
               ['c', 'Copy link'],
               ['d', 'Copy TL;DR'],
+              ['n/p', 'Next/prev article'],
+              ['←/→', 'Next/prev article'],
               ['l', 'Reading list picker'],
               ['i', 'Toggle original language'],
+              ['R', 'Random unread (global)'],
               ['?', 'Show shortcuts'],
               ['Esc', 'Close panels'],
             ] as [string, string][]).map(([key, desc]) => (
@@ -451,6 +454,14 @@ export default function ArticleDetail({ id }: { id: number }) {
           )}
           <StatusIndicator status={article.translationStatus ?? 'pending'} tooltip={`Translation: ${article.translationStatus}`} />
           <StatusIndicator status={article.summaryStatus ?? 'pending'} tooltip={`Summary: ${article.summaryStatus}`} />
+          {article.translationStatus === 'complete' && article.translationProvider && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded border border-border font-mono opacity-60"
+              title={`Translated by: ${article.translationProvider}`}
+            >
+              {article.translationProvider === 'libretranslate' ? 'LT' : article.translationProvider === 'llm' ? 'LLM' : article.translationProvider}
+            </span>
+          )}
         </div>
         <h1 className="text-2xl font-semibold text-text-primary leading-tight">{title}</h1>
         {article.translatedTitle && article.translatedTitle !== article.originalTitle && (
@@ -588,6 +599,13 @@ export default function ArticleDetail({ id }: { id: number }) {
         >
           Print
         </button>
+
+        <a
+          href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${article.originalUrl}\n\n${article.summaryTldr ?? ''}`)}`}
+          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+        >
+          Email
+        </a>
 
         <button
           onClick={() => {
