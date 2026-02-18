@@ -119,6 +119,10 @@ export default function StatsPage() {
       {(() => {
         const activeDays = days.filter(d => d.count > 0).length;
         const pace = activeDays > 0 ? (days.reduce((s, d) => s + d.count, 0) / activeDays).toFixed(1) : '0';
+        const bestDay = days.reduce((best, d) => d.count > best.count ? d : best, { date: '', count: 0 });
+        const bestDayLabel = bestDay.count > 0
+          ? new Date(bestDay.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : '—';
         return (
           <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Read Today" value={totals.readToday} highlight />
@@ -127,6 +131,7 @@ export default function StatsPage() {
             <StatCard label="This Year" value={totals.readThisYear} />
             <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
             <StatCard label="Avg/Active Day" value={pace} suffix=" articles" />
+            <StatCard label="Best Day (30d)" value={bestDay.count > 0 ? bestDay.count : '—'} suffix={bestDay.count > 0 ? ` · ${bestDayLabel}` : ''} />
             <StatCard label="Reading Lists" value={listCount} />
             <StatCard label="Total Read" value={totals.totalRead} />
             <StatCard label="Starred" value={totals.totalStarred} />

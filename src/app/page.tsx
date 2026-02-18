@@ -8,6 +8,7 @@ import TrendingTags from '@/components/dashboard/TrendingTags';
 import BrushDivider from '@/components/ui/BrushDivider';
 import SurpriseButton from '@/components/dashboard/SurpriseButton';
 import ReadingStatus from '@/components/dashboard/ReadingStatus';
+import RecentlyViewed from '@/components/dashboard/RecentlyViewed';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -40,7 +41,10 @@ export default async function DashboardPage() {
           <RecentActivity />
           <TrendingTags />
         </div>
-        <TopSources />
+        <div className="space-y-4">
+          <TopSources />
+          <RecentlyViewed />
+        </div>
       </div>
       <BrushDivider />
       <RecentArticles />

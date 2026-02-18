@@ -503,6 +503,43 @@ Autonomous feature development session. Each entry timestamped.
 - New '↓ Read' button in action bar scrolls to article content (id="article-content")
 - Only shown when translated content is available
 
+### Feature 130 — Tag component links to /articles?tag= (commit 578237a)
+- All Tag components (article cards, detail page, reading lists) now link to exact tag filter
+
+### Feature 131 — TrendingTags links to /articles?tag= (commit 578237a)
+- Dashboard TrendingTags widget fixed to use exact tag filter instead of full-text search
+
+### Feature 132 — TopSources links to /articles?source= (commit 578237a)
+- Dashboard TopSources widget fixed: was linking to /?source= which did nothing, now links to /articles?source=
+
+### Feature 133 — 'g n' keyboard shortcut for All Articles (commit 578237a)
+- GlobalShortcuts: 'g n' navigates to /articles; added to KeyboardShortcutsHelp and settings
+
+### Feature 134 — Feeds page shows stale count in header (commit 578237a)
+- Header summary appends "X stale ⚠" when enabled feeds haven't published articles in 24h+
+
+### Feature 135 — Dashboard "Recently Viewed" widget
+- New `RecentlyViewed` component reads from `kaiwa-recent-articles` localStorage key (same data as command palette history)
+- Shows last 5 viewed articles with source names, links to article detail
+- Placed in right column below TopSources; hidden when history is empty
+
+### Feature 136 — Feeds page enabled/disabled status filter
+- Added "All / Active / Disabled" segmented button group to feeds filter bar
+- Filters by `feed.enabled` in client-side filter logic
+
+### Feature 137 — Stats page "Best Day (30d)" stat card
+- Finds the day with the highest read count in the last 30 days from `dailyActivity` data
+- Shows count + date label (e.g. "47 · Feb 5")
+
+### Feature 138 — Article detail reading time remaining updates while scrolling
+- Header reading time changes from "X min read" to "Xm remaining" once the user scrolls 2%+ down
+- Uses existing `readProgress` state + `readingMins` calculation
+
+### Feature 139 — Admin panel ingestion throughput metric
+- New "Ingested (1h)" metric card shows articles added to the DB in the last hour
+- Backend: added `ingestedLastHour` field to `/api/admin/metrics` using `gte(createdAt, oneHourAgo)`
+- Also added "User Feeds" count to overview section
+
 ---
 
 ## Active Build

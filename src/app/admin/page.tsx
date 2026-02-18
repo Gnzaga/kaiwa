@@ -14,6 +14,7 @@ interface Metrics {
     summarizing: number;
     summaryPending: number;
     summaryError: number;
+    ingestedLastHour: number;
   };
   users: { total: number; admins: number };
   feeds: { total: number; enabled: number; userSubmitted: number };
@@ -104,9 +105,11 @@ export default function AdminPage() {
         <h2 className="text-base font-medium text-text-primary">Overview</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <MetricCard label="Total Articles" value={metrics?.articles.total} />
+          <MetricCard label="Ingested (1h)" value={metrics?.articles.ingestedLastHour} color="text-accent-secondary" />
           <MetricCard label="Users" value={metrics?.users.total} />
           <MetricCard label="Active Sessions" value={metrics?.sessions.active} />
           <MetricCard label="Feeds (enabled)" value={`${metrics?.feeds.enabled}/${metrics?.feeds.total}`} />
+          <MetricCard label="User Feeds" value={metrics?.feeds.userSubmitted} />
         </div>
       </section>
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql } from 'drizzle-orm';
+import { sql, gte } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth-helpers';
 import { boss, ensureBossStarted, QUEUE_TRANSLATION, QUEUE_SUMMARIZATION, QUEUE_SCRAPE, QUEUE_SYNC, REGIONS, queueScrape, queueTranslate, queueSummarize } from '@/lib/queue';
@@ -22,6 +22,13 @@ export async function GET() {
         summaryError: sql<number>`count(*) FILTER (WHERE ${schema.articles.summaryStatus} = 'error')`,
       })
       .from(schema.articles);
+
+    // Ingestion throughput (last hour)
+    const oneHourAgo = new Date(Date.now() - 3600000);
+    const [ingestStats] = await db
+      .select({ ingestedLastHour: sql<number>`count(*)` })
+      .from(schema.articles)
+      .where(gte(schema.articles.createdAt, oneHourAgo));
 
     // User count
     const [userStats] = await db
@@ -64,7 +71,7 @@ export async function GET() {
       .from(schema.sessions);
 
     return NextResponse.json({
-      articles: articleStats,
+      articles: { ...articleStats, ingestedLastHour: Number(ingestStats.ingestedLastHour) },
       users: userStats,
       feeds: feedStats,
       queues: queueStats,

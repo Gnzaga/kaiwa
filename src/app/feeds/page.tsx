@@ -31,6 +31,7 @@ export default function FeedsPage() {
   const [regionFilter, setRegionFilter] = useState('');
   const [search, setSearch] = useState('');
   const [staleOnly, setStaleOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'' | 'enabled' | 'disabled'>('');
 
   const { data: feeds, isLoading } = useQuery<FeedStat[]>({
     queryKey: ['feed-stats'],
@@ -50,6 +51,8 @@ export default function FeedsPage() {
       const hours = f.lastArticleAt ? (Date.now() - new Date(f.lastArticleAt).getTime()) / 3600000 : Infinity;
       if (!(f.enabled && hours > 24)) return false;
     }
+    if (statusFilter === 'enabled' && !f.enabled) return false;
+    if (statusFilter === 'disabled' && f.enabled) return false;
     return true;
   });
 
@@ -105,6 +108,17 @@ export default function FeedsPage() {
         >
           {staleOnly ? '⚠ Stale only' : 'Show stale'}
         </button>
+        <div className="flex border border-border rounded overflow-hidden text-xs">
+          {(['', 'enabled', 'disabled'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setStatusFilter(v)}
+              className={`px-2.5 py-1.5 transition-colors ${statusFilter === v ? 'bg-accent-primary text-bg-primary' : 'text-text-tertiary hover:text-text-primary'}`}
+            >
+              {v === '' ? 'All' : v === 'enabled' ? 'Active' : 'Disabled'}
+            </button>
+          ))}
+        </div>
         {(search || regionFilter || staleOnly) && (
           <span className="text-xs text-text-tertiary self-center">
             {filtered.length} feeds · {enabledCount} active · {totalArticles.toLocaleString()} articles

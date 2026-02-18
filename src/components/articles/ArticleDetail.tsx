@@ -278,7 +278,14 @@ export default function ArticleDetail({ id }: { id: number }) {
               day: 'numeric',
             })}
           </span>
-          {readingMins > 0 && <span>{readingMins} min read · {wordCount.toLocaleString()} words</span>}
+          {readingMins > 0 && (
+            <span>
+              {readProgress > 2
+                ? `${Math.max(1, Math.ceil((1 - readProgress / 100) * readingMins))}m remaining`
+                : `${readingMins} min read`
+              } · {wordCount.toLocaleString()} words
+            </span>
+          )}
           <StatusIndicator status={article.translationStatus ?? 'pending'} tooltip={`Translation: ${article.translationStatus}`} />
           <StatusIndicator status={article.summaryStatus ?? 'pending'} tooltip={`Summary: ${article.summaryStatus}`} />
         </div>
