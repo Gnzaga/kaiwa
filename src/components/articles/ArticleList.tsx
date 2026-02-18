@@ -59,6 +59,7 @@ export default function ArticleList({
     return (localStorage.getItem('article-read-filter') as '' | 'read' | 'unread') ?? '';
   });
   const [sentimentFilter, setSentimentFilter] = useState('');
+  const [languageFilter, setLanguageFilter] = useState('');
   const [markingRead, setMarkingRead] = useState(false);
   const [confirmMarkRead, setConfirmMarkRead] = useState(false);
   const [datePreset, setDatePreset] = useState<'' | 'today' | '7d' | '30d'>('');
@@ -89,6 +90,7 @@ export default function ArticleList({
   if (isStarred) params.set('isStarred', 'true');
   if (isArchived) params.set('isArchived', 'true');
   if (sentimentFilter) params.set('sentiment', sentimentFilter);
+  if (languageFilter) params.set('language', languageFilter);
   const dateFrom = getDateFrom(datePreset);
   if (dateFrom) params.set('dateFrom', dateFrom);
 
@@ -113,7 +115,7 @@ export default function ArticleList({
   };
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, datePreset, pageSize],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, languageFilter, datePreset, pageSize],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
     refetchInterval: 120000, // background refresh every 2 min
   });
@@ -220,6 +222,20 @@ export default function ArticleList({
           <option value="bearish">Bearish</option>
           <option value="restrictive">Restrictive</option>
           <option value="permissive">Permissive</option>
+        </select>
+
+        {/* Language filter */}
+        <select
+          value={languageFilter}
+          onChange={(e) => { setLanguageFilter(e.target.value); setPage(1); }}
+          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+        >
+          <option value="">All Languages</option>
+          <option value="ja">🇯🇵 Japanese</option>
+          <option value="en">🇺🇸 English</option>
+          <option value="zh">🇨🇳 Chinese</option>
+          <option value="ko">🇰🇷 Korean</option>
+          <option value="tl">🇵🇭 Filipino</option>
         </select>
 
         {/* Date presets */}

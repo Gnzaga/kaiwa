@@ -178,12 +178,23 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         <div className="flex items-center gap-3 flex-wrap">
           <p className="text-xs text-text-tertiary">{data.total} article{data.total !== 1 ? 's' : ''}</p>
           {data.data.length > 0 && (
-            <button
-              onClick={exportList}
-              className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
-            >
-              Export JSON
-            </button>
+            <>
+              <button
+                onClick={exportList}
+                className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
+              >
+                Export JSON
+              </button>
+              <button
+                onClick={() => {
+                  const urls = data.data.map(item => item.originalUrl).join('\n');
+                  navigator.clipboard.writeText(urls);
+                }}
+                className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
+              >
+                Copy URLs
+              </button>
+            </>
           )}
           <button
             onClick={() => visibilityMutation.mutate(!data.list.isPublic)}

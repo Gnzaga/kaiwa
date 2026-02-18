@@ -17,13 +17,14 @@ export async function GET(request: NextRequest) {
     const source = params.get('source');
     const translationStatus = params.get('translationStatus');
     const summaryStatus = params.get('summaryStatus');
-    const tags = params.get('tags'); // comma-separated
+    const tags = params.get('tags') ?? params.get('tag'); // tags=comma-separated or tag=single
     const dateFrom = params.get('dateFrom');
     const dateTo = params.get('dateTo');
     const isRead = params.get('isRead');
     const isStarred = params.get('isStarred');
     const isArchived = params.get('isArchived');
     const sentiment = params.get('sentiment');
+    const language = params.get('language');
     const sort = params.get('sort') ?? 'newest';
 
     const conditions = [];
@@ -68,6 +69,9 @@ export async function GET(request: NextRequest) {
     }
     if (sentiment) {
       conditions.push(eq(schema.articles.summarySentiment, sentiment));
+    }
+    if (language) {
+      conditions.push(eq(schema.articles.sourceLanguage, language));
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
