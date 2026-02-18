@@ -43,7 +43,7 @@ export default function TrendingTags() {
           return (
             <Link
               key={item.tag}
-              href={`/search?q=${encodeURIComponent(item.tag)}`}
+              href={`/articles?tag=${encodeURIComponent(item.tag)}`}
               className={`px-2.5 py-1 bg-bg-secondary border border-border rounded-full text-text-primary hover:border-accent-primary hover:text-accent-primary transition-colors ${sizeClass} ${opacityClass}`}
               title={`${item.count} article${item.count !== 1 ? 's' : ''}`}
             >

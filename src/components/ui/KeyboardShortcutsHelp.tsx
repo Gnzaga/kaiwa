@@ -13,6 +13,7 @@ const shortcuts = [
   { key: 'g l', description: 'Go to Lists' },
   { key: 'g x', description: 'Go to Stats' },
   { key: 'g f', description: 'Go to Feeds' },
+  { key: 'g n', description: 'Go to All Articles' },
   { key: 'g r', description: 'Go to Archived' },
   { key: 'g /', description: 'Go to Search' },
   { key: '← → / p n', description: 'Prev / Next article' },

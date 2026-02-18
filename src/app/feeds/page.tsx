@@ -62,7 +62,13 @@ export default function FeedsPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold text-text-primary">Feeds</h1>
           <p className="text-xs text-text-tertiary">
-            {feeds ? `${feeds.length} feeds · ${feeds.filter(f => f.enabled).length} active · ${feeds.reduce((s, f) => s + Number(f.articleCount), 0).toLocaleString()} articles` : 'Loading...'}
+            {feeds ? (() => {
+              const staleCount = feeds.filter(f => {
+                if (!f.enabled || !f.lastArticleAt) return false;
+                return (Date.now() - new Date(f.lastArticleAt).getTime()) / 3600000 > 24;
+              }).length;
+              return `${feeds.length} feeds · ${feeds.filter(f => f.enabled).length} active · ${feeds.reduce((s, f) => s + Number(f.articleCount), 0).toLocaleString()} articles${staleCount > 0 ? ` · ${staleCount} stale ⚠` : ''}`;
+            })() : 'Loading...'}
           </p>
         </div>
         <a

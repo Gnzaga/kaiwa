@@ -18,7 +18,7 @@ export default function Tag({ label, onClick }: { label: string; onClick?: (labe
 
   return (
     <Link
-      href={`/search?q=${encodeURIComponent(label)}`}
+      href={`/articles?tag=${encodeURIComponent(label)}`}
       onClick={(e) => e.stopPropagation()}
       className={className}
     >

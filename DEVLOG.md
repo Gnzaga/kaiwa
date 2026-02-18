@@ -487,6 +487,22 @@ Autonomous feature development session. Each entry timestamped.
 - Sort dropdown: manual order / newest added / oldest added / published date
 - Filter input appears when list has 2+ articles (was 4+)
 
+### Feature 125 — StatsBar cards link to relevant pages (commit aabc301)
+- "Articles Today" → /articles?datePreset=today, "Total Articles" → /articles; hover border accent
+
+### Feature 126 — RecentActivity link updated (commit aabc301)
+- "View starred →" changed to "View all read →" linking to /articles?readFilter=read
+
+### Feature 127 — Hero card only on page 1 (commit aabc301)
+- Article list hero variant disabled on pages 2+, preventing mid-list large cards
+
+### Feature 128 — Tags page shows total tag assignments count (commit aabc301)
+- Header now shows "N tags · M tag assignments" instead of just "N tags"
+
+### Feature 129 — Article detail '↓ Read' button + content anchor (commit aabc301)
+- New '↓ Read' button in action bar scrolls to article content (id="article-content")
+- Only shown when translated content is available
+
 ---
 
 ## Active Build

@@ -40,7 +40,7 @@ export default function TopSources() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
                 <Link
-                  href={`/?source=${encodeURIComponent(source.name)}`}
+                  href={`/articles?source=${encodeURIComponent(source.name)}`}
                   className="text-xs text-text-primary hover:text-accent-primary transition-colors truncate"
                 >
                   {source.name}
