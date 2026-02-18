@@ -57,12 +57,12 @@ export default async function DashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <RecentActivity />
           <TrendingTags />
+          <TopSources />
         </div>
         <div className="space-y-4">
           <ContinueReading />
           <RecommendedForYou />
           <QuickRead />
-          <TopSources />
           <RecentlyViewed />
         </div>
       </div>

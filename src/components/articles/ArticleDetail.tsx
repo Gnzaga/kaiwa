@@ -123,24 +123,6 @@ export default function ArticleDetail({ id }: { id: number }) {
     onError: () => toast('Failed to add to list', 'error'),
   });
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-8 bg-bg-secondary rounded w-3/4" />
-        <div className="h-4 bg-bg-secondary rounded w-1/2" />
-        <div className="h-64 bg-bg-secondary rounded" />
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="text-center py-12 text-accent-highlight text-sm">
-        Failed to load article
-      </div>
-    );
-  }
-
   // Article page keyboard shortcuts: s=star, r=read, a=archive, c=copy link, d=copy tldr, l=list picker, i=toggle original
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -346,12 +328,6 @@ export default function ArticleDetail({ id }: { id: number }) {
     setTimeout(() => setCitationCopied(false), 2000);
   }, [data?.article]);
 
-  const { article, related, fromSameSource } = data;
-  const title = article.translatedTitle || article.originalTitle;
-  const content = article.translatedContent || article.originalContent;
-  const wordCount = content ? content.trim().split(/\s+/).length : 0;
-  const readingMins = wordCount > 0 ? Math.ceil(wordCount / 200) : 0;
-
   // Focus mode: toggle sidebar visibility
   useEffect(() => {
     const sidebar = document.getElementById('kaiwa-sidebar');
@@ -375,6 +351,30 @@ export default function ArticleDetail({ id }: { id: number }) {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-8 bg-bg-secondary rounded w-3/4" />
+        <div className="h-4 bg-bg-secondary rounded w-1/2" />
+        <div className="h-64 bg-bg-secondary rounded" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="text-center py-12 text-accent-highlight text-sm">
+        Failed to load article
+      </div>
+    );
+  }
+
+  const { article, related, fromSameSource } = data;
+  const title = article.translatedTitle || article.originalTitle;
+  const content = article.translatedContent || article.originalContent;
+  const wordCount = content ? content.trim().split(/\s+/).length : 0;
+  const readingMins = wordCount > 0 ? Math.ceil(wordCount / 200) : 0;
 
   return (
     <div className={`space-y-6 animate-fade-in transition-all${focusMode ? ' max-w-2xl mx-auto' : ' max-w-3xl'}`}>
