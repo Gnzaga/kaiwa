@@ -6,6 +6,33 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 239 — ReadingStatus: 7-day mini sparkline
+`src/components/dashboard/ReadingStatus.tsx`: computes last 7 days of activity from `dailyActivity`, renders 7 tiny `1×N px` bars; empty days shown in border color, active days in accent-primary; today at full opacity.
+
+### Feature 238 — ArticleList: selected article position indicator
+`src/components/articles/ArticleList.tsx`: when `selectedIdx >= 0`, shows a fixed "N/M" badge in the bottom-right corner (z-30, pointer-events-none) showing position within current page.
+
+### Feature 237 — ArticleList: `g`/`G` first/last article jump
+`src/components/articles/ArticleList.tsx`: `g` key selects first article (idx 0) and scrolls it into view; `G` key selects last article in current page and scrolls to it.
+
+### Feature 236 — ArticleDetail: "done by" wall-clock time while reading
+`src/components/articles/ArticleDetail.tsx`: when `readProgress > 2`, shows "Xm remaining · done by H:MM AM/PM · N words" in the metadata line; computes finish wall-clock time from current time + estimated minutes left.
+
+### Feature 235 — ArticleDetail: `t` key copies article as tweet thread
+`src/components/articles/ArticleDetail.tsx`: `t` key calls `copyThread()` and shows a toast; thread format is numbered posts with title, TL;DR, and up to 5 key bullets; added to shortcuts overlay.
+
+### Feature 234 — ArticleList: group articles by date section headers
+`src/components/articles/ArticleList.tsx`: toggle button (§) activates date grouping; articles render under "Today / Yesterday / This Week / This Month / Older" headers with a separator; state persisted to `article-group-by-date` localStorage key.
+
+### Feature 233 — Stats: All-Time Best Streak stat card
+`src/app/stats/page.tsx`: computes longest consecutive reading streak from the full 365-day `dailyActivity` array (by checking day-to-day gaps); adds "Best Streak (all)" stat card distinct from the 30-day best streak.
+
+### Feature 232 — Dashboard: QuickSync button
+`src/components/dashboard/QuickSync.tsx`: button in the dashboard header triggers POST `/api/articles/sync`, shows spinning ⟳ while syncing, then "+N new" result for 4s; invalidates articles and unread-counts queries.
+
+### Feature 231 — ArticleDetail: `n` key opens note panel
+`src/components/articles/ArticleDetail.tsx`: `n` key toggles `noteOpen` state (opens/closes the inline note editor); updated shortcuts overlay to reflect this.
+
 ### Feature 230 — Dashboard ReadingStatus: in-progress article count
 `src/components/dashboard/ReadingStatus.tsx`: scans localStorage on mount for `article-scroll-*` keys with scroll > 100px; shows "N in progress" in accent-secondary next to streak count.
 
