@@ -41,7 +41,7 @@ const QUICK_ACTIONS = [
   { label: 'Positive sentiment', hint: 'Filter by sentiment', href: '/articles?sentiment=positive' },
   { label: 'Negative sentiment', hint: 'Filter by sentiment', href: '/articles?sentiment=negative' },
   { label: 'Your reading stats', hint: 'Stats overview', href: '/stats' },
-  { label: 'Surprise me', hint: 'Random unread article', href: '/api/articles/random' },
+  { label: 'Surprise me', hint: 'Random unread article', href: '__random__' },
 ];
 
 const NAV_PAGES = [
@@ -120,6 +120,14 @@ export default function CommandPalette() {
          ...(results.length > 0 ? [{ id: -1, href: `/search?q=${encodeURIComponent(query)}` }] : [])]
       : recentArticles.map(a => ({ id: a.id, href: `/article/${a.id}` }));
 
+  function navigateTo(href: string) {
+    if (href === '__random__') {
+      fetch('/api/articles/random').then(r => r.json()).then(d => { if (d.id) router.push(`/article/${d.id}`); });
+    } else {
+      router.push(href);
+    }
+  }
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -135,7 +143,7 @@ export default function CommandPalette() {
     } else if (e.key === 'Enter') {
       if (selectedIdx >= 0 && navItems[selectedIdx]) {
         setOpen(false);
-        router.push(navItems[selectedIdx].href);
+        navigateTo(navItems[selectedIdx].href);
       } else if (query.trim()) {
         setOpen(false);
         router.push(`/search?q=${encodeURIComponent(query.trim())}`);
@@ -173,7 +181,7 @@ export default function CommandPalette() {
               <button
                 key={page.href}
                 data-idx={i}
-                onClick={() => { setOpen(false); router.push(page.href); }}
+                onClick={() => { setOpen(false); navigateTo(page.href); }}
                 className={`w-full text-left px-4 py-3 transition-colors ${selectedIdx === i ? 'bg-bg-primary' : 'hover:bg-bg-primary'}`}
               >
                 <div className="text-sm text-text-primary">{page.label}</div>

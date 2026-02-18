@@ -64,6 +64,7 @@ export default function ArticleList({
   });
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [languageFilter, setLanguageFilter] = useState('');
+  const [readingLength, setReadingLength] = useState('');
   const [titleSearch, setTitleSearch] = useState('');
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const selectedIdxRef = useRef(-1);
@@ -106,6 +107,9 @@ export default function ArticleList({
   const dateFrom = getDateFrom(datePreset);
   if (dateFrom) params.set('dateFrom', dateFrom);
   if (titleSearch) params.set('q', titleSearch);
+  if (readingLength === 'quick') params.set('maxReadingMinutes', '5');
+  if (readingLength === 'medium') { params.set('minReadingMinutes', '5'); params.set('maxReadingMinutes', '15'); }
+  if (readingLength === 'long') params.set('minReadingMinutes', '15');
 
   const handleMarkAllRead = async () => {
     if (!confirmMarkRead) {
@@ -128,7 +132,7 @@ export default function ArticleList({
   };
 
   const { data, isLoading, error } = useQuery<ArticlesResponse>({
-    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, languageFilter, datePreset, pageSize, titleSearch],
+    queryKey: ['articles', regionId, categorySlug, page, sort, sourceFilter, tagFilter, readFilter, isStarred, isArchived, sentimentFilter, languageFilter, datePreset, pageSize, titleSearch, readingLength],
     queryFn: () => fetch(`/api/articles?${params}`).then((r) => r.json()),
     refetchInterval: 120000, // background refresh every 2 min
   });
@@ -180,13 +184,14 @@ export default function ArticleList({
         const article = articlesRef.current[selectedIdxRef.current];
         if (article) router.push(`/article/${article.id}`);
       }
-      if (e.key === 'x' && selectedIdxRef.current >= 0) {
+      if ((e.key === 'x' || e.key === '*' || e.key === 'm') && selectedIdxRef.current >= 0) {
         const article = articlesRef.current[selectedIdxRef.current];
         if (article) {
+          const type = e.key === 'x' ? 'toggleArchive' : e.key === '*' ? 'toggleStar' : 'toggleRead';
           fetch(`/api/articles/${article.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'toggleArchive' }),
+            body: JSON.stringify({ type }),
           }).then(() => queryClient.invalidateQueries({ queryKey: ['articles'] }));
         }
       }
@@ -313,6 +318,18 @@ export default function ArticleList({
           <option value="tl">🇵🇭 Filipino</option>
         </select>
 
+        {/* Reading length */}
+        <select
+          value={readingLength}
+          onChange={(e) => { setReadingLength(e.target.value); setPage(1); }}
+          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+        >
+          <option value="">Any length</option>
+          <option value="quick">Quick (&lt;5 min)</option>
+          <option value="medium">Medium (5–15 min)</option>
+          <option value="long">Long (&gt;15 min)</option>
+        </select>
+
         {/* Date presets */}
         <div className="flex items-center gap-1 border border-border rounded overflow-hidden">
           {(['', '1h', '6h', 'today', '7d', '30d', '60d'] as const).map((preset) => (
@@ -374,7 +391,7 @@ export default function ArticleList({
       )}
 
       {/* Active filter chips */}
-      {!hideFilters && (titleSearch || sourceFilter || tagFilter || readFilter || sentimentFilter || languageFilter || datePreset) && (
+      {!hideFilters && (titleSearch || sourceFilter || tagFilter || readFilter || sentimentFilter || languageFilter || datePreset || readingLength) && (
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs text-text-tertiary">Filters:</span>
           {titleSearch && (
@@ -412,7 +429,12 @@ export default function ArticleList({
               Date: {datePreset} ✕
             </button>
           )}
-          <button onClick={() => { setTitleSearch(''); setSourceFilter(''); setTagFilter(''); setReadFilter(''); setSentimentFilter(''); setLanguageFilter(''); setDatePreset(''); setPage(1); }} className="text-xs text-text-tertiary hover:text-text-primary ml-1 transition-colors">
+          {readingLength && (
+            <button onClick={() => { setReadingLength(''); setPage(1); }} className="flex items-center gap-1 text-xs bg-accent-primary/10 text-accent-primary border border-accent-primary/30 rounded-full px-2 py-0.5 hover:bg-accent-primary/20 transition-colors">
+              {readingLength === 'quick' ? 'Quick read' : readingLength === 'medium' ? 'Medium read' : 'Long read'} ✕
+            </button>
+          )}
+          <button onClick={() => { setTitleSearch(''); setSourceFilter(''); setTagFilter(''); setReadFilter(''); setSentimentFilter(''); setLanguageFilter(''); setDatePreset(''); setReadingLength(''); setPage(1); }} className="text-xs text-text-tertiary hover:text-text-primary ml-1 transition-colors">
             Clear all
           </button>
         </div>

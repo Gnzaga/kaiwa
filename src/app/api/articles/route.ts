@@ -27,6 +27,8 @@ export async function GET(request: NextRequest) {
     const language = params.get('language');
     const sort = params.get('sort') ?? 'newest';
     const q = params.get('q');
+    const minReadingMinutes = params.get('minReadingMinutes');
+    const maxReadingMinutes = params.get('maxReadingMinutes');
 
     const conditions = [];
 
@@ -76,6 +78,12 @@ export async function GET(request: NextRequest) {
     }
     if (q) {
       conditions.push(sql`(COALESCE(${schema.articles.translatedTitle}, ${schema.articles.originalTitle}) ILIKE ${'%' + q.replace(/%/g, '\\%').replace(/_/g, '\\_') + '%'})`);
+    }
+    if (minReadingMinutes) {
+      conditions.push(sql`CEIL(char_length(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 1000.0) >= ${parseInt(minReadingMinutes, 10)}`);
+    }
+    if (maxReadingMinutes) {
+      conditions.push(sql`CEIL(char_length(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 1000.0) <= ${parseInt(maxReadingMinutes, 10)}`);
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
