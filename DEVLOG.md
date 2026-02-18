@@ -551,8 +551,21 @@ Autonomous feature development session. Each entry timestamped.
 - New "A–Z / By count" toggle button in tags filter bar
 - Sorts filtered tag cloud alphabetically when toggled; defaults to by-count (API order)
 
-### Feature 144 — Article list "60d" / tags A–Z (see 142+143 above)
-_(numbering adjusted: 140-143 cover the new features; 139 was already logged above)_
+### Feature 144 — Lists page header shows total count
+- Subtitle: "N lists · M articles" below "My Lists" heading
+
+### Feature 145 — Article list "Quickest Read" sort
+- New sort option: "Quickest Read" — orders by shortest estimated reading time (readingMinutes ASC)
+- API: new `quickest` sort case using `CEIL(char_length(COALESCE(...)) / 1000.0) ASC`
+
+### Feature 146 — Feeds page sort dropdown
+- New sort select: "Default order / Most articles / Stalest first"
+- Applied to client-side sorted array after filtering
+
+### Feature 147 — Stats page daily goal progress bar
+- Loads user prefs (`dailyGoal`) and shows progress bar between heatmap sections
+- Green accent when goal reached, shows "X/Y (Z%)" label
+- Hidden when dailyGoal is 0 (default/unset)
 
 ---
 

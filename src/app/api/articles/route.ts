@@ -90,6 +90,9 @@ export async function GET(request: NextRequest) {
       case 'unread_first':
         orderBy = sql`COALESCE(${schema.userArticleStates.isRead}, false) ASC, ${schema.articles.publishedAt} DESC`;
         break;
+      case 'quickest':
+        orderBy = sql`CEIL(char_length(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 1000.0) ASC`;
+        break;
       default:
         orderBy = desc(schema.articles.publishedAt);
     }

@@ -32,6 +32,7 @@ export default function FeedsPage() {
   const [search, setSearch] = useState('');
   const [staleOnly, setStaleOnly] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'' | 'enabled' | 'disabled'>('');
+  const [feedSort, setFeedSort] = useState<'default' | 'articles' | 'stale'>('default');
 
   const { data: feeds, isLoading } = useQuery<FeedStat[]>({
     queryKey: ['feed-stats'],
@@ -54,6 +55,16 @@ export default function FeedsPage() {
     if (statusFilter === 'enabled' && !f.enabled) return false;
     if (statusFilter === 'disabled' && f.enabled) return false;
     return true;
+  });
+
+  const sorted = filtered.slice().sort((a, b) => {
+    if (feedSort === 'articles') return Number(b.articleCount) - Number(a.articleCount);
+    if (feedSort === 'stale') {
+      const aAge = a.lastArticleAt ? Date.now() - new Date(a.lastArticleAt).getTime() : Infinity;
+      const bAge = b.lastArticleAt ? Date.now() - new Date(b.lastArticleAt).getTime() : Infinity;
+      return bAge - aAge;
+    }
+    return 0;
   });
 
   const enabledCount = filtered.filter((f) => f.enabled).length;
@@ -119,6 +130,15 @@ export default function FeedsPage() {
             </button>
           ))}
         </div>
+        <select
+          value={feedSort}
+          onChange={(e) => setFeedSort(e.target.value as 'default' | 'articles' | 'stale')}
+          className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary"
+        >
+          <option value="default">Default order</option>
+          <option value="articles">Most articles</option>
+          <option value="stale">Stalest first</option>
+        </select>
         {(search || regionFilter || staleOnly) && (
           <span className="text-xs text-text-tertiary self-center">
             {filtered.length} feeds · {enabledCount} active · {totalArticles.toLocaleString()} articles
@@ -135,7 +155,7 @@ export default function FeedsPage() {
         </div>
       ) : (
         <div className="space-y-1">
-          {filtered.map((feed) => (
+          {sorted.map((feed) => (
             <div
               key={feed.id}
               className={`flex items-center gap-4 px-4 py-3 bg-bg-secondary border border-border rounded transition-colors ${

@@ -8,7 +8,7 @@ import { setArticleNavList } from './ArticleNav';
 
 interface FeedOption { id: number; name: string; regionId: string; }
 
-type SortOption = 'newest' | 'oldest' | 'source' | 'sentiment' | 'unread_first';
+type SortOption = 'newest' | 'oldest' | 'source' | 'sentiment' | 'unread_first' | 'quickest';
 
 interface ArticlesResponse {
   data: (Article & { feedSourceName?: string; imageUrl?: string | null })[];
@@ -190,6 +190,7 @@ export default function ArticleList({
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
           <option value="unread_first">Unread First</option>
+          <option value="quickest">Quickest Read</option>
           <option value="source">By Source</option>
           <option value="sentiment">By Sentiment</option>
         </select>

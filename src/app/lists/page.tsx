@@ -59,6 +59,11 @@ export default function ListsPage() {
     <div className="p-6 md:p-8 space-y-8 max-w-4xl mx-auto">
       <header>
         <h1 className="text-2xl font-semibold text-text-primary">My Lists</h1>
+        {lists && (
+          <p className="text-xs text-text-tertiary mt-1">
+            {lists.length} list{lists.length !== 1 ? 's' : ''} · {lists.reduce((s, l) => s + l.articleCount, 0)} article{lists.reduce((s, l) => s + l.articleCount, 0) !== 1 ? 's' : ''}
+          </p>
+        )}
       </header>
 
       {/* Create new list */}

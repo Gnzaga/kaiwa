@@ -25,6 +25,11 @@ export default function StatsPage() {
     queryKey: ['user-stats'],
     queryFn: () => fetch('/api/user/stats').then((r) => r.json()),
   });
+  const { data: prefs } = useQuery<{ dailyGoal: number }>({
+    queryKey: ['user-prefs'],
+    queryFn: () => fetch('/api/user/preferences').then(r => r.json()),
+    staleTime: 5 * 60 * 1000,
+  });
   const [digestCopied, setDigestCopied] = useState(false);
 
   const copyDigest = async () => {
@@ -136,6 +141,30 @@ export default function StatsPage() {
             <StatCard label="Total Read" value={totals.totalRead} />
             <StatCard label="Starred" value={totals.totalStarred} />
             <StatCard label="Archived" value={totals.totalArchived} />
+          </section>
+        );
+      })()}
+
+      {/* Daily goal progress */}
+      {prefs && prefs.dailyGoal > 0 && (() => {
+        const goal = prefs.dailyGoal;
+        const pct = Math.min(100, Math.round((totals.readToday / goal) * 100));
+        const done = totals.readToday >= goal;
+        return (
+          <section className="bg-bg-elevated border border-border rounded p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-secondary font-medium">Daily Goal</span>
+              <span className={`font-mono ${done ? 'text-accent-secondary' : 'text-text-tertiary'}`}>
+                {totals.readToday}/{goal} {done ? '✓' : `(${pct}%)`}
+              </span>
+            </div>
+            <div className="h-2 bg-bg-secondary rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${done ? 'bg-accent-secondary' : 'bg-accent-primary'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            {done && <p className="text-xs text-accent-secondary">Goal reached today!</p>}
           </section>
         );
       })()}
