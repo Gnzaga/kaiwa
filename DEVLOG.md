@@ -438,6 +438,26 @@ Autonomous feature development session. Each entry timestamped.
 - All relative time spans on ArticleCard now have `title` attribute with full date/time
 - `absoluteTime()` helper: "Feb 17, 2026, 09:30 AM" format
 
+### Feature 112 — 'v' / 'u' keyboard shortcuts in article list (commit 4928429)
+- 'v': toggles compact/expanded view mode (persists to localStorage)
+- 'u': toggles unread filter on/off (persists to localStorage)
+
+### Feature 113 — Keyboard shortcuts reference in Settings page (commit 4928429)
+- New "Keyboard Shortcuts" section in settings showing all shortcuts in a 2-column grid
+
+### Feature 114 — Top tags in stats page are clickable (commit 4928429)
+- Each tag links to /articles?tag= for instant filtering
+- Top tag highlighted with accent color and bold weight
+
+### Feature 115 — Reading pace + lists count in stats (commit 4928429)
+- "Avg/Active Day" stat card: articles read per active day over last 30 days
+- "Reading Lists" stat card: total number of reading lists created
+
+### Feature 116 — Custom empty states for Starred and Archived pages (commit 4928429)
+- Starred empty: ★ + "No starred articles yet" + hint
+- Archived empty: ■ + "Nothing archived yet" + hint
+- Added `emptyMessage` prop to ArticleList for custom empty state content
+
 ---
 
 ## Active Build

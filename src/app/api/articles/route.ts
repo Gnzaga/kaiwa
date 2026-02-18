@@ -87,6 +87,9 @@ export async function GET(request: NextRequest) {
       case 'sentiment':
         orderBy = asc(schema.articles.summarySentiment);
         break;
+      case 'unread_first':
+        orderBy = sql`COALESCE(${schema.userArticleStates.isRead}, false) ASC, ${schema.articles.publishedAt} DESC`;
+        break;
       default:
         orderBy = desc(schema.articles.publishedAt);
     }
@@ -116,6 +119,7 @@ export async function GET(request: NextRequest) {
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
           categorySlug: schema.categories.slug,
+          readingMinutes: sql<number>`CEIL(char_length(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 1000.0)`,
         })
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))

@@ -43,7 +43,7 @@ export default function ArticleCard({
   categorySlug,
   variant = 'default',
 }: {
-  article: Article & { imageUrl?: string | null; categorySlug?: string | null; isRead?: boolean | null; isStarred?: boolean | null };
+  article: Article & { imageUrl?: string | null; categorySlug?: string | null; isRead?: boolean | null; isStarred?: boolean | null; readingMinutes?: number | null };
   sourceName?: string;
   categorySlug?: string | null;
   variant?: 'default' | 'hero' | 'compact';
@@ -145,7 +145,8 @@ export default function ArticleCard({
     queryClient.invalidateQueries({ queryKey: ['articles'] });
   };
 
-  const rt = readingTime(article.translatedContent || article.originalContent);
+  const precomputedRt = (article as Article & { readingMinutes?: number | null }).readingMinutes;
+  const rt = precomputedRt && precomputedRt > 0 ? `${precomputedRt} min` : readingTime(article.translatedContent || article.originalContent);
   const isNew = !read && (Date.now() - new Date(article.publishedAt).getTime()) < 6 * 60 * 60 * 1000;
   return (
     <Link href={`/article/${article.id}`}>

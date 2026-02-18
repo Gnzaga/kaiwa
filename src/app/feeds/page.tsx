@@ -126,7 +126,12 @@ export default function FeedsPage() {
               <div className="flex items-center gap-2 w-48 shrink-0 min-w-0">
                 <span className="text-base">{feed.regionFlag}</span>
                 <div className="min-w-0">
-                  <div className="text-sm text-text-primary truncate">{feed.sourceName}</div>
+                  <Link
+                    href={`/articles?source=${encodeURIComponent(feed.sourceName)}`}
+                    className="text-sm text-text-primary truncate hover:text-accent-primary transition-colors block"
+                  >
+                    {feed.sourceName}
+                  </Link>
                   <div className="text-xs text-text-tertiary truncate">{feed.categoryName}</div>
                 </div>
               </div>

@@ -32,6 +32,18 @@ interface SearchResponse {
   data: SearchResult[];
 }
 
+const QUICK_ACTIONS = [
+  { label: 'Unread articles', hint: 'Show only unread', href: '/articles?readFilter=unread' },
+  { label: 'Starred articles', hint: 'Your starred reads', href: '/starred' },
+  { label: 'Archived articles', hint: 'Your archive', href: '/archived' },
+  { label: 'Japanese articles', hint: 'Filter by language', href: '/articles?language=ja' },
+  { label: 'Today\'s articles', hint: 'Published today', href: '/articles?datePreset=today' },
+  { label: 'Positive sentiment', hint: 'Filter by sentiment', href: '/articles?sentiment=positive' },
+  { label: 'Negative sentiment', hint: 'Filter by sentiment', href: '/articles?sentiment=negative' },
+  { label: 'Your reading stats', hint: 'Stats overview', href: '/stats' },
+  { label: 'Surprise me', hint: 'Random unread article', href: '/api/articles/random' },
+];
+
 const NAV_PAGES = [
   { label: 'Dashboard', href: '/', hint: 'Home' },
   { label: 'All Articles', href: '/articles', hint: 'Browse all articles' },
@@ -91,14 +103,17 @@ export default function CommandPalette() {
 
   const results = data?.data ?? [];
   const isNavMode = query.startsWith('>');
-  const navQuery = isNavMode ? query.slice(1).trim().toLowerCase() : '';
+  const isActionMode = query.startsWith('#');
+  const navQuery = isNavMode ? query.slice(1).trim().toLowerCase() : isActionMode ? query.slice(1).trim().toLowerCase() : '';
   const navResults = isNavMode
     ? NAV_PAGES.filter(p => !navQuery || p.label.toLowerCase().includes(navQuery) || p.hint.toLowerCase().includes(navQuery))
-    : [];
-  const isSearchMode = !isNavMode && query.length > 1;
+    : isActionMode
+      ? QUICK_ACTIONS.filter(p => !navQuery || p.label.toLowerCase().includes(navQuery) || p.hint.toLowerCase().includes(navQuery))
+      : [];
+  const isSearchMode = !isNavMode && !isActionMode && query.length > 1;
 
   // Unified items list for keyboard navigation
-  const navItems: { id: number; href: string }[] = isNavMode
+  const navItems: { id: number; href: string }[] = (isNavMode || isActionMode)
     ? navResults.map((p, i) => ({ id: -(i + 2), href: p.href }))
     : isSearchMode
       ? [...results.map(r => ({ id: r.id, href: `/article/${r.id}` })),
@@ -146,13 +161,13 @@ export default function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search articles... (> for pages)"
+            placeholder="Search articles... (> pages, # actions)"
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none"
           />
           <kbd className="text-xs text-text-tertiary font-mono">Esc</kbd>
         </div>
 
-        {isNavMode && navResults.length > 0 && (
+        {(isNavMode || isActionMode) && navResults.length > 0 && (
           <div ref={listRef} className="divide-y divide-border max-h-80 overflow-y-auto">
             {navResults.map((page, i) => (
               <button
@@ -167,8 +182,8 @@ export default function CommandPalette() {
             ))}
           </div>
         )}
-        {isNavMode && navResults.length === 0 && (
-          <div className="px-4 py-6 text-center text-sm text-text-tertiary">No pages match</div>
+        {(isNavMode || isActionMode) && navResults.length === 0 && (
+          <div className="px-4 py-6 text-center text-sm text-text-tertiary">No {isActionMode ? 'actions' : 'pages'} match</div>
         )}
 
         {isSearchMode && results.length > 0 && (

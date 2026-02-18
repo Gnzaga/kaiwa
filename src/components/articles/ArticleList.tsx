@@ -8,7 +8,7 @@ import { setArticleNavList } from './ArticleNav';
 
 interface FeedOption { id: number; name: string; regionId: string; }
 
-type SortOption = 'newest' | 'oldest' | 'source' | 'sentiment';
+type SortOption = 'newest' | 'oldest' | 'source' | 'sentiment' | 'unread_first';
 
 interface ArticlesResponse {
   data: (Article & { feedSourceName?: string; imageUrl?: string | null })[];
@@ -188,6 +188,7 @@ export default function ArticleList({
         >
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
+          <option value="unread_first">Unread First</option>
           <option value="source">By Source</option>
           <option value="sentiment">By Sentiment</option>
         </select>
@@ -385,11 +386,16 @@ export default function ArticleList({
       )}
 
       {/* Result count + Pagination */}
-      {data && data.total > 0 && (
-        <div className="text-xs text-text-tertiary text-center">
-          Showing {((page - 1) * data.pageSize) + 1}–{Math.min(page * data.pageSize, data.total)} of {data.total.toLocaleString()} articles
-        </div>
-      )}
+      {data && data.total > 0 && (() => {
+        const totalMins = data.data.reduce((s, a) => s + (Number((a as Article & { readingMinutes?: number }).readingMinutes) || 0), 0);
+        const readingEst = totalMins > 60 ? `~${Math.round(totalMins / 60)}h` : totalMins > 0 ? `~${totalMins}m` : null;
+        return (
+          <div className="text-xs text-text-tertiary text-center">
+            Showing {((page - 1) * data.pageSize) + 1}–{Math.min(page * data.pageSize, data.total)} of {data.total.toLocaleString()} articles
+            {readingEst && <span className="ml-2 opacity-60">· {readingEst} reading on this page</span>}
+          </div>
+        );
+      })()}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-2">
           <button
