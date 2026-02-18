@@ -47,6 +47,7 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
   const [editingName, setEditingName] = useState(false);
   const [nameText, setNameText] = useState('');
   const [listFilter, setListFilter] = useState('');
+  const [listSort, setListSort] = useState<'order' | 'newest_added' | 'oldest_added' | 'published'>('order');
 
   const removeMutation = useMutation({
     mutationFn: (articleId: number) =>
@@ -214,19 +215,39 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
-      {data.data.length > 4 && (
-        <input
-          type="text"
-          placeholder="Filter articles in this list..."
-          value={listFilter}
-          onChange={(e) => setListFilter(e.target.value)}
-          className="w-full bg-bg-elevated border border-border rounded px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary"
-        />
+      {data.data.length > 2 && (
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Filter articles..."
+            value={listFilter}
+            onChange={(e) => setListFilter(e.target.value)}
+            className="flex-1 bg-bg-elevated border border-border rounded px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary"
+          />
+          <select
+            value={listSort}
+            onChange={(e) => setListSort(e.target.value as typeof listSort)}
+            className="bg-bg-elevated border border-border rounded px-2 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
+          >
+            <option value="order">Manual order</option>
+            <option value="newest_added">Newest added</option>
+            <option value="oldest_added">Oldest added</option>
+            <option value="published">Published date</option>
+          </select>
+        </div>
       )}
 
       {data.data.length > 0 ? (
         <div className="space-y-3">
-          {data.data.filter(item => !listFilter || (item.translatedTitle || item.originalTitle).toLowerCase().includes(listFilter.toLowerCase())).map(item => (
+          {[...data.data]
+            .filter(item => !listFilter || (item.translatedTitle || item.originalTitle).toLowerCase().includes(listFilter.toLowerCase()))
+            .sort((a, b) => {
+              if (listSort === 'newest_added') return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
+              if (listSort === 'oldest_added') return new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
+              if (listSort === 'published') return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+              return a.sortOrder - b.sortOrder;
+            })
+            .map(item => (
             <div key={item.itemId} className="flex items-start gap-4 bg-bg-elevated border border-border rounded px-5 py-4">
               {item.imageUrl && (
                 <img
@@ -245,6 +266,19 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
                 </Link>
                 {item.summaryTldr && (
                   <p className="text-xs text-text-tertiary mt-1 line-clamp-2">{item.summaryTldr}</p>
+                )}
+                {item.summaryTags && item.summaryTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {item.summaryTags.slice(0, 4).map((tag: string) => (
+                      <Link
+                        key={tag}
+                        href={`/articles?tag=${encodeURIComponent(tag)}`}
+                        className="text-[10px] px-1.5 py-0.5 bg-bg-secondary border border-border rounded text-text-tertiary hover:text-accent-primary hover:border-accent-primary transition-colors"
+                      >
+                        {tag}
+                      </Link>
+                    ))}
+                  </div>
                 )}
                 <div className="flex items-center gap-2 mt-1.5 text-xs text-text-tertiary">
                   {item.feedSourceName && <span>{item.feedSourceName}</span>}

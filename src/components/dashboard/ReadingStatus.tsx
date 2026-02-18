@@ -33,6 +33,12 @@ export default function ReadingStatus() {
   const goalMet = goal > 0 && readToday >= goal;
   const totalUnread = unreadCounts ? Object.values(unreadCounts).reduce((sum, n) => sum + n, 0) : 0;
 
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const readYesterday = Number(data.dailyActivity.find(a => a.day === yesterdayStr)?.count ?? 0);
+  const vsYesterday = readToday > 0 && readYesterday > 0 ? readToday - readYesterday : null;
+
   // Calculate streak
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
@@ -51,6 +57,14 @@ export default function ReadingStatus() {
       <span className={goalMet ? 'text-success font-medium' : ''}>
         {goal > 0 ? `${readToday}/${goal} today` : `${readToday} read today`}
       </span>
+      {vsYesterday !== null && (
+        <>
+          <span className="text-border">·</span>
+          <span className={vsYesterday > 0 ? 'text-success' : vsYesterday < 0 ? 'text-accent-highlight' : ''}>
+            {vsYesterday > 0 ? `+${vsYesterday}` : vsYesterday} vs yesterday
+          </span>
+        </>
+      )}
       {totalUnread > 0 && (
         <>
           <span className="text-border">·</span>

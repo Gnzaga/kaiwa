@@ -458,10 +458,26 @@ Autonomous feature development session. Each entry timestamped.
 - Archived empty: ■ + "Nothing archived yet" + hint
 - Added `emptyMessage` prop to ArticleList for custom empty state content
 
+### Feature 117 — 'Unread First' sort option (commit 4818141)
+- Articles API: new `unread_first` sort: unread articles shown before read, then newest first
+- ArticleList: 'Unread First' option added to sort dropdown
+
+### Feature 118 — Feed source names link to article list (commit 4818141)
+- Feeds page: source name is now a Link to /articles?source= for quick browsing
+
+### Feature 119 — Reading time estimate in article list footer (commit 4818141)
+- Articles API now returns `readingMinutes` per article (CEIL(char_length / 1000))
+- ArticleCard uses precomputed `readingMinutes` when available (avoids needing full content)
+- Article list footer shows "~Xm reading on this page" or "~Xh reading on this page"
+
+### Feature 120 — Command palette '#' quick actions mode (commit 4818141)
+- Typing '#' in command palette shows quick navigation actions (unread, starred, language filters, sentiments, surprise)
+- Placeholder updated: "Search articles... (> pages, # actions)"
+
 ---
 
 ## Active Build
-- **kaiwa-build-f90-100**: features 90-111 — triggered 2026-02-18 (targeting master, includes 9837cf2)
+- **kaiwa-build-f101-116-czpd2**: features 101-116 — triggered 2026-02-18
 
 ## Build History
 - **kaiwa-build-tg98g** through **kaiwa-build-dtgvv**: FAILED — missing `fsGroup: 65532` in PipelineRun taskRunTemplate podTemplate securityContext

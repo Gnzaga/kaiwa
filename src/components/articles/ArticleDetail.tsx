@@ -161,6 +161,18 @@ export default function ArticleDetail({ id }: { id: number }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.article?.id, prefs?.autoMarkRead]);
 
+  const [readProgress, setReadProgress] = useState(0);
+  useEffect(() => {
+    function onScroll() {
+      const el = document.documentElement;
+      const scrolled = el.scrollTop || document.body.scrollTop;
+      const total = el.scrollHeight - el.clientHeight;
+      setReadProgress(total > 0 ? Math.min(100, Math.round((scrolled / total) * 100)) : 0);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const [copied, setCopied] = useState(false);
   const [summaryCopied, setSummaryCopied] = useState(false);
   const [mdCopied, setMdCopied] = useState(false);
@@ -215,6 +227,11 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   return (
     <div className={`space-y-6 animate-fade-in transition-all${focusMode ? ' max-w-2xl mx-auto' : ' max-w-3xl'}`}>
+      {/* Reading progress bar */}
+      <div
+        className="fixed top-0 left-0 h-0.5 bg-accent-primary z-50 transition-all duration-150"
+        style={{ width: `${readProgress}%` }}
+      />
       {/* Hero image */}
       {article.imageUrl && (
         <div className="rounded overflow-hidden border border-border cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
