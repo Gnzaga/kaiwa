@@ -34,12 +34,22 @@ export default function ArticleDetail({ id }: { id: number }) {
     if (typeof window === 'undefined') return 'base';
     return (localStorage.getItem('article-font-size') as FontSize) ?? 'base';
   });
+  const [serifFont, setSerifFont] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('article-font-family') === 'serif';
+  });
   const queryClient = useQueryClient();
 
   function cycleFontSize() {
     const next = FONT_SIZES[(FONT_SIZES.indexOf(fontSize) + 1) % FONT_SIZES.length];
     setFontSize(next);
     localStorage.setItem('article-font-size', next);
+  }
+
+  function toggleSerifFont() {
+    const next = !serifFont;
+    setSerifFont(next);
+    localStorage.setItem('article-font-family', next ? 'serif' : 'sans');
   }
 
   const { data, isLoading, error } = useQuery<ArticleDetailResponse>({
@@ -179,6 +189,7 @@ export default function ArticleDetail({ id }: { id: number }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [noteText, setNoteText] = useState('');
   const copyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
@@ -212,14 +223,15 @@ export default function ArticleDetail({ id }: { id: number }) {
     return () => { if (sidebar) sidebar.style.display = ''; };
   }, [focusMode]);
 
-  // Add 'f' key for focus mode toggle
+  // Add 'f' key for focus mode toggle, '?' for shortcuts
   useEffect(() => {
-    const prevHandler = window.onkeydown;
     function handleKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'f') setFocusMode(m => !m);
+      if (e.key === '?') setShowShortcuts(m => !m);
+      if (e.key === 'Escape') setShowShortcuts(false);
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -232,6 +244,45 @@ export default function ArticleDetail({ id }: { id: number }) {
         className="fixed top-0 left-0 h-0.5 bg-accent-primary z-50 transition-all duration-150"
         style={{ width: `${readProgress}%` }}
       />
+      {/* Keyboard shortcuts overlay */}
+      {showShortcuts && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setShowShortcuts(false)}
+        >
+          <div
+            className="bg-bg-secondary border border-border rounded-xl p-6 space-y-3 w-80 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-text-primary mb-4">Keyboard Shortcuts</h3>
+            {([
+              ['s', 'Toggle star'],
+              ['r', 'Toggle read'],
+              ['a', 'Toggle archive'],
+              ['f', 'Focus mode'],
+              ['o', 'Open original'],
+              ['c', 'Copy link'],
+              ['d', 'Copy TL;DR'],
+              ['l', 'Reading list picker'],
+              ['i', 'Toggle original language'],
+              ['?', 'Show shortcuts'],
+              ['Esc', 'Close panels'],
+            ] as [string, string][]).map(([key, desc]) => (
+              <div key={key} className="flex items-center justify-between text-xs">
+                <span className="text-text-secondary">{desc}</span>
+                <kbd className="px-2 py-0.5 bg-bg-elevated border border-border rounded font-mono text-text-tertiary">{key}</kbd>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowShortcuts(false)}
+              className="mt-4 w-full text-xs text-center text-text-tertiary hover:text-text-primary transition-colors"
+            >
+              Press ? or Esc to close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero image */}
       {article.imageUrl && (
         <div className="rounded overflow-hidden border border-border cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
@@ -376,6 +427,13 @@ export default function ArticleDetail({ id }: { id: number }) {
           className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors font-mono"
         >
           A{fontSize === 'sm' ? '−' : fontSize === 'lg' ? '+' : ''}
+        </button>
+        <button
+          onClick={toggleSerifFont}
+          title={serifFont ? 'Switch to sans-serif' : 'Switch to serif'}
+          className={`px-3 py-1.5 text-xs border rounded transition-colors ${serifFont ? 'border-accent-primary text-accent-primary font-serif' : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'}`}
+        >
+          Serif
         </button>
 
         <a
@@ -542,7 +600,7 @@ export default function ArticleDetail({ id }: { id: number }) {
 
       {/* Translated content */}
       {article.translatedContent && (
-        <section id="article-content" className={`${FONT_CLASS[fontSize]} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}>
+        <section id="article-content" className={`${FONT_CLASS[fontSize]} ${serifFont ? 'font-serif' : ''} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}>
           <div dangerouslySetInnerHTML={{ __html: article.translatedContent }} />
         </section>
       )}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface Stats {
   articlesToday: number;
+  articlesThisHour: number;
   totalArticles: number;
   translationsPending: number;
   summariesPending: number;
@@ -18,7 +19,12 @@ export default function StatsBar() {
   });
 
   const stats = [
-    { label: 'Articles Today', value: data?.articlesToday ?? 0, href: '/articles?datePreset=today' },
+    {
+      label: 'Articles Today',
+      value: data?.articlesToday ?? 0,
+      sub: data?.articlesThisHour != null ? `${data.articlesThisHour} this hour` : undefined,
+      href: '/articles?datePreset=today',
+    },
     { label: 'Total Articles', value: data?.totalArticles?.toLocaleString() ?? '—', href: '/articles' },
     { label: 'Translations Pending', value: data?.translationsPending ?? 0, href: null },
     { label: 'Summaries Pending', value: data?.summariesPending ?? 0, href: null },
@@ -37,6 +43,9 @@ export default function StatsBar() {
                 stat.value
               )}
             </div>
+            {'sub' in stat && stat.sub && (
+              <div className="text-xs text-text-tertiary mt-1 opacity-70">{stat.sub}</div>
+            )}
           </>
         );
         return stat.href ? (

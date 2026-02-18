@@ -257,6 +257,14 @@ export default function ArticleCard({
                   title="Copy link"
                   className="text-[10px] px-1.5 py-0.5 rounded border border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary transition-colors"
                 >⎘</button>
+                <a
+                  href={article.originalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Open original"
+                  className="text-[10px] px-1.5 py-0.5 rounded border border-border text-text-tertiary hover:border-accent-secondary hover:text-accent-secondary transition-colors"
+                >↗</a>
               </div>
             </div>
           </div>

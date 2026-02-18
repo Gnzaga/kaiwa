@@ -12,8 +12,10 @@ export async function GET(request: NextRequest) {
       ? sql`${schema.articles.feedId} IN (SELECT id FROM feeds WHERE region_id = ${region})`
       : undefined;
 
+    const oneHourAgo = new Date(Date.now() - 3600000);
     const [
       totalArticlesToday,
+      articlesThisHour,
       totalArticles,
       translationsPending,
       summariesPending,
@@ -25,6 +27,14 @@ export async function GET(request: NextRequest) {
           regionCondition
             ? and(gte(schema.articles.createdAt, todayStart), regionCondition)
             : gte(schema.articles.createdAt, todayStart),
+        ),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.articles)
+        .where(
+          regionCondition
+            ? and(gte(schema.articles.createdAt, oneHourAgo), regionCondition)
+            : gte(schema.articles.createdAt, oneHourAgo),
         ),
       db.select({ count: count() }).from(schema.articles).where(regionCondition ? regionCondition : undefined),
       db
@@ -47,6 +57,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       articlesToday: Number(totalArticlesToday[0].count),
+      articlesThisHour: Number(articlesThisHour[0].count),
       totalArticles: Number(totalArticles[0].count),
       translationsPending: Number(translationsPending[0].count),
       summariesPending: Number(summariesPending[0].count),

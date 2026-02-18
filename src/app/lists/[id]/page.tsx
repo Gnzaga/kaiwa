@@ -48,7 +48,8 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
   const [editingName, setEditingName] = useState(false);
   const [nameText, setNameText] = useState('');
   const [listFilter, setListFilter] = useState('');
-  const [listSort, setListSort] = useState<'order' | 'newest_added' | 'oldest_added' | 'published'>('order');
+  const [listSort, setListSort] = useState<'order' | 'newest_added' | 'oldest_added' | 'published' | 'shuffle'>('order');
+  const [shuffleSeed, setShuffleSeed] = useState(0);
 
   const removeMutation = useMutation({
     mutationFn: (articleId: number) =>
@@ -246,13 +247,14 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
           />
           <select
             value={listSort}
-            onChange={(e) => setListSort(e.target.value as typeof listSort)}
+            onChange={(e) => { const v = e.target.value as typeof listSort; setListSort(v); if (v === 'shuffle') setShuffleSeed(Date.now()); }}
             className="bg-bg-elevated border border-border rounded px-2 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
           >
             <option value="order">Manual order</option>
             <option value="newest_added">Newest added</option>
             <option value="oldest_added">Oldest added</option>
             <option value="published">Published date</option>
+            <option value="shuffle">Shuffle</option>
           </select>
         </div>
       )}
@@ -265,6 +267,11 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
               if (listSort === 'newest_added') return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
               if (listSort === 'oldest_added') return new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
               if (listSort === 'published') return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+              if (listSort === 'shuffle') {
+                const ha = (a.articleId * 2654435761 + shuffleSeed) >>> 0;
+                const hb = (b.articleId * 2654435761 + shuffleSeed) >>> 0;
+                return ha - hb;
+              }
               return a.sortOrder - b.sortOrder;
             })
             .map(item => (

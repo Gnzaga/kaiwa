@@ -6,6 +6,22 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 168 — StatsBar: "this hour" subtitle on Articles Today
+`src/app/api/stats/route.ts`: added `articlesThisHour` count (last 60 min).
+`src/components/dashboard/StatsBar.tsx`: "Articles Today" card shows sub-label "N this hour".
+
+### Feature 167 — Article detail: serif/sans font toggle
+`src/components/articles/ArticleDetail.tsx`: added `serifFont` state (localStorage `article-font-family`); "Serif" toggle button applies `font-serif` to article content.
+
+### Feature 166 — Article card: "open original" button in hover actions
+`src/components/articles/ArticleCard.tsx`: added ↗ link in hover quick-action row to open `originalUrl` in new tab.
+
+### Feature 165 — Article detail: `?` keyboard shortcut hints overlay
+`src/components/articles/ArticleDetail.tsx`: `?` key toggles a modal listing all article page keyboard shortcuts; Esc closes.
+
+### Feature 164 — Reading list detail: shuffle sort option
+`src/app/lists/[id]/page.tsx`: added "Shuffle" to sort select; uses deterministic hash (articleId × knuth + seed) so re-selecting "Shuffle" gives a new random order.
+
 ### Feature 163 — Sidebar: unread badge on "All Articles" nav item
 `src/components/layout/Sidebar.tsx`: added optional `badge` prop to `NavItem`; "All Articles" now shows total unread count badge when expanded (matching region badge style).
 
