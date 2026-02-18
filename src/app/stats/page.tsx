@@ -232,6 +232,13 @@ export default function StatsPage() {
             })()}
             <StatCard label="Pages Read" value={Math.round(totalWordsRead / 250)} suffix=" pg" />
             {(() => {
+              const totalRead = Number(totals.totalRead);
+              if (totalRead === 0) return null;
+              const avgWords = Math.round(totalWordsRead / totalRead);
+              const avgMins = Math.max(1, Math.round(avgWords / 200));
+              return <StatCard label="Avg Article" value={`${avgMins}m`} suffix={` · ${avgWords >= 1000 ? `${Math.round(avgWords / 100) / 10}k` : avgWords} wds`} />;
+            })()}
+            {(() => {
               const peak = hourlyActivity.length > 0
                 ? hourlyActivity.reduce((best, h) => h.count > best.count ? h : best, hourlyActivity[0])
                 : null;

@@ -6,6 +6,25 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 260 — Stats: "Reading by Hour" chart
+`src/app/stats/page.tsx`: 24-bar histogram showing reading activity by hour of day; current hour accent-primary, peak hour accent-primary/70, zero-count bars rendered as tiny 1px lines; axis labels at 12AM/6AM/12PM/6PM/11PM. Uses hourlyActivity from existing /api/user/stats.
+
+### Feature 259 — ArticleCard: compact mode source name is now clickable
+`src/components/articles/ArticleCard.tsx`: source name in compact variant changed from `<span>` to styled `<a>` link navigating to `/articles?source=...` with `stopPropagation()` to avoid triggering the parent Link navigation.
+
+### Feature 258 — StatsBar: color-coded backlog counts
+`src/components/dashboard/StatsBar.tsx`: Translations/Summaries Pending values colored by threshold — 0 = success green, 1–29 = normal, 30–99 = accent-secondary, 100+ = accent-highlight.
+
+### Feature 257 — ArticleList: "Clear filters" one-click reset
+`src/components/articles/ArticleList.tsx`: when any filter is active (`activeFilterCount > 0`), a "Clear filters" button appears in the controls bar that resets all filter state (title search, source, tag, read status, sentiment, language, date preset, reading length) in a single click; also removes the persisted read-filter from localStorage.
+
+### Feature 256 — Stats: "Peak Hour" stat card
+`src/app/api/user/stats/route.ts`: added `hourlyActivity` query (GROUP BY EXTRACT(HOUR FROM readAt)).
+`src/app/stats/page.tsx`: new "Peak Hour" stat card showing the hour of day (12h AM/PM format) when the user reads most.
+
+### Feature 255 — ArticleCard: sentiment badge in compact mode
+`src/components/articles/ArticleCard.tsx`: `SentimentBadge` added to the compact variant's metadata row so sentiment is visible in compact view (previously only in expanded/hero modes).
+
 ### Feature 254 — ArticleList: `w` key saves selected article to first reading list
 `src/components/articles/ArticleList.tsx`: pressing `w` with an article selected fetches the user's reading lists, then POSTs the article to the first list's items endpoint; shows toast "Saved to 'List Name'" or an error if no lists exist. `GlobalShortcuts.tsx` updated with w, c, e docs.
 

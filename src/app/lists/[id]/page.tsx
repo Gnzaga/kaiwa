@@ -135,6 +135,34 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
     URL.revokeObjectURL(url);
   }
 
+  function exportListMarkdown() {
+    if (!data) return;
+    const slug = data.list.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    const lines: string[] = [
+      `# ${data.list.name}`,
+      data.list.description ? `\n*${data.list.description}*` : '',
+      `\nExported ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} · ${data.data.length} articles`,
+      '',
+    ];
+    for (const item of data.data) {
+      const title = item.translatedTitle || item.originalTitle;
+      const date = new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      lines.push(`## [${title}](${item.originalUrl})`);
+      lines.push(`*${item.feedSourceName ?? 'Unknown'} · ${date}${item.isRead ? ' · ✓ Read' : ''}*`);
+      if (item.summaryTldr) lines.push(`\n${item.summaryTldr}`);
+      if (item.summaryTags && item.summaryTags.length > 0) lines.push(`\nTags: ${item.summaryTags.join(', ')}`);
+      if (item.note) lines.push(`\n> Note: ${item.note}`);
+      lines.push('');
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slug}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-4">
@@ -221,6 +249,12 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
                 className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
               >
                 Export JSON
+              </button>
+              <button
+                onClick={exportListMarkdown}
+                className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors"
+              >
+                Export MD
               </button>
               <button
                 onClick={() => {

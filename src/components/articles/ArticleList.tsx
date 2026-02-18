@@ -629,11 +629,23 @@ export default function ArticleList({
             const showHeader = groupByDate && dateBucket && dateBucket !== prevBucket;
             return (
               <React.Fragment key={article.id}>
-                {showHeader && (
-                  <div className="text-xs font-semibold text-text-tertiary uppercase tracking-wider pt-3 pb-0.5 px-1 border-b border-border/50">
-                    {dateBucket}
-                  </div>
-                )}
+                {showHeader && (() => {
+                  const bucketCount = data.data.filter(a => {
+                    const d = new Date(a.publishedAt);
+                    const diffDays = Math.floor((new Date().getTime() - d.getTime()) / 86400000);
+                    if (d.toDateString() === new Date().toDateString()) return dateBucket === 'Today';
+                    if (diffDays < 2) return dateBucket === 'Yesterday';
+                    if (diffDays < 7) return dateBucket === 'This Week';
+                    if (diffDays < 30) return dateBucket === 'This Month';
+                    return dateBucket === 'Older';
+                  }).length;
+                  return (
+                    <div className="flex items-center justify-between text-xs font-semibold text-text-tertiary uppercase tracking-wider pt-3 pb-0.5 px-1 border-b border-border/50">
+                      <span>{dateBucket}</span>
+                      <span className="font-mono font-normal text-[10px]">{bucketCount}</span>
+                    </div>
+                  );
+                })()}
                 <div data-article-idx={i} onMouseEnter={() => setSelectedIdx(i)}>
                   <ArticleCard
                     article={article}
