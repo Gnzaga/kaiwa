@@ -12,6 +12,7 @@ import RecentlyViewed from '@/components/dashboard/RecentlyViewed';
 import QuickRead from '@/components/dashboard/QuickRead';
 import ContinueReading from '@/components/dashboard/ContinueReading';
 import QuickSync from '@/components/dashboard/QuickSync';
+import RecommendedForYou from '@/components/dashboard/RecommendedForYou';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -59,6 +60,7 @@ export default async function DashboardPage() {
         </div>
         <div className="space-y-4">
           <ContinueReading />
+          <RecommendedForYou />
           <QuickRead />
           <TopSources />
           <RecentlyViewed />

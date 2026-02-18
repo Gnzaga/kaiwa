@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
 import { setArticleNavList } from './ArticleNav';
+import { useToast } from '@/components/ui/Toast';
 
 interface FeedOption { id: number; name: string; regionId: string; }
 
@@ -39,6 +40,7 @@ export default function ArticleList({
 }) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { toast } = useToast();
   const { data: prefs } = useQuery<{ articlesPerPage: number }>({
     queryKey: ['user-prefs'],
     queryFn: () => fetch('/api/user/preferences').then(r => r.json()),
@@ -243,6 +245,30 @@ export default function ArticleList({
           return next;
         });
         setPage(1);
+      }
+      if (e.key === 'w' && selectedIdxRef.current >= 0) {
+        const article = articlesRef.current[selectedIdxRef.current];
+        if (article) {
+          // Add to user's first reading list
+          fetch('/api/reading-lists')
+            .then(r => r.json())
+            .then((lists: { id: number; name: string }[]) => {
+              if (!Array.isArray(lists) || lists.length === 0) {
+                toast('No reading lists found — create one first', 'error');
+                return;
+              }
+              const list = lists[0];
+              return fetch(`/api/reading-lists/${list.id}/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ articleId: article.id }),
+              }).then(r => {
+                if (r.ok) toast(`Saved to "${list.name}"`);
+                else toast('Already in list or failed', 'error');
+              });
+            })
+            .catch(() => toast('Failed to add to list', 'error'));
+        }
       }
     }
     window.addEventListener('keydown', handleKey);

@@ -163,6 +163,13 @@ export default function StatsPage() {
           >
             Export starred
           </a>
+          <a
+            href="/api/user/reading-history"
+            download
+            className="px-3 py-1.5 text-xs border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
+          >
+            Export history
+          </a>
         </div>
       </header>
 

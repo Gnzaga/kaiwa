@@ -46,6 +46,9 @@ const SHORTCUTS_GROUPS = [
       ['f', 'Toggle filters'],
       ['N', 'Toggle 6h preset'],
       ['[ / ]', 'Prev/next page'],
+      ['w', 'Save to reading list'],
+      ['c', 'Copy URL'],
+      ['e', 'Toggle date grouping'],
     ],
   },
   {

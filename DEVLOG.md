@@ -6,6 +6,15 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 251 — Stats: Goal Streak stat card
+`src/app/stats/page.tsx`: "Goal Streak" card shows consecutive days where the user met their daily reading goal; only rendered when `dailyGoal > 0`. Iterates backwards from today using `dailyActivityMap`.
+
+### Feature 250 — ArticleDetail: completion badge
+`src/components/articles/ArticleDetail.tsx`: when `readProgress >= 100`, the progress bar turns success-green and a "✓ Finished" badge appears fixed top-right with a fade-in animation.
+
+### Feature 249 — Search: per-item recent search removal
+`src/app/search/page.tsx`: each recent search chip now has a hover-revealed ✕ button that removes only that entry from localStorage; `stopPropagation()` prevents triggering the search.
+
 ### Feature 248 — ArticleList: `c` key copies selected article URL
 `src/components/articles/ArticleList.tsx`: `c` key copies `originalUrl` of the j/k-selected article to clipboard when an article is selected.
 
