@@ -6,6 +6,22 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 173 — Tags page: A-Z letter section headers
+`src/app/tags/page.tsx`: when "A-Z" sort active and no letter filter, tags are grouped under letter section headers (e.g. "A", "B", ...) with dividers.
+
+### Feature 172 — Reading lists page: show "Updated Xh ago" per list
+`src/app/lists/page.tsx`: added `relTime` helper and `updatedAt` field to interface; shows relative last-update time under each list name.
+
+### Feature 171 — Article list: add "6h" date preset
+`src/components/articles/ArticleList.tsx`: added "6h" (last 6 hours) to date preset bar.
+
+### Feature 170 — Dashboard RecentActivity: show "N this week" count
+`src/components/dashboard/RecentActivity.tsx`: added `articles-read-week` query; shows "N this week" in section header.
+
+### Feature 169 — Stats: Total Words Read estimate
+`src/app/api/user/stats/route.ts`: added `totalWordsRead` computed from `char_length(translatedContent)/5`.
+`src/app/stats/page.tsx`: shows "Words Read" stat card with k/M suffix formatting.
+
 ### Feature 168 — StatsBar: "this hour" subtitle on Articles Today
 `src/app/api/stats/route.ts`: added `articlesThisHour` count (last 60 min).
 `src/components/dashboard/StatsBar.tsx`: "Articles Today" card shows sub-label "N this hour".

@@ -17,6 +17,7 @@ interface StatsResponse {
   topTags: { tag: string; count: number }[];
   listCount: number;
   totalArticles: number;
+  totalWordsRead: number;
   dailyActivity: { day: string; count: number }[];
   sentimentDist: { sentiment: string | null; count: number }[];
 }
@@ -52,12 +53,13 @@ export default function StatsPage() {
     );
   }
 
-  const { totals, topRegions, topTags, listCount, totalArticles, dailyActivity, sentimentDist } = data ?? {
+  const { totals, topRegions, topTags, listCount, totalArticles, totalWordsRead, dailyActivity, sentimentDist } = data ?? {
     totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readThisMonth: 0, readThisYear: 0 },
     topRegions: [],
     topTags: [],
     listCount: 0,
     totalArticles: 0,
+    totalWordsRead: 0,
     dailyActivity: [],
     sentimentDist: [],
   };
@@ -154,6 +156,10 @@ export default function StatsPage() {
             <StatCard label="Archived" value={totals.totalArchived} />
             <StatCard label="Total in DB" value={totalArticles} />
             <StatCard label="Coverage" value={totalArticles > 0 ? `${Math.round((totals.totalRead / totalArticles) * 100)}%` : '0%'} />
+            <StatCard
+              label="Words Read"
+              value={totalWordsRead >= 1000000 ? `${(totalWordsRead / 1000000).toFixed(1)}M` : totalWordsRead >= 1000 ? `${Math.round(totalWordsRead / 1000)}k` : totalWordsRead}
+            />
           </section>
         );
       })()}

@@ -90,10 +90,17 @@ export async function GET() {
       .groupBy(schema.articles.summarySentiment)
       .orderBy(sql`count(*) DESC`);
 
-    // Reading lists count + total articles in DB
-    const [[{ listCount }], [{ totalArticles }]] = await Promise.all([
+    // Reading lists count + total articles in DB + total words read
+    const [[{ listCount }], [{ totalArticles }], [{ totalWordsRead }]] = await Promise.all([
       db.select({ listCount: count() }).from(schema.readingLists).where(eq(schema.readingLists.userId, userId)),
       db.select({ totalArticles: count() }).from(schema.articles),
+      db
+        .select({
+          totalWordsRead: sql<number>`coalesce(sum(char_length(coalesce(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 5), 0)`,
+        })
+        .from(schema.userArticleStates)
+        .innerJoin(schema.articles, eq(schema.userArticleStates.articleId, schema.articles.id))
+        .where(and(eq(schema.userArticleStates.userId, userId), eq(schema.userArticleStates.isRead, true))),
     ]);
 
     // Daily activity for last 30 days (reading streak data)
@@ -119,6 +126,7 @@ export async function GET() {
       topTags,
       listCount,
       totalArticles,
+      totalWordsRead: Number(totalWordsRead),
       dailyActivity,
       sentimentDist,
     });

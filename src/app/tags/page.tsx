@@ -88,23 +88,51 @@ export default function TagsPage() {
       )}
 
       {tags && (
-        <div className="flex flex-wrap gap-2">
-          {filtered.map(({ tag, count }) => {
-            const weight = Number(count) / maxCount;
-            const size = weight > 0.7 ? 'text-base' : weight > 0.4 ? 'text-sm' : 'text-xs';
-            const opacity = weight > 0.5 ? 'opacity-100' : weight > 0.25 ? 'opacity-80' : 'opacity-60';
-            return (
-              <button
-                key={tag}
-                onClick={() => router.push(`/articles?tag=${encodeURIComponent(tag)}`)}
-                className={`${size} ${opacity} px-3 py-1.5 bg-bg-secondary border border-border rounded-full text-text-secondary hover:text-text-primary hover:border-accent-primary hover:bg-bg-elevated transition-colors`}
-              >
-                {tag}
-                <span className="ml-1.5 text-text-tertiary font-mono text-xs">{count}</span>
-              </button>
-            );
-          })}
-        </div>
+        sortAlpha && !letterFilter ? (
+          // Grouped by letter with section headers
+          <div className="space-y-4">
+            {availableLetters.filter(l => filtered.some(t => t.tag[0]?.toUpperCase() === l)).map(letter => (
+              <div key={letter}>
+                <div className="text-xs font-mono text-text-tertiary border-b border-border pb-1 mb-2">{letter}</div>
+                <div className="flex flex-wrap gap-2">
+                  {filtered.filter(t => t.tag[0]?.toUpperCase() === letter).map(({ tag, count }) => {
+                    const weight = Number(count) / maxCount;
+                    const size = weight > 0.7 ? 'text-base' : weight > 0.4 ? 'text-sm' : 'text-xs';
+                    const opacity = weight > 0.5 ? 'opacity-100' : weight > 0.25 ? 'opacity-80' : 'opacity-60';
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() => router.push(`/articles?tag=${encodeURIComponent(tag)}`)}
+                        className={`${size} ${opacity} px-3 py-1.5 bg-bg-secondary border border-border rounded-full text-text-secondary hover:text-text-primary hover:border-accent-primary hover:bg-bg-elevated transition-colors`}
+                      >
+                        {tag}
+                        <span className="ml-1.5 text-text-tertiary font-mono text-xs">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {filtered.map(({ tag, count }) => {
+              const weight = Number(count) / maxCount;
+              const size = weight > 0.7 ? 'text-base' : weight > 0.4 ? 'text-sm' : 'text-xs';
+              const opacity = weight > 0.5 ? 'opacity-100' : weight > 0.25 ? 'opacity-80' : 'opacity-60';
+              return (
+                <button
+                  key={tag}
+                  onClick={() => router.push(`/articles?tag=${encodeURIComponent(tag)}`)}
+                  className={`${size} ${opacity} px-3 py-1.5 bg-bg-secondary border border-border rounded-full text-text-secondary hover:text-text-primary hover:border-accent-primary hover:bg-bg-elevated transition-colors`}
+                >
+                  {tag}
+                  <span className="ml-1.5 text-text-tertiary font-mono text-xs">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )
       )}
     </div>
   );

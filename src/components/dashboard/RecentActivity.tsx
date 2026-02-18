@@ -31,6 +31,14 @@ export default function RecentActivity() {
       fetch('/api/articles?isRead=true&sort=newest&pageSize=5&page=1').then((r) => r.json()),
     staleTime: 30000,
   });
+  const { data: weekData } = useQuery<{ total: number }>({
+    queryKey: ['articles-read-week'],
+    queryFn: () => {
+      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+      return fetch(`/api/articles?isRead=true&dateFrom=${encodeURIComponent(weekAgo)}&pageSize=1&page=1`).then(r => r.json());
+    },
+    staleTime: 60000,
+  });
 
   const articles = data?.data ?? [];
   if (articles.length === 0) return null;
@@ -38,7 +46,12 @@ export default function RecentActivity() {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wider">Recently Read</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wider">Recently Read</h2>
+          {weekData && weekData.total > 0 && (
+            <span className="text-xs text-text-tertiary opacity-60">{weekData.total} this week</span>
+          )}
+        </div>
         <Link href="/articles?readFilter=read" className="text-xs text-text-tertiary hover:text-accent-primary transition-colors">
           View all read →
         </Link>

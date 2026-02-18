@@ -11,6 +11,16 @@ interface ReadingList {
   articleCount: number;
   readCount: number;
   createdAt: string;
+  updatedAt: string | null;
+}
+
+function relTime(date: string): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 1) return 'just now';
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export default function ListsPage() {
@@ -129,6 +139,7 @@ export default function ListsPage() {
                 <Link href={`/lists/${list.id}`} className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-text-primary hover:text-accent-primary transition-colors">{list.name}</div>
                   {list.description && <div className="text-xs text-text-tertiary mt-0.5 truncate">{list.description}</div>}
+                  {list.updatedAt && <div className="text-xs text-text-tertiary opacity-50">Updated {relTime(list.updatedAt)}</div>}
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-text-tertiary">{list.articleCount} article{list.articleCount !== 1 ? 's' : ''}</span>
                     {list.articleCount > 0 && (
