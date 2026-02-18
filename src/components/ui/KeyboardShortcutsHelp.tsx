@@ -27,6 +27,8 @@ const shortcuts = [
   { key: 'f', description: 'Toggle focus mode (hides sidebar)' },
   { key: 'b', description: 'Go back' },
   { key: '[ ]', description: 'Prev / Next article list page' },
+  { key: 'v', description: 'Toggle compact / expanded view' },
+  { key: 'u', description: 'Toggle unread filter' },
 ];
 
 export default function KeyboardShortcutsHelp() {

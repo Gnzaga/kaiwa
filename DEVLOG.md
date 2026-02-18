@@ -343,10 +343,105 @@ Autonomous feature development session. Each entry timestamped.
 - User stats API: `readThisMonth` (30-day count)
 - Stats page: 4-col grid with 7 stat cards including "This Month"
 
+### Feature 86 — Command palette `>` nav mode (commit e435244)
+- CommandPalette: query starting with `>` switches to page navigation mode
+- Filters 12 nav pages by label/hint; shows with `→` icon
+- Allows quick keyboard-driven navigation without touching mouse
+
+### Feature 87 — Reading status dashboard widget (commit bb0f741)
+- `ReadingStatus` component: shows "X read today · Y day streak" in dashboard greeting area
+- Streak calculated from daily activity set, handles yesterday-start if today not read yet
+- Links to /stats page
+
+### Feature 88 — Article source name → clickable source filter (commit bb0f741)
+- Default article card: source name is now a `<button>` that navigates to `/articles?source=<name>`
+- Uses `e.preventDefault()` + `e.stopPropagation()` to avoid triggering the parent Link
+
+### Feature 89 — Articles page reads URL source/tag params (commit bb0f741)
+- `src/app/articles/page.tsx` rewritten as client component with Suspense
+- Reads `?source=` and `?tag=` from URL, passes as `initialSource`/`initialTag` to ArticleList
+- Shows filter hint text when active
+
+### Feature 90 — Daily reading goal (commit 24b39ba)
+- userPreferences schema: added `daily_goal` integer column (default 10); DB schema pushed
+- Settings page: number input for daily goal (0 = disabled)
+- ReadingStatus dashboard widget: shows "X/Y today"; turns green (text-success) when goal met
+
+### Feature 91 — 'b' keyboard shortcut to go back (commit 24b39ba)
+- GlobalShortcuts: `b` calls `window.history.back()`
+
+### Feature 92 — 'c' copy link shows toast feedback (commit 24b39ba)
+- ArticleDetail keyboard handler: 'c' now calls clipboard + shows "Link copied" toast
+
+### Feature 93 — 'l' toggles save-to-list picker on article detail (commit 24b39ba)
+
+### Feature 94 — Mark-all-read 2-click confirmation (commit 01f0649)
+- First click: button changes to 'Confirm?' (highlighted red), auto-resets after 3s
+- Second click: fires the actual mark-all-read request
+
+### Feature 95 — Inline rename reading list (commit 01f0649)
+- Click 'Rename' → inline input with save/cancel; Enter to confirm, Esc to cancel
+- Uses PATCH /api/reading-lists/:id which already supported name updates
+
+### Feature 96 — Delete reading list confirmation (commit 01f0649)
+- First click shows 'Sure?', auto-resets after 3s; second click deletes
+
+### Feature 97 — Total articles count in dashboard StatsBar (commit 01f0649)
+- API /api/stats now returns `totalArticles` field
+- StatsBar grid changed to 4 columns, shows 'Total Articles' with locale formatting
+
+### Feature 98 — 'i' shortcut toggles original text (commit 412365f)
+
+### Feature 99 — RecentActivity shows readAt timestamp (commit 412365f)
+- Articles API now returns `readAt` from userArticleStates join
+- RecentActivity shows "read X ago" using actual read time, not publishedAt
+
+### Feature 100 — Collapsible AI Summary section (commit 412365f)
+- AI Summary section has click-to-collapse toggle, expanded by default
+- Chevron icon rotates to indicate collapsed/expanded state
+
+### Feature 101 — Tags page links to /articles?tag= (commit 0429381)
+- Previously linked to /search?q= (full-text); now links to exact tag filter
+
+### Feature 102 — 'All caught up!' empty state for unread filter (commit 0429381)
+- When readFilter=unread returns 0 results: shows ✓ + "All caught up!" friendly message
+
+### Feature 103 — readThisYear stat (commit 0429381)
+- Stats API + stats page: adds "This Year" stat card (Jan 1 to today)
+
+### Feature 104 — Language filter in article list (commit bae3237)
+- Articles API: new `language` query param for sourceLanguage filtering
+- ArticleList: language dropdown (ja/en/zh/ko/tl)
+- Also fixed: `?tag=` param was ignored by API (was reading `?tags=`); now handles both
+
+### Feature 105 — Copy URLs button in reading list detail (commit bae3237)
+- One click copies all article original URLs as newline-separated text
+
+### Feature 106 — Article position indicator in ArticleNav (commit 7556ff3)
+- Shows "X / N" between prev/next navigation buttons
+
+### Feature 107 — Search results pagination (commit 7556ff3)
+- Prev/Next pagination on search page (API already supported it)
+
+### Feature 108 — Total unread count in dashboard ReadingStatus (commit ed8839b)
+- Shows "N unread" between read-today and streak; uses already-fetched unread-counts
+
+### Feature 109 — Active filter chips in article list (commit ed8839b)
+- Dismissible chips show active filters (source/tag/read/sentiment/language/date)
+- 'Clear all' button resets all filters at once
+
+### Feature 110 — 'd' shortcut copies TL;DR (commit 9837cf2)
+- ArticleDetail keyboard handler: `d` copies summaryTldr to clipboard with "TL;DR copied" toast
+- Fixed deps array for 'o' and 'd' handlers (was capturing stale closure values)
+
+### Feature 111 — Absolute date tooltips on article card timestamps (commit 9837cf2)
+- All relative time spans on ArticleCard now have `title` attribute with full date/time
+- `absoluteTime()` helper: "Feb 17, 2026, 09:30 AM" format
+
 ---
 
 ## Active Build
-- **kaiwa-build-f73-82**: features 73-85 — triggered 2026-02-18 (targeting master)
+- **kaiwa-build-f90-100**: features 90-111 — triggered 2026-02-18 (targeting master, includes 9837cf2)
 
 ## Build History
 - **kaiwa-build-tg98g** through **kaiwa-build-dtgvv**: FAILED — missing `fsGroup: 65532` in PipelineRun taskRunTemplate podTemplate securityContext

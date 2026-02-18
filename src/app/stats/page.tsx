@@ -116,16 +116,24 @@ export default function StatsPage() {
       </header>
 
       {/* Overview cards */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Read Today" value={totals.readToday} highlight />
-        <StatCard label="This Week" value={totals.readThisWeek} />
-        <StatCard label="This Month" value={totals.readThisMonth} />
-        <StatCard label="This Year" value={totals.readThisYear} />
-        <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
-        <StatCard label="Total Read" value={totals.totalRead} />
-        <StatCard label="Starred" value={totals.totalStarred} />
-        <StatCard label="Archived" value={totals.totalArchived} />
-      </section>
+      {(() => {
+        const activeDays = days.filter(d => d.count > 0).length;
+        const pace = activeDays > 0 ? (days.reduce((s, d) => s + d.count, 0) / activeDays).toFixed(1) : '0';
+        return (
+          <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Read Today" value={totals.readToday} highlight />
+            <StatCard label="This Week" value={totals.readThisWeek} />
+            <StatCard label="This Month" value={totals.readThisMonth} />
+            <StatCard label="This Year" value={totals.readThisYear} />
+            <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />
+            <StatCard label="Avg/Active Day" value={pace} suffix=" articles" />
+            <StatCard label="Reading Lists" value={listCount} />
+            <StatCard label="Total Read" value={totals.totalRead} />
+            <StatCard label="Starred" value={totals.totalStarred} />
+            <StatCard label="Archived" value={totals.totalArchived} />
+          </section>
+        );
+      })()}
 
       {/* Activity heatmap */}
       <section className="space-y-3">
@@ -185,13 +193,14 @@ export default function StatsPage() {
             <p className="text-sm text-text-tertiary">No data yet</p>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {topTags.map(({ tag, count }) => (
-                <span
+              {topTags.map(({ tag, count }, i) => (
+                <a
                   key={tag}
-                  className="px-2.5 py-1 bg-bg-elevated border border-border rounded-full text-xs text-text-secondary"
+                  href={`/articles?tag=${encodeURIComponent(tag)}`}
+                  className={`px-2.5 py-1 border rounded-full text-xs transition-colors hover:border-accent-primary hover:text-accent-primary ${i === 0 ? 'bg-accent-primary/10 border-accent-primary/40 text-accent-primary font-medium' : 'bg-bg-elevated border-border text-text-secondary'}`}
                 >
-                  {tag} <span className="text-text-tertiary font-mono">{count}</span>
-                </span>
+                  {tag} <span className="font-mono opacity-70">{count}</span>
+                </a>
               ))}
             </div>
           )}
@@ -232,7 +241,7 @@ export default function StatsPage() {
   );
 }
 
-function StatCard({ label, value, highlight, suffix }: { label: string; value: number; highlight?: boolean; suffix?: string }) {
+function StatCard({ label, value, highlight, suffix }: { label: string; value: number | string; highlight?: boolean; suffix?: string }) {
   return (
     <div className="bg-bg-elevated border border-border rounded p-4">
       <div className="text-xs text-text-tertiary mb-1">{label}</div>

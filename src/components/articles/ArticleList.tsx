@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import ArticleCard from './ArticleCard';
@@ -25,6 +25,7 @@ export default function ArticleList({
   hideFilters,
   initialSource,
   initialTag,
+  emptyMessage,
 }: {
   regionId?: string;
   categorySlug?: string;
@@ -33,6 +34,7 @@ export default function ArticleList({
   hideFilters?: boolean;
   initialSource?: string;
   initialTag?: string;
+  emptyMessage?: React.ReactNode;
 }) {
   const queryClient = useQueryClient();
   const { data: prefs } = useQuery<{ articlesPerPage: number }>({
@@ -135,7 +137,7 @@ export default function ArticleList({
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
-  // Keyboard navigation: [ = prev page, ] = next page
+  // Keyboard navigation: [ = prev page, ] = next page, v = toggle view, u = toggle unread
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName;
@@ -143,6 +145,21 @@ export default function ArticleList({
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === '[') setPage(p => Math.max(1, p - 1));
       if (e.key === ']') setPage(p => Math.min(totalPages, p + 1));
+      if (e.key === 'v') {
+        setViewMode(m => {
+          const next = m === 'expanded' ? 'compact' : 'expanded';
+          localStorage.setItem('article-view-mode', next);
+          return next;
+        });
+      }
+      if (e.key === 'u') {
+        setReadFilter(f => {
+          const next = f === 'unread' ? '' : 'unread';
+          localStorage.setItem('article-read-filter', next);
+          return next;
+        });
+        setPage(1);
+      }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -349,7 +366,7 @@ export default function ArticleList({
               <p className="font-medium text-text-secondary">All caught up!</p>
               <p className="text-xs mt-1">No unread articles matching your filters</p>
             </>
-          ) : 'No articles found'}
+          ) : emptyMessage ?? 'No articles found'}
         </div>
       )}
 

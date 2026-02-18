@@ -275,6 +275,43 @@ export default function SettingsPage() {
 
       <hr className="divider-line border-0" />
 
+      {/* Keyboard Shortcuts */}
+      <Section title="Keyboard Shortcuts">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5">
+          {[
+            ['?', 'Show keyboard shortcuts'],
+            ['⌘K', 'Command palette'],
+            ['/', 'Focus search'],
+            ['t', 'Scroll to top'],
+            ['b', 'Go back'],
+            ['v', 'Toggle compact view'],
+            ['u', 'Toggle unread filter'],
+            ['[ ]', 'Prev / Next page'],
+            ['g h', 'Go to Dashboard'],
+            ['g s', 'Go to Starred'],
+            ['g f', 'Go to Feeds'],
+            ['g x', 'Go to Stats'],
+            ['s', 'Star / Unstar article'],
+            ['r', 'Mark read / Unread'],
+            ['a', 'Archive / Unarchive'],
+            ['o', 'Open original source'],
+            ['c', 'Copy article link'],
+            ['d', 'Copy TL;DR'],
+            ['i', 'Toggle original text'],
+            ['l', 'Save to list picker'],
+            ['f', 'Toggle focus mode'],
+            ['← → / p n', 'Prev / Next article'],
+          ].map(([key, desc]) => (
+            <div key={key} className="flex items-center justify-between py-1 border-b border-border/50 last:border-0">
+              <span className="text-sm text-text-secondary">{desc}</span>
+              <kbd className="px-2 py-0.5 text-xs font-mono bg-bg-elevated border border-border rounded text-text-primary shrink-0 ml-2">{key}</kbd>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <hr className="divider-line border-0" />
+
       {/* Feed Management */}
       <Section title="All Feeds">
         {data?.feeds && data.feeds.length > 0 ? (
