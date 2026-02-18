@@ -6,6 +6,15 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 181 — ArticleList n/p pagination shortcuts
+`src/components/articles/ArticleList.tsx`: `n`/`p` keys now work as aliases for `]`/`[` to go to next/previous page.
+
+### Feature 180 — Region page: stats in header
+`src/app/region/[regionId]/page.tsx`: header now shows "N today · M this hour · total total" subtitle from `/api/stats?region=` query.
+
+### Feature 179 — Reading list: total reading time estimate
+`src/app/api/reading-lists/[id]/route.ts` + `src/app/lists/[id]/page.tsx`: computes `readingMinutes` per item (char_length/1000), sums them, and shows `~Xm reading` or `~Xh reading` in header.
+
 ### Feature 178 — Article detail: metadata panel
 `src/components/articles/ArticleDetail.tsx`: collapsible "Article Metadata" panel above related articles shows ID, published/ingested dates, word count, source lang, translation/summary status, and original URL.
 

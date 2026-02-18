@@ -28,6 +28,7 @@ interface ListDetail {
     feedSourceName: string | null;
     feedRegionId: string | null;
     isRead: boolean;
+    readingMinutes: number | null;
   }[];
   total: number;
   page: number;
@@ -183,9 +184,14 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
             const readCount = data.data.filter(i => i.isRead).length;
             const total = data.total;
             const pct = total > 0 ? Math.round((readCount / total) * 100) : 0;
+            const totalMins = data.data.reduce((s, i) => s + (Number(i.readingMinutes) || 0), 0);
+            const etaLabel = totalMins >= 60 ? `~${Math.round(totalMins / 60)}h` : totalMins > 0 ? `~${totalMins}m` : null;
             return (
               <div className="flex items-center gap-2">
                 <p className="text-xs text-text-tertiary">{total} article{total !== 1 ? 's' : ''}</p>
+                {etaLabel && (
+                  <><span className="text-xs text-text-tertiary opacity-50">·</span><span className="text-xs text-text-tertiary">{etaLabel} reading</span></>
+                )}
                 {total > 0 && (
                   <>
                     <span className="text-xs text-text-tertiary opacity-50">·</span>

@@ -12,6 +12,12 @@ interface Region {
   categories: { id: string; slug: string; name: string }[];
 }
 
+interface RegionStats {
+  articlesToday: number;
+  articlesThisHour: number;
+  totalArticles: number;
+}
+
 export default function RegionPage() {
   const params = useParams();
   const regionId = params.regionId as string;
@@ -20,15 +26,29 @@ export default function RegionPage() {
     queryKey: ['regions'],
     queryFn: () => fetch('/api/regions').then((r) => r.json()),
   });
+  const { data: regionStats } = useQuery<RegionStats>({
+    queryKey: ['stats', regionId],
+    queryFn: () => fetch(`/api/stats?region=${encodeURIComponent(regionId)}`).then(r => r.json()),
+    staleTime: 60000,
+  });
 
   const region = Array.isArray(regions) ? regions.find((r) => r.id === regionId) : undefined;
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
       <header className="space-y-3">
-        <h1 className="text-2xl font-semibold text-text-primary">
-          {region ? `${region.flagEmoji} ${region.name}` : regionId.toUpperCase()}
-        </h1>
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h1 className="text-2xl font-semibold text-text-primary">
+            {region ? `${region.flagEmoji} ${region.name}` : regionId.toUpperCase()}
+          </h1>
+          {regionStats && (
+            <span className="text-xs text-text-tertiary">
+              {regionStats.articlesToday} today
+              {regionStats.articlesThisHour > 0 && ` · ${regionStats.articlesThisHour} this hour`}
+              {' · '}{regionStats.totalArticles.toLocaleString()} total
+            </span>
+          )}
+        </div>
         {region && (
           <div className="flex flex-wrap gap-2">
             {region.categories.map((cat) => (

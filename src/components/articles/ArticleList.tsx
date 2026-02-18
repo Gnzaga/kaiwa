@@ -146,8 +146,8 @@ export default function ArticleList({
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === '[') setPage(p => Math.max(1, p - 1));
-      if (e.key === ']') setPage(p => Math.min(totalPages, p + 1));
+      if (e.key === '[' || e.key === 'p') setPage(p => Math.max(1, p - 1));
+      if (e.key === ']' || e.key === 'n') setPage(p => Math.min(totalPages, p + 1));
       if (e.key === 'v') {
         setViewMode(m => {
           const next = m === 'expanded' ? 'compact' : 'expanded';

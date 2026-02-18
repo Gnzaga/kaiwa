@@ -48,6 +48,7 @@ export async function GET(
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
           isRead: sql<boolean>`coalesce(${schema.userArticleStates.isRead}, false)`,
+          readingMinutes: sql<number>`ceil(char_length(coalesce(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 1000.0)`,
         })
         .from(schema.readingListItems)
         .innerJoin(schema.articles, eq(schema.readingListItems.articleId, schema.articles.id))
