@@ -117,14 +117,17 @@ export default function ArticleCard({
   const queryClient = useQueryClient();
   const [localStarred, setLocalStarred] = useState<boolean | null>(null);
   const [localRead, setLocalRead] = useState<boolean | null>(null);
+  const [localArchived, setLocalArchived] = useState<boolean | null>(null);
   const starred = localStarred !== null ? localStarred : !!isStarred;
   const read = localRead !== null ? localRead : !!isRead;
+  const archived = localArchived !== null ? localArchived : !!(article as Article & { isArchived?: boolean | null }).isArchived;
 
   const quickAction = async (e: React.MouseEvent, type: string) => {
     e.preventDefault();
     e.stopPropagation();
     if (type === 'toggleStar') setLocalStarred(!starred);
     if (type === 'toggleRead') setLocalRead(!read);
+    if (type === 'toggleArchive') setLocalArchived(!archived);
     await fetch(`/api/articles/${article.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -210,6 +213,11 @@ export default function ArticleCard({
                   title={read ? 'Mark unread' : 'Mark read'}
                   className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${read ? 'border-accent-primary text-accent-primary' : 'border-border text-text-tertiary hover:border-accent-primary hover:text-accent-primary'}`}
                 >{read ? '✓' : '○'}</button>
+                <button
+                  onClick={(e) => quickAction(e, 'toggleArchive')}
+                  title={archived ? 'Unarchive' : 'Archive'}
+                  className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${archived ? 'border-text-secondary text-text-secondary' : 'border-border text-text-tertiary hover:border-text-secondary hover:text-text-secondary'}`}
+                >■</button>
               </div>
             </div>
           </div>

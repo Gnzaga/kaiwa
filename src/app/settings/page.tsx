@@ -159,6 +159,18 @@ export default function SettingsPage() {
               className="w-20 bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-primary"
             />
           </div>
+          <div className="flex items-center gap-4">
+            <label className="text-sm text-text-secondary w-40">Auto-mark Read</label>
+            <button
+              onClick={() => prefsMutation.mutate({ autoMarkRead: !(prefs?.autoMarkRead ?? true) })}
+              role="switch"
+              aria-checked={prefs?.autoMarkRead ?? true}
+              className={`relative w-10 h-5 rounded-full transition-colors ${(prefs?.autoMarkRead ?? true) ? 'bg-accent-primary' : 'bg-bg-elevated border border-border'}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${(prefs?.autoMarkRead ?? true) ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+            <span className="text-xs text-text-tertiary">Mark articles as read when opened</span>
+          </div>
         </div>
       </Section>
 

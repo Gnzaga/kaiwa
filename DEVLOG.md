@@ -245,10 +245,68 @@ Autonomous feature development session. Each entry timestamped.
 ### Feature 59 — Filter within reading list (commit 9653a1f)
 - Filter input appears on lists with > 4 articles, narrows by title client-side
 
+### Feature 60 — Pagination jump-to-page input (commit 2f96c4e)
+- Article list: when totalPages > 5, show number `<input>` instead of static "page/total" text
+- Allows direct navigation to arbitrary pages in large result sets
+
+### Feature 61+62 — Copy-as-markdown + Top Sources widget (commit 0da6fd7)
+- Article detail: "Copy MD" button copies `[Title](url)` markdown link to clipboard
+- Dashboard: TopSources widget — top 7 sources by article count today with mini bar chart
+- New API: `/api/stats/sources` — top sources by count in last 24h
+
+### Feature 63+64 — Source filter dropdown + Regions Glance (commit 305ed6f)
+- Article list: source filter replaced with `<select>` dropdown, populated from `/api/feeds`
+  - Filtered by regionId when on a region page
+- Dashboard: RegionsGlance component — region pills with unread count badges
+
+### Feature 65 — Trending Tags dashboard widget (commit a4da90e)
+- Dashboard: TrendingTags component — top 12 tags from last 24h as clickable pills
+- Tag pill size/opacity scaled by frequency; links to tag filter page
+- New API: `/api/tags/trending` — top tags from articles published in last 24h
+
+### Feature 66 + Suspense fix (commit 1ef0c49)
+- Article cards: hover-visible ★ and ○/✓ quick action buttons (star/read toggle)
+  - Optimistic UI with localStarred/localRead state
+  - e.preventDefault() + e.stopPropagation() prevents navigation inside Link
+- Bug fix: search/page.tsx wrapped in `<Suspense>` (useSearchParams requires it in Next.js 16)
+
+### Feature 67 — All Articles page + sidebar nav (commit 68ef798)
+- New route: `/articles` — global article list using ArticleList component
+- Sidebar: "All Articles" nav item with grid icon
+
+### Feature 68 — Focus mode for article reading (commit f04c045)
+- Article detail: `f` key toggles focus mode — hides sidebar, expands content to max-w-2xl centered
+- Focus/Exit Focus button in article action bar
+- Keyboard shortcut registered in KeyboardShortcutsHelp
+
+### Feature 69 — Feed health indicators + stale filter (commit 0c2a502)
+- Feeds page: color-coded "Last:" text (orange >24h, red >48h with ⚠ warning)
+- "Show stale only" toggle button to filter feeds silent >24h
+
+### Feature 70 — Weekly reading digest clipboard export (commit 1b8154c)
+- Stats page: "Copy weekly digest" button generates markdown summary of last 7 days of read articles
+- New API: `/api/user/digest` — markdown digest with title, source, date, tags (up to 50 articles)
+
+### Feature 71 — 'Surprise me' random unread article (commit f6ae538)
+- Dashboard: "Surprise me" button in page header
+- Navigates to a random unread summarized article from last 7 days
+- New API: `/api/articles/random` — ORDER BY RANDOM() with filters
+
+### Feature 72 — [ ] keyboard shortcuts for page navigation (commit 3599fed)
+- Article list: `[` = previous page, `]` = next page
+- Registered in KeyboardShortcutsHelp
+
 ---
 
 ## Active Build
-- **kaiwa-build-tg98g**: features 40-59 — triggered 2026-02-17
+- **kaiwa-build-crw7q**: features 60-72 — triggered 2026-02-17 (targeting master)
+
+## Build History
+- **kaiwa-build-tg98g** through **kaiwa-build-dtgvv**: FAILED — missing `fsGroup: 65532` in PipelineRun taskRunTemplate podTemplate securityContext
+  Root cause: NFS volume owned by root:root 755; git-clone task runs as UID 65532 and can't write without fsGroup chown
+  Fix: add `taskRunTemplate.podTemplate.securityContext.fsGroup: 65532` + `serviceAccountName: build-bot`
+- **kaiwa-build-wnvj6**: FAILED at build-push — Next.js prerender error: useSearchParams() without Suspense in search/page.tsx
+  Fix: wrap SearchPageContent in `<Suspense>` boundary
 
 ## Issues
 - **kaiwa-build-6sdt9**: FAILED — wrong pipeline name

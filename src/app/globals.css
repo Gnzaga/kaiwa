@@ -85,6 +85,19 @@ body {
 .sentiment-negative { color: var(--color-accent-highlight); }
 .sentiment-mixed { color: #facc15; }
 
+/* Light theme overrides */
+[data-theme="light"] {
+  --color-bg-primary: #F8F8F8;
+  --color-bg-secondary: #EFEFEF;
+  --color-bg-elevated: #E4E4E4;
+  --color-text-primary: #111111;
+  --color-text-secondary: #444444;
+  --color-text-tertiary: #888888;
+  --color-border: #D0D0D0;
+  --color-success: #1A7A14;
+  --color-warning: #6B4F0A;
+}
+
 /* Print styles */
 @media print {
   aside, nav, button, [role="navigation"] { display: none !important; }

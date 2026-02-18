@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import QueryProvider from '@/components/providers/QueryProvider';
 import AuthSessionProvider from '@/components/providers/SessionProvider';
+import ThemeApplier from '@/components/providers/ThemeApplier';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
 import GlobalShortcuts from '@/components/ui/GlobalShortcuts';
@@ -33,6 +34,7 @@ export default function RootLayout({
         <AuthSessionProvider>
           <QueryProvider>
           <ToastProvider>
+            <ThemeApplier />
             <div className="flex min-h-screen">
               <Sidebar />
               <main id="main-content" className="flex-1 overflow-y-auto pb-20 md:pb-0">

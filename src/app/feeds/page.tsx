@@ -58,11 +58,20 @@ export default function FeedsPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-text-primary">Feeds</h1>
-        <p className="text-xs text-text-tertiary">
-          {feeds ? `${feeds.length} feeds · ${feeds.filter(f => f.enabled).length} active · ${feeds.reduce((s, f) => s + Number(f.articleCount), 0).toLocaleString()} articles` : 'Loading...'}
-        </p>
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold text-text-primary">Feeds</h1>
+          <p className="text-xs text-text-tertiary">
+            {feeds ? `${feeds.length} feeds · ${feeds.filter(f => f.enabled).length} active · ${feeds.reduce((s, f) => s + Number(f.articleCount), 0).toLocaleString()} articles` : 'Loading...'}
+          </p>
+        </div>
+        <a
+          href="/api/feeds/opml"
+          download="kaiwa-feeds.opml"
+          className="px-3 py-1.5 text-xs border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
+        >
+          Export OPML
+        </a>
       </header>
 
       {/* Filters */}
