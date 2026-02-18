@@ -10,6 +10,7 @@ interface StatsResponse {
     totalArchived: number;
     readToday: number;
     readThisWeek: number;
+    readLastWeek: number;
     readThisMonth: number;
     readThisYear: number;
   };
@@ -54,7 +55,7 @@ export default function StatsPage() {
   }
 
   const { totals, topRegions, topTags, listCount, totalArticles, totalWordsRead, dailyActivity, sentimentDist } = data ?? {
-    totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readThisMonth: 0, readThisYear: 0 },
+    totals: { totalRead: 0, totalStarred: 0, totalArchived: 0, readToday: 0, readThisWeek: 0, readLastWeek: 0, readThisMonth: 0, readThisYear: 0 },
     topRegions: [],
     topTags: [],
     listCount: 0,
@@ -143,7 +144,11 @@ export default function StatsPage() {
         return (
           <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Read Today" value={totals.readToday} highlight />
-            <StatCard label="This Week" value={totals.readThisWeek} />
+            <StatCard
+              label="This Week"
+              value={totals.readThisWeek}
+              suffix={totals.readLastWeek > 0 ? (totals.readThisWeek >= totals.readLastWeek ? ` ↑${totals.readThisWeek - totals.readLastWeek} vs last` : ` ↓${totals.readLastWeek - totals.readThisWeek} vs last`) : undefined}
+            />
             <StatCard label="This Month" value={totals.readThisMonth} />
             <StatCard label="This Year" value={totals.readThisYear} />
             <StatCard label="Streak" value={streak} suffix={streak === 1 ? ' day' : ' days'} />

@@ -86,6 +86,12 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reading-list', id] }),
   });
 
+  const markAllReadMutation = useMutation({
+    mutationFn: () =>
+      fetch(`/api/reading-lists/${id}/mark-all-read`, { method: 'POST' }).then(r => r.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reading-list', id] }),
+  });
+
   const noteMutation = useMutation({
     mutationFn: ({ articleId, note }: { articleId: number; note: string }) =>
       fetch(`/api/reading-lists/${id}/items`, {
@@ -236,6 +242,15 @@ export default function ReadingListPage({ params }: { params: Promise<{ id: stri
                 Copy Markdown
               </button>
             </>
+          )}
+          {data.data.length > 0 && (
+            <button
+              onClick={() => markAllReadMutation.mutate()}
+              disabled={markAllReadMutation.isPending}
+              className="text-xs text-text-tertiary hover:text-text-primary border border-border rounded px-2 py-1 transition-colors disabled:opacity-50"
+            >
+              {markAllReadMutation.isPending ? 'Marking...' : 'Mark all read'}
+            </button>
           )}
           <button
             onClick={() => visibilityMutation.mutate(!data.list.isPublic)}

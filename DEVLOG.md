@@ -6,6 +6,21 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-17
 
+### Feature 186 — Category page: stats in header
+`src/app/region/[regionId]/[categorySlug]/page.tsx` + `src/app/api/stats/route.ts`: added `?category=` param to stats API; category page header now shows today/hour/total subtitle.
+
+### Feature 185 — Reading list: bulk "Mark all read"
+`src/app/api/reading-lists/[id]/mark-all-read/route.ts` (new) + `src/app/lists/[id]/page.tsx`: new POST endpoint bulk-upserts read state for all list items; "Mark all read" button added to list header.
+
+### Feature 184 — Article detail: floating "Copy as quote"
+`src/components/articles/ArticleDetail.tsx`: text selection in article content shows a floating "Copy as quote" button; copies `> selected text\n\n— Title (URL)` to clipboard.
+
+### Feature 183 — Stats: week-over-week delta
+`src/app/api/user/stats/route.ts` + `src/app/stats/page.tsx`: added `readLastWeek` count (8–14 days ago); "This Week" stat card shows `↑N vs last` / `↓N vs last` delta.
+
+### Feature 182 — ArticleList: `/` key focuses tag filter
+`src/components/articles/ArticleList.tsx`: pressing `/` focuses the tag filter input (preventDefault so `/` isn't typed).
+
 ### Feature 181 — ArticleList n/p pagination shortcuts
 `src/components/articles/ArticleList.tsx`: `n`/`p` keys now work as aliases for `]`/`[` to go to next/previous page.
 

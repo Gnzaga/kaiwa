@@ -12,6 +12,12 @@ interface Region {
   categories: { id: string; slug: string; name: string }[];
 }
 
+interface CategoryStats {
+  articlesToday: number;
+  articlesThisHour: number;
+  totalArticles: number;
+}
+
 export default function CategoryPage() {
   const params = useParams();
   const regionId = params.regionId as string;
@@ -20,6 +26,11 @@ export default function CategoryPage() {
   const { data: regions } = useQuery<Region[]>({
     queryKey: ['regions'],
     queryFn: () => fetch('/api/regions').then((r) => r.json()),
+  });
+  const { data: categoryStats } = useQuery<CategoryStats>({
+    queryKey: ['stats', regionId, categorySlug],
+    queryFn: () => fetch(`/api/stats?region=${encodeURIComponent(regionId)}&category=${encodeURIComponent(categorySlug)}`).then(r => r.json()),
+    staleTime: 60000,
   });
 
   const region = Array.isArray(regions) ? regions.find((r) => r.id === regionId) : undefined;
@@ -34,9 +45,18 @@ export default function CategoryPage() {
           </Link>
           <span>/</span>
         </div>
-        <h1 className="text-2xl font-semibold text-text-primary">
-          {category?.name ?? categorySlug}
-        </h1>
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h1 className="text-2xl font-semibold text-text-primary">
+            {category?.name ?? categorySlug}
+          </h1>
+          {categoryStats && (
+            <span className="text-xs text-text-tertiary">
+              {categoryStats.articlesToday} today
+              {categoryStats.articlesThisHour > 0 && ` · ${categoryStats.articlesThisHour} this hour`}
+              {' · '}{categoryStats.totalArticles.toLocaleString()} total
+            </span>
+          )}
+        </div>
       </header>
       <ArticleList regionId={regionId} categorySlug={categorySlug} />
     </div>

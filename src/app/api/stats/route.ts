@@ -5,11 +5,12 @@ import { db, schema } from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     const region = request.nextUrl.searchParams.get('region');
+    const category = request.nextUrl.searchParams.get('category');
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
     const regionCondition = region
-      ? sql`${schema.articles.feedId} IN (SELECT id FROM feeds WHERE region_id = ${region})`
+      ? sql`${schema.articles.feedId} IN (SELECT id FROM feeds WHERE region_id = ${region}${category ? sql` AND category_id = (SELECT id FROM categories WHERE slug = ${category} LIMIT 1)` : sql``})`
       : undefined;
 
     const oneHourAgo = new Date(Date.now() - 3600000);

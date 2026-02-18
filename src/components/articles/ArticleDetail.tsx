@@ -30,6 +30,8 @@ export default function ArticleDetail({ id }: { id: number }) {
   const [showOriginal, setShowOriginal] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
   const [showSummary, setShowSummary] = useState(true);
+  const [quotePopup, setQuotePopup] = useState<{ text: string; x: number; y: number } | null>(null);
+  const [quoteCopied, setQuoteCopied] = useState(false);
   const [fontSize, setFontSize] = useState<FontSize>(() => {
     if (typeof window === 'undefined') return 'base';
     return (localStorage.getItem('article-font-size') as FontSize) ?? 'base';
@@ -231,7 +233,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'f') setFocusMode(m => !m);
       if (e.key === '?') setShowShortcuts(m => !m);
-      if (e.key === 'Escape') setShowShortcuts(false);
+      if (e.key === 'Escape') { setShowShortcuts(false); setQuotePopup(null); }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -244,6 +246,26 @@ export default function ArticleDetail({ id }: { id: number }) {
         className="fixed top-0 left-0 h-0.5 bg-accent-primary z-50 transition-all duration-150"
         style={{ width: `${readProgress}%` }}
       />
+      {/* Text selection quote popup */}
+      {quotePopup && (
+        <div
+          className="fixed z-50 -translate-x-1/2 -translate-y-full"
+          style={{ left: quotePopup.x, top: quotePopup.y }}
+        >
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const quotedText = `> ${quotePopup.text}\n\n— ${title} (${article.originalUrl})`;
+              navigator.clipboard.writeText(quotedText);
+              setQuoteCopied(true);
+              setTimeout(() => { setQuoteCopied(false); setQuotePopup(null); }, 1500);
+            }}
+            className="px-2.5 py-1 text-xs bg-bg-secondary border border-border rounded shadow-md text-text-primary hover:border-accent-primary transition-colors whitespace-nowrap"
+          >
+            {quoteCopied ? 'Copied!' : 'Copy as quote'}
+          </button>
+        </div>
+      )}
       {/* Keyboard shortcuts overlay */}
       {showShortcuts && (
         <div
@@ -600,7 +622,18 @@ export default function ArticleDetail({ id }: { id: number }) {
 
       {/* Translated content */}
       {article.translatedContent && (
-        <section id="article-content" className={`${FONT_CLASS[fontSize]} ${serifFont ? 'font-serif' : ''} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}>
+        <section
+          id="article-content"
+          className={`${FONT_CLASS[fontSize]} ${serifFont ? 'font-serif' : ''} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}
+          onMouseUp={() => {
+            const sel = window.getSelection();
+            const text = sel?.toString().trim() ?? '';
+            if (!sel || !text) { setQuotePopup(null); return; }
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            setQuotePopup({ text, x: rect.left + rect.width / 2 + window.scrollX, y: rect.top + window.scrollY - 8 });
+          }}
+        >
           <div dangerouslySetInnerHTML={{ __html: article.translatedContent }} />
         </section>
       )}

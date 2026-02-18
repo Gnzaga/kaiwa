@@ -12,6 +12,8 @@ export async function GET() {
     today.setHours(0, 0, 0, 0);
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date(today);
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
     const monthAgo = new Date(today);
     monthAgo.setDate(monthAgo.getDate() - 30);
     const yearStart = new Date(today.getFullYear(), 0, 1);
@@ -24,6 +26,7 @@ export async function GET() {
         totalArchived: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isArchived} = true)`,
         readToday: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${today.toISOString()})`,
         readThisWeek: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${weekAgo.toISOString()})`,
+        readLastWeek: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${twoWeeksAgo.toISOString()} AND ${schema.userArticleStates.readAt} < ${weekAgo.toISOString()})`,
         readThisMonth: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${monthAgo.toISOString()})`,
         readThisYear: sql<number>`COUNT(*) FILTER (WHERE ${schema.userArticleStates.isRead} = true AND ${schema.userArticleStates.readAt} >= ${yearStart.toISOString()})`,
       })

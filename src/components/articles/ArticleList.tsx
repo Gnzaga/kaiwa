@@ -69,6 +69,7 @@ export default function ArticleList({
     if (typeof window === 'undefined') return 'expanded';
     return (localStorage.getItem('article-view-mode') as 'expanded' | 'compact') ?? 'expanded';
   });
+  const tagFilterRef = useRef<HTMLInputElement>(null);
 
   function getDateFrom(preset: '' | '1h' | '6h' | 'today' | '7d' | '30d' | '60d'): string {
     if (!preset) return '';
@@ -146,6 +147,7 @@ export default function ArticleList({
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '/') { e.preventDefault(); tagFilterRef.current?.focus(); return; }
       if (e.key === '[' || e.key === 'p') setPage(p => Math.max(1, p - 1));
       if (e.key === ']' || e.key === 'n') setPage(p => Math.min(totalPages, p + 1));
       if (e.key === 'v') {
@@ -211,6 +213,7 @@ export default function ArticleList({
 
         {/* Tag filter */}
         <input
+          ref={tagFilterRef}
           type="text"
           placeholder="Filter tag..."
           value={tagFilter}
