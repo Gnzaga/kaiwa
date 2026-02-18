@@ -49,6 +49,7 @@ function SearchPageContent() {
   }, [searchParams]);
 
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [searchPage, setSearchPage] = useState(1);
 
   useEffect(() => {
     setRecentSearches(getRecentSearches());
@@ -61,15 +62,17 @@ function SearchPageContent() {
   if (filters.region) params.set('region', filters.region);
   if (filters.dateRange) params.set('dateRange', filters.dateRange);
   if (filters.sentiment) params.set('sentiment', filters.sentiment);
+  params.set('page', String(searchPage));
 
   const { data, isLoading } = useQuery<SearchResponse>({
-    queryKey: ['search', filters],
+    queryKey: ['search', filters, searchPage],
     queryFn: () => fetch(`/api/articles/search?${params}`).then((r) => r.json()),
     enabled: hasQuery,
   });
 
   const handleSearch = useCallback((f: SearchFilters) => {
     setFilters(f);
+    setSearchPage(1);
     if (f.query) {
       saveSearch(f.query);
       setRecentSearches(getRecentSearches());
@@ -131,10 +134,25 @@ function SearchPageContent() {
 
       {data && data.data.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs text-text-tertiary">{data.total} result{data.total !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-text-tertiary">{data.total.toLocaleString()} result{data.total !== 1 ? 's' : ''}</p>
           {data.data.map((article) => (
             <ArticleCard key={article.id} article={article} sourceName={article.feedSourceName} />
           ))}
+          {Math.ceil(data.total / data.pageSize) > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                onClick={() => setSearchPage(p => Math.max(1, p - 1))}
+                disabled={searchPage === 1}
+                className="px-3 py-1.5 text-sm border border-border rounded text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+              >Prev</button>
+              <span className="text-sm text-text-tertiary font-mono">{searchPage} / {Math.ceil(data.total / data.pageSize)}</span>
+              <button
+                onClick={() => setSearchPage(p => Math.min(Math.ceil(data.total / data.pageSize), p + 1))}
+                disabled={searchPage >= Math.ceil(data.total / data.pageSize)}
+                className="px-3 py-1.5 text-sm border border-border rounded text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+              >Next</button>
+            </div>
+          )}
         </div>
       )}
     </div>

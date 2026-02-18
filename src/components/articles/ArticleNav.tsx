@@ -20,6 +20,7 @@ export default function ArticleNav({ currentId }: { currentId: number }) {
   const router = useRouter();
   const [prevId, setPrevId] = useState<number | null>(null);
   const [nextId, setNextId] = useState<number | null>(null);
+  const [position, setPosition] = useState<{ current: number; total: number } | null>(null);
 
   useEffect(() => {
     const list = getNavList();
@@ -27,6 +28,7 @@ export default function ArticleNav({ currentId }: { currentId: number }) {
     if (idx === -1) return;
     setPrevId(idx > 0 ? list[idx - 1] : null);
     setNextId(idx < list.length - 1 ? list[idx + 1] : null);
+    setPosition({ current: idx + 1, total: list.length });
   }, [currentId]);
 
   useEffect(() => {
@@ -56,6 +58,9 @@ export default function ArticleNav({ currentId }: { currentId: number }) {
           Previous
         </button>
       ) : <div />}
+      {position && (
+        <span className="text-xs text-text-tertiary font-mono">{position.current} / {position.total}</span>
+      )}
       {nextId ? (
         <button
           onClick={() => router.push(`/article/${nextId}`)}
