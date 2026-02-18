@@ -48,6 +48,7 @@ export default function TagsPage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setLetterFilter(null); }}
             className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-56"
+            data-shortcut-focus
           />
           <button
             onClick={() => setSortAlpha(v => !v)}

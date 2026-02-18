@@ -6,6 +6,16 @@ Autonomous feature development session. Each entry timestamped.
 
 ## 2026-02-18
 
+### Feature 275 — Tags and Feeds pages: `/` focuses filter input
+`src/app/tags/page.tsx` and `src/app/feeds/page.tsx`: added `data-shortcut-focus` to their filter/search inputs so pressing `/` from GlobalShortcuts focuses them (same as other search bars).
+
+### Feature 274 — CommandPalette: standalone `k` key support
+`src/components/ui/CommandPalette.tsx`: listens for `kaiwa:open-palette` CustomEvent to open the palette (in addition to Cmd+K).
+`src/components/ui/GlobalShortcuts.tsx`: dispatches `kaiwa:open-palette` when `k` is pressed (not in input); `k` is now effectively a shortcut for the command palette.
+
+### Feature 273 — Notes page: "Export all" markdown download
+`src/app/notes/page.tsx`: added "Export all" button in page header that generates a `.md` file with H2 per article, source/date metadata, and blockquoted note text; downloads as `kaiwa-notes-YYYY-MM-DD.md`.
+
 ### Feature 272 — Stats: reading list completion breakdown
 `src/app/api/user/stats/route.ts`: added `listBreakdown` query joining readingLists+readingListItems+userArticleStates to compute per-list `total` and `readCount`; returned in stats response.
 `src/app/stats/page.tsx`: added "Reading List Progress" section with per-list progress bars; completed lists shown in accent-secondary with ✓; links to list detail page.

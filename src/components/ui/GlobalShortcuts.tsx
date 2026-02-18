@@ -101,6 +101,13 @@ export default function GlobalShortcuts() {
       if (isInput) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
+      // k — open command palette
+      if (e.key === 'k') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('kaiwa:open-palette'));
+        return;
+      }
+
       // / — focus first focusable search/filter input on page
       if (e.key === '/') {
         e.preventDefault();

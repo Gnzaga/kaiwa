@@ -63,11 +63,39 @@ export default function NotesPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-text-primary">Notes</h1>
-        <p className="text-xs text-text-tertiary">
-          {isLoading ? 'Loading...' : `${allNotes.length} article${allNotes.length !== 1 ? 's' : ''} with notes`}
-        </p>
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold text-text-primary">Notes</h1>
+          <p className="text-xs text-text-tertiary">
+            {isLoading ? 'Loading...' : `${allNotes.length} article${allNotes.length !== 1 ? 's' : ''} with notes`}
+          </p>
+        </div>
+        {allNotes.length > 0 && (
+          <button
+            onClick={() => {
+              const lines: string[] = [`# My Notes`, '', `_Exported ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}_`, ''];
+              allNotes.forEach((entry) => {
+                const date = new Date(entry.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                lines.push(`## ${entry.title}`);
+                lines.push(`**Source**: ${entry.sourceName ?? 'Unknown'} · ${date}`);
+                lines.push(`**URL**: ${entry.originalUrl}`);
+                lines.push('');
+                lines.push(`> ${entry.note.split('\n').join('\n> ')}`);
+                lines.push('');
+              });
+              const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `kaiwa-notes-${new Date().toISOString().slice(0, 10)}.md`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="px-3 py-1.5 text-xs border border-border rounded text-text-tertiary hover:text-text-primary hover:border-accent-primary transition-colors"
+          >
+            Export all
+          </button>
+        )}
       </header>
 
       {allNotes.length > 0 && (

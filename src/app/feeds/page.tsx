@@ -124,6 +124,7 @@ export default function FeedsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-bg-elevated border border-border rounded px-3 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary w-48"
+          data-shortcut-focus
         />
         <select
           value={regionFilter}

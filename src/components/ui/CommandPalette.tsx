@@ -94,8 +94,17 @@ export default function CommandPalette() {
       }
       if (e.key === 'Escape') setOpen(false);
     }
+    function handleOpenEvent() {
+      setOpen(true);
+      setQuery('');
+      setSelectedIdx(-1);
+    }
     window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener('kaiwa:open-palette', handleOpenEvent);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      window.removeEventListener('kaiwa:open-palette', handleOpenEvent);
+    };
   }, []);
 
   useEffect(() => {
