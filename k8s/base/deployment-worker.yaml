@@ -30,7 +30,7 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: OPENROUTER_MODEL
-              value: "deepseek/deepseek-v3.2"
+              value: "qwen/qwen3-14b"
           resources:
             requests:
               memory: "256Mi"

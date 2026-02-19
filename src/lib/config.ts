@@ -49,7 +49,7 @@ export const config = {
   openrouter: {
     url: 'https://openrouter.ai/api/v1',
     apiKey: env('OPENROUTER_API_KEY', 'dev-key'),
-    model: env('OPENROUTER_MODEL', 'deepseek/deepseek-v3.2'),
+    model: env('OPENROUTER_MODEL', 'qwen/qwen3-14b'),
   },
 
   // Database
