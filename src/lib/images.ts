@@ -121,7 +121,7 @@ export async function downloadArticleImage(
       }),
     );
 
-    return `${config.minio.publicUrl}/${key}`;
+    return key;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.warn(`[images] Failed to download image for article ${articleId}: ${message}`);

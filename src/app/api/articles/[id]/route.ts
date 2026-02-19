@@ -43,8 +43,10 @@ export async function GET(
     }
 
     const row = rows[0];
+    const rawImageUrl = row.article.imageUrl;
     const article = {
       ...row.article,
+      imageUrl: rawImageUrl ? `/api/images/${rawImageUrl.replace(/^https?:\/\/[^/]+\/[^/]+\//, '')}` : null,
       feed: row.feed,
       sourceName: row.feed?.sourceName,
       isRead: row.isRead,
@@ -96,7 +98,10 @@ export async function GET(
         .orderBy(desc(schema.articles.publishedAt))
         .limit(5);
 
-      relatedArticles = relatedRows;
+      relatedArticles = relatedRows.map(r => ({
+        ...r,
+        imageUrl: r.imageUrl ? `/api/images/${(r.imageUrl as string).replace(/^https?:\/\/[^/]+\/[^/]+\//, '')}` : null,
+      }));
     }
 
     // Also from same source (last 5, excluding this article)

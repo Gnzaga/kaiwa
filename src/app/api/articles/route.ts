@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(schema.feeds.regionId, region));
     }
     if (category) {
-      // Filter by category slug within the region
-      conditions.push(eq(schema.categories.slug, category));
+      // Match article-level category (from summarizer) or feed-level category
+      conditions.push(sql`COALESCE(${schema.articles.summaryCategory}, ${schema.categories.slug}) = ${category}`);
       if (region) {
         conditions.push(eq(schema.categories.regionId, region));
       }
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
           imageUrl: schema.articles.imageUrl,
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
-          categorySlug: schema.categories.slug,
+          categorySlug: sql<string>`COALESCE(${schema.articles.summaryCategory}, ${schema.categories.slug})`,
           readingMinutes: sql<number>`CEIL(char_length(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, '')) / 1000.0)`,
         })
         .from(schema.articles)
@@ -181,8 +181,13 @@ export async function GET(request: NextRequest) {
         .where(where),
     ]);
 
+    const data = articles.map(a => ({
+      ...a,
+      imageUrl: a.imageUrl ? `/api/images/${a.imageUrl.replace(/^https?:\/\/[^/]+\/[^/]+\//, '')}` : null,
+    }));
+
     return NextResponse.json({
-      data: articles,
+      data,
       total: Number(countResult[0].count),
       page,
       pageSize: PAGE_SIZE,

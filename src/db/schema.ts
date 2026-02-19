@@ -113,6 +113,7 @@ export const articles = pgTable('articles', {
   summaryBullets: jsonb('summary_bullets').$type<string[]>(),
   summaryTags: jsonb('summary_tags').$type<string[]>(),
   summarySentiment: text('summary_sentiment'),
+  summaryCategory: text('summary_category'),
   summaryStatus: text('summary_status', {
     enum: ['pending', 'summarizing', 'complete', 'error'],
   }).default('pending'),

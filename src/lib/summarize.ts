@@ -23,7 +23,8 @@ Respond with ONLY valid JSON in this exact format:
   "bullets": ["Key point 1 in English", "Key point 2 in English", "Key point 3 in English"],
   "tags": ["tag1", "tag2", "tag3"],
   "sentiment": "positive|negative|neutral|mixed|bullish|bearish|restrictive|permissive",
-  "sentiment_reasoning": "Brief explanation of why this sentiment was chosen, in English"
+  "sentiment_reasoning": "Brief explanation of why this sentiment was chosen, in English",
+  "category": "politics|news|tech|government|underreported|law|economics"
 }
 
 Rules:
@@ -32,10 +33,13 @@ Rules:
 - bullets: 3-5 key points
 - tags: 2-5 lowercase tags relevant to the content
 - sentiment: Must be exactly one of: positive, negative, neutral, mixed, bullish, bearish, restrictive, permissive
-- sentiment_reasoning: 1-2 sentences explaining the sentiment choice`;
+- sentiment_reasoning: 1-2 sentences explaining the sentiment choice
+- category: Must be exactly one of: politics, news, tech, government, underreported, law, economics. Choose based on the primary topic of the article.`;
 }
 
 const MAX_RETRIES = 3;
+
+const VALID_CATEGORIES = ['politics', 'news', 'tech', 'government', 'underreported', 'law', 'economics'] as const;
 
 interface SummaryResult {
   tldr: string;
@@ -43,6 +47,7 @@ interface SummaryResult {
   tags: string[];
   sentiment: string;
   sentiment_reasoning: string;
+  category: string;
 }
 
 function parseSummaryResponse(content: string): SummaryResult {
@@ -54,12 +59,15 @@ function parseSummaryResponse(content: string): SummaryResult {
     throw new Error('Summary response missing required fields');
   }
 
+  const category = VALID_CATEGORIES.includes(parsed.category) ? parsed.category : 'news';
+
   return {
     tldr: String(parsed.tldr),
     bullets: parsed.bullets.map(String),
     tags: parsed.tags.map(String),
     sentiment: parsed.sentiment,
     sentiment_reasoning: parsed.sentiment_reasoning,
+    category,
   };
 }
 
@@ -125,6 +133,7 @@ export async function summarizeArticle(articleId: number): Promise<void> {
           summaryBullets: summary.bullets,
           summaryTags: summary.tags,
           summarySentiment: summary.sentiment,
+          summaryCategory: summary.category,
           summaryStatus: 'complete',
           summaryError: null,
           summarizedAt: new Date(),
