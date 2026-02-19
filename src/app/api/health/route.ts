@@ -14,10 +14,10 @@ async function checkMiniflux(): Promise<boolean> {
   }
 }
 
-async function checkOpenWebUI(): Promise<boolean> {
+async function checkOpenRouter(): Promise<boolean> {
   try {
-    const res = await fetch(`${config.openwebui.url}/api/models`, {
-      headers: { Authorization: `Bearer ${config.openwebui.apiKey}` },
+    const res = await fetch(`${config.openrouter.url}/models`, {
+      headers: { Authorization: `Bearer ${config.openrouter.apiKey}` },
       signal: AbortSignal.timeout(5000),
     });
     return res.ok;
@@ -27,16 +27,16 @@ async function checkOpenWebUI(): Promise<boolean> {
 }
 
 export async function GET() {
-  const [miniflux, libretranslate, openwebui] = await Promise.all([
+  const [miniflux, libretranslate, openrouter] = await Promise.all([
     checkMiniflux(),
     libreHealthCheck(),
-    checkOpenWebUI(),
+    checkOpenRouter(),
   ]);
 
-  const allHealthy = miniflux && libretranslate && openwebui;
+  const allHealthy = miniflux && libretranslate && openrouter;
 
   return NextResponse.json({
     status: allHealthy ? 'healthy' : 'degraded',
-    services: { miniflux, libretranslate, openwebui },
+    services: { miniflux, libretranslate, openrouter },
   });
 }

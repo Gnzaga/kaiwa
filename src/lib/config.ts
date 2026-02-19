@@ -45,11 +45,11 @@ export const config = {
     timeoutMs: parseInt(env('LIBRETRANSLATE_TIMEOUT_MS', '30000'), 10),
   },
 
-  // OpenWebUI
-  openwebui: {
-    url: env('OPENWEBUI_URL', 'http://localhost:3001'),
-    apiKey: env('OPENWEBUI_API_KEY', 'dev-key'),
-    model: env('OPENWEBUI_MODEL', 'llama3'),
+  // OpenRouter
+  openrouter: {
+    url: 'https://openrouter.ai/api/v1',
+    apiKey: env('OPENROUTER_API_KEY', 'dev-key'),
+    model: env('OPENROUTER_MODEL', 'google/gemini-2.0-flash-001'),
   },
 
   // Database

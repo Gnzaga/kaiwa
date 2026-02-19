@@ -90,14 +90,14 @@ export async function summarizeArticle(articleId: number): Promise<void> {
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      const res = await fetch(`${config.openwebui.url}/api/chat/completions`, {
+      const res = await fetch(`${config.openrouter.url}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${config.openwebui.apiKey}`,
+          Authorization: `Bearer ${config.openrouter.apiKey}`,
         },
         body: JSON.stringify({
-          model: config.openwebui.model,
+          model: config.openrouter.model,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: articleText },
@@ -109,7 +109,7 @@ export async function summarizeArticle(articleId: number): Promise<void> {
 
       if (!res.ok) {
         const detail = await res.text().catch(() => '');
-        throw new Error(`OpenWebUI summarize failed: ${res.status} ${detail}`);
+        throw new Error(`OpenRouter summarize failed: ${res.status} ${detail}`);
       }
 
       const data = await res.json();

@@ -30,9 +30,9 @@ export async function GET() {
           return res.ok;
         }),
         checkService('libretranslate', libreHealthCheck),
-        checkService('openwebui', async () => {
-          const res = await fetch(`${config.openwebui.url}/api/models`, {
-            headers: { Authorization: `Bearer ${config.openwebui.apiKey}` },
+        checkService('openrouter', async () => {
+          const res = await fetch(`${config.openrouter.url}/models`, {
+            headers: { Authorization: `Bearer ${config.openrouter.apiKey}` },
             signal: AbortSignal.timeout(5000),
           });
           return res.ok;
@@ -47,11 +47,11 @@ export async function GET() {
         .from(schema.articles),
     ]);
 
-    const [miniflux, libretranslate, openwebui] = health;
+    const [miniflux, libretranslate, openrouter] = health;
 
     return NextResponse.json({
       pollingInterval: config.worker.pollIntervalMinutes,
-      health: { miniflux, libretranslate, openwebui },
+      health: { miniflux, libretranslate, openrouter },
       queue: {
         translationPending: Number(queueCounts[0]?.translationPending ?? 0),
         summarizationPending: Number(queueCounts[0]?.summarizationPending ?? 0),

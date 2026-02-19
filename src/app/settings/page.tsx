@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast';
 interface HealthStatus {
   miniflux: { ok: boolean; error?: string };
   libretranslate: { ok: boolean; error?: string };
-  openwebui: { ok: boolean; error?: string };
+  openrouter: { ok: boolean; error?: string };
 }
 
 interface QueueStatus {
@@ -239,7 +239,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <HealthCard name="Miniflux" status={data?.health.miniflux} />
           <HealthCard name="LibreTranslate" status={data?.health.libretranslate} />
-          <HealthCard name="OpenWebUI" status={data?.health.openwebui} />
+          <HealthCard name="OpenRouter" status={data?.health.openrouter} />
         </div>
       </Section>
 

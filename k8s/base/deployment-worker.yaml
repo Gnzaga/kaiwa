@@ -29,8 +29,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
-            - name: OPENWEBUI_MODEL
-              value: "openrouter_integration_for_openwebui.deepseek/deepseek-v3.2"
+            - name: OPENROUTER_MODEL
+              value: "google/gemini-2.0-flash-001"
           resources:
             requests:
               memory: "256Mi"

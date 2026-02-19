@@ -26,14 +26,14 @@ export async function translate(
   text: string,
   sourceLanguage: string = 'ja',
 ): Promise<TranslationResult> {
-  const res = await fetch(`${config.openwebui.url}/api/chat/completions`, {
+  const res = await fetch(`${config.openrouter.url}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.openwebui.apiKey}`,
+      Authorization: `Bearer ${config.openrouter.apiKey}`,
     },
     body: JSON.stringify({
-      model: config.openwebui.model,
+      model: config.openrouter.model,
       messages: [
         { role: 'system', content: buildSystemPrompt(sourceLanguage) },
         { role: 'user', content: text },
