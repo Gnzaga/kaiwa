@@ -57,7 +57,11 @@ export default function ArticleDetail({ id }: { id: number }) {
 
   const { data, isLoading, error } = useQuery<ArticleDetailResponse>({
     queryKey: ['article', id],
-    queryFn: () => fetch(`/api/articles/${id}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/articles/${id}`);
+      if (!r.ok) throw new Error(`Failed to load article (${r.status})`);
+      return r.json();
+    },
   });
 
   const { data: prefs } = useQuery<{ autoMarkRead: boolean }>({

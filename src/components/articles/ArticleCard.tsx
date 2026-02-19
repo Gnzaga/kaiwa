@@ -59,6 +59,21 @@ export default function ArticleCard({
   const precomputedRt = (article as Article & { readingMinutes?: number | null }).readingMinutes;
   const rt = precomputedRt && precomputedRt > 0 ? `${precomputedRt} min` : readingTime(article.translatedContent || article.originalContent);
 
+  // All hooks must be called before any conditional returns (Rules of Hooks)
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const [localStarred, setLocalStarred] = useState<boolean | null>(null);
+  const [localRead, setLocalRead] = useState<boolean | null>(null);
+  const [localArchived, setLocalArchived] = useState<boolean | null>(null);
+  const [inProgress, setInProgress] = useState(false);
+  useEffect(() => {
+    const saved = localStorage.getItem(`article-scroll-${article.id}`);
+    setInProgress(!!saved && parseInt(saved, 10) > 100);
+  }, [article.id]);
+  const starred = localStarred !== null ? localStarred : !!isStarred;
+  const read = localRead !== null ? localRead : !!isRead;
+  const archived = localArchived !== null ? localArchived : !!(article as Article & { isArchived?: boolean | null }).isArchived;
+
   // Hero variant — large featured card with full-width image
   if (variant === 'hero' && imageUrl) {
     return (
@@ -134,21 +149,6 @@ export default function ArticleCard({
       </Link>
     );
   }
-
-  // Default variant — image on right, content on left (Apple News row style)
-  const queryClient = useQueryClient();
-  const router = useRouter();
-  const [localStarred, setLocalStarred] = useState<boolean | null>(null);
-  const [localRead, setLocalRead] = useState<boolean | null>(null);
-  const [localArchived, setLocalArchived] = useState<boolean | null>(null);
-  const [inProgress, setInProgress] = useState(false);
-  useEffect(() => {
-    const saved = localStorage.getItem(`article-scroll-${article.id}`);
-    setInProgress(!!saved && parseInt(saved, 10) > 100);
-  }, [article.id]);
-  const starred = localStarred !== null ? localStarred : !!isStarred;
-  const read = localRead !== null ? localRead : !!isRead;
-  const archived = localArchived !== null ? localArchived : !!(article as Article & { isArchived?: boolean | null }).isArchived;
 
   const quickAction = async (e: React.MouseEvent, type: string) => {
     e.preventDefault();
