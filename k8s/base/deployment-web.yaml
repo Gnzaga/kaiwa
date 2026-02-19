@@ -33,7 +33,7 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: OPENROUTER_MODEL
-              value: "google/gemini-2.0-flash-001"
+              value: "deepseek/deepseek-v3.2"
           resources:
             requests:
               memory: "256Mi"
