@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 interface Region {
@@ -28,7 +28,8 @@ export default function SearchBar({
   const [region, setRegion] = useState<string>('');
   const [dateRange, setDateRange] = useState<SearchFilters['dateRange']>('');
   const [sentiment, setSentiment] = useState('');
-  const [mode, setMode] = useState<SearchMode>('keyword');
+  const [mode, setMode] = useState<SearchMode>('semantic');
+  const autoMode = useRef(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const { data: regions } = useQuery<Region[]>({
@@ -36,10 +37,40 @@ export default function SearchBar({
     queryFn: () => fetch('/api/regions').then((r) => r.json()),
   });
 
+  const handleModeClick = useCallback((m: SearchMode) => {
+    autoMode.current = false;
+    setMode(m);
+  }, []);
+
+  // Reset to auto mode when query is cleared
+  useEffect(() => {
+    if (!query) {
+      autoMode.current = true;
+      setMode('semantic');
+    }
+  }, [query]);
+
   useEffect(() => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onSearch({ query, region, dateRange, sentiment, mode });
+      let effectiveMode = mode;
+      let effectiveQuery = query;
+
+      // Auto-detect: quoted phrases → keyword mode
+      if (autoMode.current && query) {
+        if (/"[^"]*"/.test(query)) {
+          effectiveMode = 'keyword';
+          setMode('keyword');
+        } else {
+          effectiveMode = 'semantic';
+          setMode('semantic');
+        }
+      }
+
+      // Strip double quotes before sending
+      effectiveQuery = effectiveQuery.replace(/"/g, '');
+
+      onSearch({ query: effectiveQuery, region, dateRange, sentiment, mode: effectiveMode });
     }, 300);
     return () => clearTimeout(debounceRef.current);
   }, [query, region, dateRange, sentiment, mode, onSearch]);
@@ -70,7 +101,7 @@ export default function SearchBar({
           {(['keyword', 'hybrid', 'semantic'] as const).map((m) => (
             <button
               key={m}
-              onClick={() => setMode(m)}
+              onClick={() => handleModeClick(m)}
               className={`px-3 py-2 capitalize transition-colors ${
                 mode === m
                   ? 'bg-accent-primary text-white'

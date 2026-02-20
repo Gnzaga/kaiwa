@@ -46,7 +46,9 @@ export async function GET(
     const rawImageUrl = row.article.imageUrl;
     const article = {
       ...row.article,
-      imageUrl: rawImageUrl ? `/api/images/${rawImageUrl.replace(/^https?:\/\/[^/]+\/[^/]+\//, '')}` : null,
+      imageUrl: rawImageUrl
+        ? rawImageUrl.startsWith('http') ? rawImageUrl : `/api/images/${rawImageUrl}`
+        : null,
       feed: row.feed,
       sourceName: row.feed?.sourceName,
       isRead: row.isRead,
@@ -55,31 +57,69 @@ export async function GET(
       note: row.note ?? null,
     };
 
-    // Find related articles by matching tags
+    // Find related articles by embedding cosine similarity, fallback to tag overlap
     const tags = row.article.summaryTags as string[] | null;
     let relatedArticles: Record<string, unknown>[] = [];
-    if (tags && tags.length > 0) {
+
+    // Check if this article has an embedding
+    const embResult = await db.execute(
+      sql`SELECT embedding IS NOT NULL AS has_embedding FROM articles WHERE id = ${articleId}`,
+    );
+    const hasEmbedding = (embResult.rows[0] as { has_embedding: boolean } | undefined)?.has_embedding;
+
+    const relatedSelect = {
+      id: schema.articles.id,
+      originalTitle: schema.articles.originalTitle,
+      translatedTitle: schema.articles.translatedTitle,
+      originalUrl: schema.articles.originalUrl,
+      publishedAt: schema.articles.publishedAt,
+      summaryTldr: schema.articles.summaryTldr,
+      summaryTags: schema.articles.summaryTags,
+      summarySentiment: schema.articles.summarySentiment,
+      summaryStatus: schema.articles.summaryStatus,
+      translationStatus: schema.articles.translationStatus,
+      translationProvider: schema.articles.translationProvider,
+      sourceLanguage: schema.articles.sourceLanguage,
+      imageUrl: schema.articles.imageUrl,
+      feedId: schema.articles.feedId,
+      sourceName: schema.feeds.sourceName,
+      isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
+      isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
+      isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
+    };
+
+    if (hasEmbedding) {
+      // Embedding-based cosine similarity nearest neighbors
       const relatedRows = await db
-        .select({
-          id: schema.articles.id,
-          originalTitle: schema.articles.originalTitle,
-          translatedTitle: schema.articles.translatedTitle,
-          originalUrl: schema.articles.originalUrl,
-          publishedAt: schema.articles.publishedAt,
-          summaryTldr: schema.articles.summaryTldr,
-          summaryTags: schema.articles.summaryTags,
-          summarySentiment: schema.articles.summarySentiment,
-          summaryStatus: schema.articles.summaryStatus,
-          translationStatus: schema.articles.translationStatus,
-          translationProvider: schema.articles.translationProvider,
-          sourceLanguage: schema.articles.sourceLanguage,
-          imageUrl: schema.articles.imageUrl,
-          feedId: schema.articles.feedId,
-          sourceName: schema.feeds.sourceName,
-          isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
-          isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
-          isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
-        })
+        .select(relatedSelect)
+        .from(schema.articles)
+        .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
+        .leftJoin(
+          schema.userArticleStates,
+          and(
+            eq(schema.userArticleStates.articleId, schema.articles.id),
+            eq(schema.userArticleStates.userId, userId),
+          ),
+        )
+        .where(
+          and(
+            sql`${schema.articles.id} != ${articleId}`,
+            sql`articles.embedding IS NOT NULL`,
+          ),
+        )
+        .orderBy(sql`articles.embedding <=> (SELECT embedding FROM articles WHERE id = ${articleId})`)
+        .limit(5);
+
+      relatedArticles = relatedRows.map(r => ({
+        ...r,
+        imageUrl: r.imageUrl
+          ? (r.imageUrl as string).startsWith('http') ? r.imageUrl : `/api/images/${r.imageUrl}`
+          : null,
+      }));
+    } else if (tags && tags.length > 0) {
+      // Fallback: tag overlap
+      const relatedRows = await db
+        .select(relatedSelect)
         .from(schema.articles)
         .leftJoin(schema.feeds, eq(schema.articles.feedId, schema.feeds.id))
         .leftJoin(
@@ -100,7 +140,9 @@ export async function GET(
 
       relatedArticles = relatedRows.map(r => ({
         ...r,
-        imageUrl: r.imageUrl ? `/api/images/${(r.imageUrl as string).replace(/^https?:\/\/[^/]+\/[^/]+\//, '')}` : null,
+        imageUrl: r.imageUrl
+          ? (r.imageUrl as string).startsWith('http') ? r.imageUrl : `/api/images/${r.imageUrl}`
+          : null,
       }));
     }
 

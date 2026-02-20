@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
           isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
           readAt: schema.userArticleStates.readAt,
           sourceLanguage: schema.articles.sourceLanguage,
-          imageUrl: schema.articles.imageUrl,
+          imageUrl: sql<string | null>`COALESCE(${schema.articles.imageUrl}, (regexp_match(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, ''), '<img[^>]+src="([^"]+)"'))[1])`,
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
           categorySlug: sql<string>`COALESCE(${schema.articles.summaryCategory}, ${schema.categories.slug})`,
@@ -183,7 +183,9 @@ export async function GET(request: NextRequest) {
 
     const data = articles.map(a => ({
       ...a,
-      imageUrl: a.imageUrl ? `/api/images/${a.imageUrl.replace(/^https?:\/\/[^/]+\/[^/]+\//, '')}` : null,
+      imageUrl: a.imageUrl
+        ? a.imageUrl.startsWith('http') ? a.imageUrl : `/api/images/${a.imageUrl}`
+        : null,
     }));
 
     return NextResponse.json({

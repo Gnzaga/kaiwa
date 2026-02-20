@@ -113,7 +113,7 @@ const selectFields = {
   summaryTags: schema.articles.summaryTags,
   summarySentiment: schema.articles.summarySentiment,
   sourceLanguage: schema.articles.sourceLanguage,
-  imageUrl: schema.articles.imageUrl,
+  imageUrl: sql<string | null>`COALESCE(${schema.articles.imageUrl}, (regexp_match(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, ''), '<img[^>]+src="([^"]+)"'))[1])`,
   feedSourceName: schema.feeds.sourceName,
   feedRegionId: schema.feeds.regionId,
   categorySlug: schema.categories.slug,
@@ -153,6 +153,11 @@ function countQuery(userId: string) {
     );
 }
 
+function transformImageUrl(url: string | null): string | null {
+  if (!url) return null;
+  return url.startsWith('http') ? url : `/api/images/${url}`;
+}
+
 const tsvector = sql`to_tsvector('english', COALESCE(${schema.articles.translatedTitle}, '') || ' ' || COALESCE(${schema.articles.translatedContent}, '') || ' ' || COALESCE(${schema.articles.summaryTldr}, ''))`;
 
 async function keywordSearch(
@@ -181,7 +186,7 @@ async function keywordSearch(
   ]);
 
   return NextResponse.json({
-    data: articles,
+    data: articles.map(a => ({ ...a, imageUrl: transformImageUrl(a.imageUrl) })),
     total: Number(countResult[0].count),
     page,
     pageSize: PAGE_SIZE,
@@ -230,7 +235,7 @@ async function semanticSearch(
   ]);
 
   return NextResponse.json({
-    data: articles,
+    data: articles.map(a => ({ ...a, imageUrl: transformImageUrl(a.imageUrl) })),
     total: Number(countResult[0].count),
     page,
     pageSize: PAGE_SIZE,
@@ -338,7 +343,7 @@ async function hybridSearch(
   articles.sort((a, b) => (scoreMap.get(b.id) ?? 0) - (scoreMap.get(a.id) ?? 0));
 
   return NextResponse.json({
-    data: articles,
+    data: articles.map(a => ({ ...a, imageUrl: transformImageUrl(a.imageUrl) })),
     total,
     page,
     pageSize: PAGE_SIZE,

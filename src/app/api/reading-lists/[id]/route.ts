@@ -44,7 +44,7 @@ export async function GET(
           translationStatus: schema.articles.translationStatus,
           summaryTldr: schema.articles.summaryTldr,
           summaryTags: schema.articles.summaryTags,
-          imageUrl: schema.articles.imageUrl,
+          imageUrl: sql<string | null>`COALESCE(${schema.articles.imageUrl}, (regexp_match(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, ''), '<img[^>]+src="([^"]+)"'))[1])`,
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
           isRead: sql<boolean>`coalesce(${schema.userArticleStates.isRead}, false)`,
@@ -69,7 +69,12 @@ export async function GET(
 
     return NextResponse.json({
       list,
-      data: items,
+      data: items.map(a => ({
+        ...a,
+        imageUrl: a.imageUrl
+          ? (a.imageUrl as string).startsWith('http') ? a.imageUrl : `/api/images/${a.imageUrl}`
+          : null,
+      })),
       total: Number(countResult[0].count),
       page,
       pageSize,

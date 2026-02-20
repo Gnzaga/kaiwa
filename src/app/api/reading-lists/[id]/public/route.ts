@@ -33,7 +33,7 @@ export async function GET(
         publishedAt: schema.articles.publishedAt,
         summaryTldr: schema.articles.summaryTldr,
         summaryTags: schema.articles.summaryTags,
-        imageUrl: schema.articles.imageUrl,
+        imageUrl: sql<string | null>`COALESCE(${schema.articles.imageUrl}, (regexp_match(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, ''), '<img[^>]+src="([^"]+)"'))[1])`,
         feedSourceName: schema.feeds.sourceName,
         count: sql<number>`count(*) over ()`,
       })
@@ -43,7 +43,15 @@ export async function GET(
       .where(eq(schema.readingListItems.readingListId, listId))
       .orderBy(schema.readingListItems.sortOrder);
 
-    return NextResponse.json({ list, data: items });
+    return NextResponse.json({
+      list,
+      data: items.map(a => ({
+        ...a,
+        imageUrl: a.imageUrl
+          ? (a.imageUrl as string).startsWith('http') ? a.imageUrl : `/api/images/${a.imageUrl}`
+          : null,
+      })),
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });

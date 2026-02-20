@@ -29,6 +29,7 @@ const FONT_CLASS: Record<FontSize, string> = { sm: 'text-sm', base: 'text-base',
 export default function ArticleDetail({ id }: { id: number }) {
   const { toast } = useToast();
   const [showOriginal, setShowOriginal] = useState(false);
+  const [showTranslated, setShowTranslated] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
   const [showSummary, setShowSummary] = useState(true);
   const [quotePopup, setQuotePopup] = useState<{ text: string; x: number; y: number } | null>(null);
@@ -670,7 +671,7 @@ export default function ArticleDetail({ id }: { id: number }) {
           {article.translatedContent && (
             <a
               href="#article-content"
-              onClick={() => setOpenDropdown(null)}
+              onClick={() => { setShowTranslated(true); setOpenDropdown(null); }}
               className="block w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
             >
               ↓ Jump to Content
@@ -814,21 +815,39 @@ export default function ArticleDetail({ id }: { id: number }) {
         </section>
       )}
 
-      {/* Translated content */}
+      {/* Translated content (collapsible) */}
       {article.translatedContent && (
-        <section
-          id="article-content"
-          className={`${FONT_CLASS[fontSize]} ${serifFont ? 'font-serif' : ''} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}
-          onMouseUp={() => {
-            const sel = window.getSelection();
-            const text = sel?.toString().trim() ?? '';
-            if (!sel || !text) { setQuotePopup(null); return; }
-            const range = sel.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            setQuotePopup({ text, x: rect.left + rect.width / 2 + window.scrollX, y: rect.top + window.scrollY - 8 });
-          }}
-        >
-          <div dangerouslySetInnerHTML={{ __html: article.translatedContent }} />
+        <section id="article-content" className="border border-border rounded overflow-hidden">
+          <button
+            onClick={() => setShowTranslated(v => !v)}
+            className="flex items-center justify-between w-full px-4 py-3 text-sm text-text-tertiary hover:text-text-secondary transition-colors bg-bg-elevated"
+          >
+            <span>Translated Content · {wordCount.toLocaleString()} words</span>
+            <svg
+              className={`w-4 h-4 transition-transform ${showTranslated ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {showTranslated && (
+            <div
+              className={`px-4 py-3 border-t border-border ${FONT_CLASS[fontSize]} ${serifFont ? 'font-serif' : ''} text-text-secondary leading-relaxed space-y-3 transition-[font-size]`}
+              onMouseUp={() => {
+                const sel = window.getSelection();
+                const text = sel?.toString().trim() ?? '';
+                if (!sel || !text) { setQuotePopup(null); return; }
+                const range = sel.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                setQuotePopup({ text, x: rect.left + rect.width / 2 + window.scrollX, y: rect.top + window.scrollY - 8 });
+              }}
+            >
+              <div dangerouslySetInnerHTML={{ __html: article.translatedContent }} />
+            </div>
+          )}
         </section>
       )}
 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 
 const RECENT_ARTICLES_KEY = 'kaiwa-recent-articles';
-const MAX_RECENT_ARTICLES = 6;
+const MAX_RECENT_ARTICLES = 5;
 
 interface RecentArticle { id: number; title: string; source?: string; }
 
