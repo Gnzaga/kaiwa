@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import { config } from '@/lib/config';
 import { healthCheck as libreHealthCheck } from '@/lib/providers/libretranslate';
 
+const CHECK_TIMEOUT = 2000;
+
 async function checkMiniflux(): Promise<boolean> {
   try {
     const res = await fetch(`${config.miniflux.url}/v1/me`, {
       headers: { 'X-Auth-Token': config.miniflux.apiKey },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(CHECK_TIMEOUT),
     });
     return res.ok;
   } catch {
@@ -18,7 +20,7 @@ async function checkOpenRouter(): Promise<boolean> {
   try {
     const res = await fetch(`${config.openrouter.url}/models`, {
       headers: { Authorization: `Bearer ${config.openrouter.apiKey}` },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(CHECK_TIMEOUT),
     });
     return res.ok;
   } catch {

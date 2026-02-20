@@ -37,7 +37,7 @@ export async function translate(
 export async function healthCheck(): Promise<boolean> {
   try {
     const res = await fetch(`${config.libretranslate.url}/languages`, {
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(2000),
     });
     return res.ok;
   } catch {
