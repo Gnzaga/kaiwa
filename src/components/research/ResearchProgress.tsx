@@ -2,56 +2,60 @@
 
 import type { ResearchEvent } from '@/hooks/useResearchStream';
 
-const EVENT_ICONS: Record<string, string> = {
-  searching: '\u{1F50D}',
-  found: '\u{1F4E6}',
-  reading: '\u{1F4D6}',
-  analyzing: '\u{1F9E0}',
-  expanding: '\u{1F500}',
-  web_searching: '\u{1F310}',
-  web_found: '\u{1F517}',
-  web_reading: '\u{1F4F0}',
-  web_read: '\u{2705}',
-  error: '\u{26A0}',
+const EVENT_PREFIX: Record<string, string> = {
+  searching: 'SEARCH',
+  found: 'FOUND',
+  reading: 'READ',
+  analyzing: 'ANALYZE',
+  expanding: 'EXPAND',
+  web_searching: 'WEB:SEARCH',
+  web_found: 'WEB:FOUND',
+  web_reading: 'WEB:READ',
+  web_read: 'WEB:DONE',
+  error: 'ERROR',
 };
 
-function EventLabel({ event }: { event: ResearchEvent }) {
+const EVENT_COLOR: Record<string, string> = {
+  searching: 'text-accent-primary',
+  found: 'text-text-secondary',
+  reading: 'text-accent-primary',
+  analyzing: 'text-yellow-400',
+  expanding: 'text-text-tertiary',
+  web_searching: 'text-accent-primary',
+  web_found: 'text-text-secondary',
+  web_reading: 'text-accent-primary',
+  web_read: 'text-text-secondary',
+  error: 'text-red-400',
+};
+
+function EventDetail({ event }: { event: ResearchEvent }) {
   switch (event.type) {
     case 'searching':
       return (
-        <span>
-          Searching <span className="font-mono text-accent-primary">&quot;{event.query as string}&quot;</span>
-          <span className="text-text-tertiary ml-1">({event.mode as string})</span>
-        </span>
+        <>
+          <span className="text-text-primary">{event.query as string}</span>
+          <span className="text-text-tertiary ml-2">{event.mode as string}</span>
+        </>
       );
     case 'found':
       return (
-        <span>
-          Found <span className="font-medium text-text-primary">{event.new_articles as number}</span> new articles
-          <span className="text-text-tertiary ml-1">({event.total as number} total)</span>
-        </span>
+        <>
+          <span className="text-text-primary">+{event.new_articles as number}</span>
+          <span className="text-text-tertiary ml-2">{event.total as number} total</span>
+        </>
       );
     case 'reading':
-      return (
-        <span>
-          Reading summaries for <span className="font-medium text-text-primary">{event.count as number}</span> articles
-        </span>
-      );
+      return <span className="text-text-primary">{event.count as number} articles</span>;
     case 'analyzing':
-      return (
-        <span>
-          Analyzing findings
-          <span className="text-text-tertiary ml-1">(iteration {event.iteration as number})</span>
-        </span>
-      );
+      return <span className="text-text-tertiary">iteration {event.iteration as number}</span>;
     case 'expanding':
       return (
         <span className="space-y-1">
-          <span className="block">{event.reasoning as string}</span>
+          <span className="block text-text-secondary">{event.reasoning as string}</span>
           {Array.isArray(event.new_queries) && event.new_queries.length > 0 && (
-            <span className="flex flex-wrap gap-1 mt-1">
+            <span className="flex flex-wrap gap-1.5 mt-1">
               {(event.new_queries as string[]).map((q, i) => (
-                <span key={i} className="text-[11px] font-mono bg-bg-secondary px-1.5 py-0.5 rounded border border-border">
+                <span key={i} className="text-[11px] font-mono text-text-tertiary bg-bg-secondary px-1.5 py-0.5 rounded border border-border">
                   {q}
                 </span>
               ))}
@@ -60,34 +64,24 @@ function EventLabel({ event }: { event: ResearchEvent }) {
         </span>
       );
     case 'web_searching':
-      return (
-        <span>
-          Web searching <span className="font-mono text-accent-primary">&quot;{event.query as string}&quot;</span>
-        </span>
-      );
+      return <span className="text-text-primary">{event.query as string}</span>;
     case 'web_found':
       return (
-        <span>
-          Found <span className="font-medium text-text-primary">{event.new_results as number}</span> web results
-          <span className="text-text-tertiary ml-1">({event.total as number} total)</span>
-        </span>
+        <>
+          <span className="text-text-primary">+{event.new_results as number}</span>
+          <span className="text-text-tertiary ml-2">{event.total as number} total</span>
+        </>
       );
     case 'web_reading':
-      return (
-        <span>
-          Reading <span className="font-medium text-text-primary">{event.count as number}</span> web pages
-        </span>
-      );
+      return <span className="text-text-primary">{event.count as number} pages</span>;
     case 'web_read':
       return (
-        <span>
-          Read <span className="font-medium text-text-primary">{event.count as number}</span> of {event.total as number} pages
-        </span>
+        <span className="text-text-tertiary">{event.count as number}/{event.total as number} succeeded</span>
       );
     case 'error':
-      return <span className="text-accent-highlight">{event.message as string}</span>;
+      return <span className="text-red-400">{event.message as string}</span>;
     default:
-      return <span>{JSON.stringify(event)}</span>;
+      return <span className="text-text-tertiary">{JSON.stringify(event)}</span>;
   }
 }
 
@@ -101,34 +95,26 @@ export default function ResearchProgress({
   if (events.length === 0 && !isActive) return null;
 
   return (
-    <div className="relative pl-6">
-      {/* Vertical timeline line */}
-      <div className="absolute left-2 top-1 bottom-1 w-px bg-border" />
+    <div className="font-mono text-xs space-y-0.5">
+      {events.map((event, idx) => (
+        <div key={idx} className="flex items-start gap-0">
+          <span className={`shrink-0 w-[100px] text-right pr-2 ${EVENT_COLOR[event.type] || 'text-text-tertiary'}`}>
+            {EVENT_PREFIX[event.type] || event.type}
+          </span>
+          <span className="text-text-tertiary shrink-0 mr-2">|</span>
+          <span className="text-text-secondary leading-relaxed">
+            <EventDetail event={event} />
+          </span>
+        </div>
+      ))}
 
-      <div className="space-y-3">
-        {events.map((event, idx) => (
-          <div key={idx} className="relative flex items-start gap-3">
-            {/* Timeline dot */}
-            <div className="absolute -left-4 mt-0.5 w-4 h-4 flex items-center justify-center text-xs z-10">
-              <span className="relative z-10">
-                {EVENT_ICONS[event.type] || '\u{2022}'}
-              </span>
-            </div>
-            <div className="text-sm text-text-secondary leading-relaxed">
-              <EventLabel event={event} />
-            </div>
-          </div>
-        ))}
-
-        {isActive && (
-          <div className="relative flex items-start gap-3">
-            <div className="absolute -left-4 mt-0.5 w-4 h-4 flex items-center justify-center z-10">
-              <span className="w-2 h-2 bg-accent-primary rounded-full animate-pulse" />
-            </div>
-            <div className="text-sm text-text-tertiary">Working...</div>
-          </div>
-        )}
-      </div>
+      {isActive && (
+        <div className="flex items-start gap-0">
+          <span className="shrink-0 w-[100px] text-right pr-2 text-text-tertiary animate-pulse">...</span>
+          <span className="text-text-tertiary shrink-0 mr-2">|</span>
+          <span className="text-text-tertiary">working</span>
+        </div>
+      )}
     </div>
   );
 }
