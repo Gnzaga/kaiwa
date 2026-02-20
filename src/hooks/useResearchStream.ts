@@ -2,6 +2,9 @@
 
 import { useCallback, useRef, useState } from 'react';
 
+// LLM nodes that produce streaming thinking text
+const THINKING_TYPES = new Set(['planning', 'analyzing', 'compiling']);
+
 export interface ResearchEvent {
   type: string;
   [key: string]: unknown;
@@ -98,8 +101,12 @@ export function useResearchStream() {
 
       es.addEventListener('status', (e) => {
         try {
-          setThinking(null);
           const data = JSON.parse(e.data);
+          // Clear stale thinking when a new LLM phase starts;
+          // for non-LLM events, the component hides the box based on last event type
+          if (THINKING_TYPES.has(data.type)) {
+            setThinking(null);
+          }
           setEvents((prev) => [...prev, { ...data, _ts: Date.now() }]);
         } catch { /* ignore parse errors */ }
       });

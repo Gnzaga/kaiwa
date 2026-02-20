@@ -125,7 +125,7 @@ async def plan_search(state: ResearchState) -> dict[str, Any]:
     if state.get("web_page_summaries"):
         items = list(state["web_page_summaries"].values())[:5]
         web_preview = "\n".join(
-            f"- [WEB] {s.get('title', '?')}: {s.get('summary', 'no summary')[:100]}"
+            f"- [WEB] {s.get('title', '?')}: {(s.get('summary') or 'no summary')[:100]}"
             for s in items
         )
 

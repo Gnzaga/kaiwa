@@ -128,6 +128,18 @@ function ThinkingBox({ thinking }: { thinking: ThinkingState }) {
   );
 }
 
+// Contextual label for the "working" indicator based on last event
+const WORKING_LABEL: Record<string, string> = {
+  searching: 'executing search...',
+  found: 'processing results...',
+  reading: 'reading articles...',
+  web_searching: 'searching the web...',
+  web_found: 'processing web results...',
+  web_reading: 'reading web pages...',
+  web_read: 'processing pages...',
+  expanding: 'preparing next iteration...',
+};
+
 export default function ResearchProgress({
   events,
   isActive,
@@ -141,13 +153,11 @@ export default function ResearchProgress({
 }) {
   if (events.length === 0 && !isActive) return null;
 
-  // Determine which event is the latest thinking-capable event
-  const lastThinkingIdx = (() => {
-    for (let i = events.length - 1; i >= 0; i--) {
-      if (THINKING_NODES.has(events[i].type)) return i;
-    }
-    return -1;
-  })();
+  const lastEvent = events[events.length - 1];
+  // Show thinking box only when the last event is a thinking-capable type
+  // This avoids React batching issues where status+progress events arrive together
+  const showThinking = isActive && !!thinking && !!lastEvent && THINKING_NODES.has(lastEvent.type);
+  const showWorking = isActive && !showThinking;
 
   return (
     <div className="font-mono text-xs space-y-0.5">
@@ -167,18 +177,20 @@ export default function ResearchProgress({
               </span>
             ) : null}
           </div>
-          {/* Show thinking box after the latest thinking-capable event */}
-          {isActive && thinking && idx === lastThinkingIdx && (
+          {/* Show thinking box after the last event when it's a thinking-capable type */}
+          {idx === events.length - 1 && showThinking && thinking && (
             <ThinkingBox thinking={thinking} />
           )}
         </div>
       ))}
 
-      {isActive && !thinking && (
+      {showWorking && (
         <div className="flex items-start gap-0">
           <span className="shrink-0 w-[100px] text-right pr-2 text-text-tertiary animate-pulse">...</span>
           <span className="text-text-tertiary shrink-0 mr-2">|</span>
-          <span className="text-text-tertiary">working</span>
+          <span className="text-text-tertiary">
+            {(lastEvent && WORKING_LABEL[lastEvent.type]) || 'working'}
+          </span>
         </div>
       )}
     </div>
