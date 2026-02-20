@@ -8,12 +8,14 @@ import {
   queueScrape,
   queueTranslate,
   queueSummarize,
+  queueEmbed,
 } from '@/lib/queue';
 import { config } from '@/lib/config';
 import { handleSync } from './sync';
 import { handleScrape } from './scrape';
 import { handleTranslate } from './translate';
 import { handleSummarize } from './summarize';
+import { handleEmbed } from './embed';
 
 async function main() {
   console.log('[worker] Starting pg-boss...');
@@ -29,6 +31,7 @@ async function main() {
     await boss.createQueue(queueScrape(region));
     await boss.createQueue(queueTranslate(region));
     await boss.createQueue(queueSummarize(region));
+    await boss.createQueue(queueEmbed(region));
   }
   console.log('[worker] Queues created');
 
@@ -48,6 +51,11 @@ async function main() {
       queueSummarize(region),
       { localConcurrency: config.worker.summarizationConcurrency },
       handleSummarize,
+    );
+    await boss.work(
+      queueEmbed(region),
+      { localConcurrency: 2 },
+      handleEmbed,
     );
     console.log(`[worker] Registered handlers for region: ${region}`);
   }

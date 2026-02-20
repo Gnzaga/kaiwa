@@ -120,6 +120,13 @@ export const articles = pgTable('articles', {
   summaryError: text('summary_error'),
   summarizedAt: timestamp('summarized_at', { withTimezone: true }),
 
+  // Embedding
+  embeddingStatus: text('embedding_status', {
+    enum: ['pending', 'embedding', 'complete', 'error'],
+  }).default('pending'),
+  embeddingError: text('embedding_error'),
+  embeddedAt: timestamp('embedded_at', { withTimezone: true }),
+
   // User state
   isRead: boolean('is_read').default(false),
   isStarred: boolean('is_starred').default(false),

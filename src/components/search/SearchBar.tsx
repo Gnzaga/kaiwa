@@ -9,11 +9,14 @@ interface Region {
   flagEmoji: string;
 }
 
+export type SearchMode = 'keyword' | 'hybrid' | 'semantic';
+
 export interface SearchFilters {
   query: string;
   region: string;
   dateRange: '' | '24h' | '7d' | '30d';
   sentiment: string;
+  mode: SearchMode;
 }
 
 export default function SearchBar({
@@ -25,6 +28,7 @@ export default function SearchBar({
   const [region, setRegion] = useState<string>('');
   const [dateRange, setDateRange] = useState<SearchFilters['dateRange']>('');
   const [sentiment, setSentiment] = useState('');
+  const [mode, setMode] = useState<SearchMode>('keyword');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const { data: regions } = useQuery<Region[]>({
@@ -35,10 +39,10 @@ export default function SearchBar({
   useEffect(() => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onSearch({ query, region, dateRange, sentiment });
+      onSearch({ query, region, dateRange, sentiment, mode });
     }, 300);
     return () => clearTimeout(debounceRef.current);
-  }, [query, region, dateRange, sentiment, onSearch]);
+  }, [query, region, dateRange, sentiment, mode, onSearch]);
 
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -104,6 +108,23 @@ export default function SearchBar({
         <option value="restrictive">Restrictive</option>
         <option value="permissive">Permissive</option>
       </select>
+
+      {/* Search mode toggle */}
+      <div className="flex rounded border border-border overflow-hidden text-sm">
+        {(['keyword', 'hybrid', 'semantic'] as const).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={`px-3 py-2 capitalize transition-colors ${
+              mode === m
+                ? 'bg-accent-primary text-white'
+                : 'bg-bg-elevated text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

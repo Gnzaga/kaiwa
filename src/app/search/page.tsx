@@ -4,14 +4,14 @@ import { Suspense, useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import type { Article } from '@/db/schema';
-import SearchBar, { type SearchFilters } from '@/components/search/SearchBar';
+import SearchBar, { type SearchFilters, type SearchMode } from '@/components/search/SearchBar';
 import ArticleCard from '@/components/articles/ArticleCard';
 
 const RECENT_KEY = 'kaiwa-recent-searches';
 const SAVED_KEY = 'kaiwa-saved-searches';
 const MAX_RECENT = 8;
 
-interface SavedSearch { label: string; query: string; region: string; dateRange: '' | '24h' | '7d' | '30d'; sentiment: string; savedAt: string; }
+interface SavedSearch { label: string; query: string; region: string; dateRange: '' | '24h' | '7d' | '30d'; sentiment: string; mode: SearchMode; savedAt: string; }
 
 function getRecentSearches(): string[] {
   if (typeof window === 'undefined') return [];
@@ -45,6 +45,7 @@ function SearchPageContent() {
     region: '',
     dateRange: '',
     sentiment: '',
+    mode: 'keyword',
   });
 
   // Sync URL ?q= changes (e.g. from tag cloud links)
@@ -74,10 +75,11 @@ function SearchPageContent() {
       region: filters.region,
       dateRange: filters.dateRange as SavedSearch['dateRange'],
       sentiment: filters.sentiment,
+      mode: filters.mode,
       savedAt: new Date().toISOString(),
     };
     const prev = getSavedSearches().filter(
-      (s) => !(s.query === entry.query && s.region === entry.region && s.dateRange === entry.dateRange && s.sentiment === entry.sentiment),
+      (s) => !(s.query === entry.query && s.region === entry.region && s.dateRange === entry.dateRange && s.sentiment === entry.sentiment && s.mode === entry.mode),
     );
     const next = [entry, ...prev];
     localStorage.setItem(SAVED_KEY, JSON.stringify(next));
@@ -91,7 +93,7 @@ function SearchPageContent() {
   }
 
   const isCurrentSaved = savedSearches.some(
-    (s) => s.query === filters.query && s.region === filters.region && s.dateRange === filters.dateRange && s.sentiment === filters.sentiment,
+    (s) => s.query === filters.query && s.region === filters.region && s.dateRange === filters.dateRange && s.sentiment === filters.sentiment && s.mode === filters.mode,
   );
 
   const hasQuery = filters.query.length > 0;
@@ -101,6 +103,7 @@ function SearchPageContent() {
   if (filters.region) params.set('region', filters.region);
   if (filters.dateRange) params.set('dateRange', filters.dateRange);
   if (filters.sentiment) params.set('sentiment', filters.sentiment);
+  if (filters.mode && filters.mode !== 'keyword') params.set('mode', filters.mode);
   params.set('page', String(searchPage));
   params.set('sort', searchSort);
 
@@ -187,7 +190,7 @@ function SearchPageContent() {
             {savedSearches.map((s) => (
               <div key={s.savedAt} className="flex items-center gap-0 border border-accent-primary/40 rounded-full overflow-hidden text-sm text-text-secondary hover:border-accent-primary transition-colors group">
                 <button
-                  onClick={() => setFilters({ query: s.query, region: s.region, dateRange: s.dateRange, sentiment: s.sentiment })}
+                  onClick={() => setFilters({ query: s.query, region: s.region, dateRange: s.dateRange, sentiment: s.sentiment, mode: s.mode || 'keyword' })}
                   className="px-3 py-1 hover:text-text-primary transition-colors"
                 >
                   ★ {s.label}

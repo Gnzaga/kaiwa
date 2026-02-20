@@ -9,6 +9,7 @@ export const REGIONS = ['us', 'jp', 'ph', 'tw'];
 export function queueScrape(regionId: string) { return `scrape-${regionId}`; }
 export function queueTranslate(regionId: string) { return `translate-${regionId}`; }
 export function queueSummarize(regionId: string) { return `summarize-${regionId}`; }
+export function queueEmbed(regionId: string) { return `embed-${regionId}`; }
 
 // Legacy queue names (for API endpoints that don't know the region)
 export const QUEUE_SCRAPE = 'scrape-article';
@@ -31,6 +32,7 @@ export async function ensureBossStarted() {
       await boss.createQueue(queueScrape(region));
       await boss.createQueue(queueTranslate(region));
       await boss.createQueue(queueSummarize(region));
+      await boss.createQueue(queueEmbed(region));
     }
     started = true;
   }

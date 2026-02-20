@@ -3,7 +3,9 @@ kind: Kustomization
 resources:
   - deployment-web.yaml
   - deployment-worker.yaml
+  - deployment-embedder.yaml
   - service.yaml
+  - service-embedder.yaml
   - ingress.yaml
   - ingress-auth-bypass.yaml
   - external-secret.yaml

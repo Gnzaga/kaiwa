@@ -6,3 +6,5 @@ resources:
 images:
   - name: harbor.gnzaga.com/apps/kaiwa
     newTag: latest
+  - name: harbor.gnzaga.com/apps/kaiwa-embedder
+    newTag: latest

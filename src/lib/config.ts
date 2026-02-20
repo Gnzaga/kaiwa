@@ -87,6 +87,11 @@ export const config = {
     publicUrl: env('MINIO_PUBLIC_URL', 'http://10.100.0.228:9000/kaiwa-images'),
   },
 
+  // Embedder
+  embedder: {
+    url: env('EMBEDDER_URL', 'http://localhost:8000'),
+  },
+
   // Worker
   worker: {
     pollIntervalMinutes: parseInt(env('POLL_INTERVAL_MINUTES', '15'), 10),
