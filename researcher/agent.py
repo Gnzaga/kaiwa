@@ -29,6 +29,10 @@ class ResearchState(TypedDict):
     search_log: list[dict[str, Any]]
     # Event queue reference (set externally before invoke)
     _event_queue: asyncio.Queue | None
+    # Internal keys passed between nodes
+    _planned_searches: list[Any]
+    _decision: str
+    _new_angles: list[str]
 
 
 def _get_llm() -> ChatOpenAI:
@@ -116,6 +120,7 @@ Respond with ONLY a JSON object (no markdown):
 async def execute_searches(state: ResearchState) -> dict[str, Any]:
     """Run the planned search queries against the database."""
     planned: list[SearchQuery] = state.get("_planned_searches", [])
+    logger.info("execute_searches: %d planned queries", len(planned))
     filters = state["filters"]
     exclude = set(state["found_article_ids"])
     new_ids: list[int] = []
@@ -132,12 +137,17 @@ async def execute_searches(state: ResearchState) -> dict[str, Any]:
         date_from = filters.get("date_from")
         date_to = filters.get("date_to")
 
-        if sq.mode == "keyword":
-            results = await db.keyword_search(sq.query, 50, region, date_from, date_to, exclude)
-        elif sq.mode == "semantic":
-            results = await db.semantic_search(sq.query, 50, region, date_from, date_to, exclude)
-        else:
-            results = await db.hybrid_search(sq.query, 50, region, date_from, date_to, exclude)
+        try:
+            if sq.mode == "keyword":
+                results = await db.keyword_search(sq.query, 50, region, date_from, date_to, exclude)
+            elif sq.mode == "semantic":
+                results = await db.semantic_search(sq.query, 50, region, date_from, date_to, exclude)
+            else:
+                results = await db.hybrid_search(sq.query, 50, region, date_from, date_to, exclude)
+            logger.info("Search '%s' (%s): %d results", sq.query, sq.mode, len(results))
+        except Exception as e:
+            logger.error("Search '%s' (%s) failed: %s", sq.query, sq.mode, e)
+            results = []
 
         batch_ids = [r["id"] for r in results if r["id"] not in exclude]
         new_ids.extend(batch_ids)
@@ -350,6 +360,9 @@ async def run_research(
         "top_articles": None,
         "search_log": [],
         "_event_queue": event_queue,
+        "_planned_searches": [],
+        "_decision": "",
+        "_new_angles": [],
     }
 
     result = await research_graph.ainvoke(initial_state)
