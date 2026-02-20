@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { Suspense, useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useResearchStream } from '@/hooks/useResearchStream';
 import type { ResearchResult } from '@/hooks/useResearchStream';
@@ -10,7 +10,7 @@ import ResearchReport from '@/components/research/ResearchReport';
 import ResearchArticleList from '@/components/research/ResearchArticleList';
 import ResearchHistory from '@/components/research/ResearchHistory';
 
-export default function ResearchPage() {
+function ResearchPageContent() {
   const searchParams = useSearchParams();
   const { status, events, result, error, taskId, start, reset } = useResearchStream();
   const [viewingResult, setViewingResult] = useState<ResearchResult | null>(null);
@@ -123,5 +123,13 @@ export default function ResearchPage() {
         <ResearchHistory onSelect={handleSelectHistory} />
       )}
     </div>
+  );
+}
+
+export default function ResearchPage() {
+  return (
+    <Suspense fallback={<div className="p-6 md:p-8 max-w-4xl mx-auto"><div className="h-10 bg-bg-secondary border border-border rounded animate-pulse" /></div>}>
+      <ResearchPageContent />
+    </Suspense>
   );
 }
