@@ -89,9 +89,24 @@ class SearchQuery(BaseModel):
     region: str | None = None
 
 
+class WebSearchQuery(BaseModel):
+    query: str
+    language: str = "en"
+
+
 class PlanSearchOutput(BaseModel):
-    searches: list[SearchQuery]
+    # New format: separate db/web searches
+    db_searches: list[SearchQuery] = Field(default_factory=list)
+    web_searches: list[WebSearchQuery] = Field(default_factory=list)
     reasoning: str
+    # Backward compat: if LLM outputs old "searches" key, map to db_searches
+    searches: list[SearchQuery] | None = Field(default=None, exclude=True)
+
+    def __init__(self, **data):
+        # If old format "searches" key is present, map to db_searches
+        if "searches" in data and "db_searches" not in data:
+            data["db_searches"] = data.pop("searches")
+        super().__init__(**data)
 
 
 class AnalyzeDecision(BaseModel):
@@ -105,6 +120,12 @@ class ArticleRanking(BaseModel):
     relevance_reason: str
 
 
+class WebSourceReference(BaseModel):
+    url: str
+    title: str
+    relevance_reason: str = ""
+
+
 class CompiledReport(BaseModel):
     summary: str
     key_findings: list[str]
@@ -112,3 +133,4 @@ class CompiledReport(BaseModel):
     tags: list[str] = Field(default_factory=list)
     sentiment: str = "neutral"
     top_articles: list[ArticleRanking] = Field(default_factory=list)
+    web_sources: list[WebSourceReference] = Field(default_factory=list)

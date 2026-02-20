@@ -13,6 +13,7 @@ function buildSystemPrompt(sourceLanguage: string): string {
   return (
     `You are a professional ${langName}-to-English translator specializing in news, legal, and economic texts. ` +
     `Translate the following ${langName} text to English. Preserve technical terminology accurately. ` +
+    `Preserve all HTML tags and their attributes (like <img>, <a>, <div>, etc.) exactly. ` +
     'Do not summarize or interpret — provide a faithful translation only. ' +
     'Respond with ONLY the translated text, no explanations or preamble.'
   );

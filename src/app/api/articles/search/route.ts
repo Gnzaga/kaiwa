@@ -113,7 +113,11 @@ const selectFields = {
   summaryTags: schema.articles.summaryTags,
   summarySentiment: schema.articles.summarySentiment,
   sourceLanguage: schema.articles.sourceLanguage,
-  imageUrl: sql<string | null>`COALESCE(${schema.articles.imageUrl}, (regexp_match(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, ''), '<img[^>]+src="([^"]+)"'))[1])`,
+  imageUrl: sql<string | null>`COALESCE(
+    ${schema.articles.imageUrl},
+    (regexp_match(${schema.articles.translatedContent}, '<img[^>]+src="([^"]+)"'))[1],
+    (regexp_match(${schema.articles.originalContent}, '<img[^>]+src="([^"]+)"'))[1]
+  )`,
   feedSourceName: schema.feeds.sourceName,
   feedRegionId: schema.feeds.regionId,
   categorySlug: schema.categories.slug,

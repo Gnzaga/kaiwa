@@ -36,6 +36,9 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       RESEARCH_MODEL: ${RESEARCH_MODEL:-deepseek/deepseek-v3.2}
       RESEARCH_MAX_ITERATIONS: ${RESEARCH_MAX_ITERATIONS:-8}
+      SEARXNG_URL: http://searxng:8080
+      WEBREADER_URL: http://webreader:8000
+      WEB_SEARCH_ENABLED: "true"
     depends_on:
       db:
         condition: service_healthy
@@ -47,6 +50,33 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  searxng:
+    image: searxng/searxng:latest
+    ports:
+      - "8888:8080"
+    volumes:
+      - ./searxng-settings.yml:/etc/searxng/settings.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  webreader:
+    build: ./webreader
+    ports:
+      - "8002:8000"
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      RESEARCH_MODEL: ${RESEARCH_MODEL:-deepseek/deepseek-v3.2}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
 volumes:
   pgdata:

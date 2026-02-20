@@ -28,7 +28,7 @@ export default function RecentActivity() {
   const { data } = useQuery<Response>({
     queryKey: ['articles-recent-read'],
     queryFn: () =>
-      fetch('/api/articles?isRead=true&sort=newest&pageSize=5&page=1').then((r) => r.json()),
+      fetch('/api/articles?isRead=true&sort=newest&pageSize=10&page=1').then((r) => r.json()),
     staleTime: 30000,
   });
   const { data: weekData } = useQuery<{ total: number }>({

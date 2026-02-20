@@ -38,6 +38,21 @@ async def health():
     return {"status": "ok", "service": "kaiwa-researcher"}
 
 
+@app.get("/health/detailed")
+async def health_detailed():
+    import web
+    searxng_ok, webreader_ok = await asyncio.gather(
+        web.check_searxng_health(),
+        web.check_webreader_health(),
+    )
+    return {
+        "status": "ok",
+        "service": "kaiwa-researcher",
+        "web_search": searxng_ok,
+        "web_reader": webreader_ok,
+    }
+
+
 @app.post("/research")
 async def create_research(req: ResearchRequest):
     task_id = f"res_{uuid.uuid4().hex[:12]}"

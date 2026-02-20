@@ -52,6 +52,33 @@ export default function ResearchReport({ report }: { report: ReportType }) {
         </div>
       )}
 
+      {/* Web Sources */}
+      {report.web_sources && report.web_sources.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-text-primary">Web Sources</h2>
+          <ul className="space-y-2">
+            {report.web_sources.map((source, i) => (
+              <li key={i} className="flex gap-2 text-sm">
+                <span className="text-accent-primary mt-0.5 shrink-0">{'\u{1F310}'}</span>
+                <div>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent-primary hover:underline font-medium"
+                  >
+                    {source.title || source.url}
+                  </a>
+                  {source.relevance_reason && (
+                    <p className="text-text-tertiary text-xs mt-0.5">{source.relevance_reason}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Tags + Sentiment */}
       <div className="flex flex-wrap items-center gap-2">
         {report.sentiment && (

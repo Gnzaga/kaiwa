@@ -8,6 +8,10 @@ const EVENT_ICONS: Record<string, string> = {
   reading: '\u{1F4D6}',
   analyzing: '\u{1F9E0}',
   expanding: '\u{1F500}',
+  web_searching: '\u{1F310}',
+  web_found: '\u{1F517}',
+  web_reading: '\u{1F4F0}',
+  web_read: '\u{2705}',
   error: '\u{26A0}',
 };
 
@@ -53,6 +57,31 @@ function EventLabel({ event }: { event: ResearchEvent }) {
               ))}
             </span>
           )}
+        </span>
+      );
+    case 'web_searching':
+      return (
+        <span>
+          Web searching <span className="font-mono text-accent-primary">&quot;{event.query as string}&quot;</span>
+        </span>
+      );
+    case 'web_found':
+      return (
+        <span>
+          Found <span className="font-medium text-text-primary">{event.new_results as number}</span> web results
+          <span className="text-text-tertiary ml-1">({event.total as number} total)</span>
+        </span>
+      );
+    case 'web_reading':
+      return (
+        <span>
+          Reading <span className="font-medium text-text-primary">{event.count as number}</span> web pages
+        </span>
+      );
+    case 'web_read':
+      return (
+        <span>
+          Read <span className="font-medium text-text-primary">{event.count as number}</span> of {event.total as number} pages
         </span>
       );
     case 'error':

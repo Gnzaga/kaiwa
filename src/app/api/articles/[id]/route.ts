@@ -19,7 +19,38 @@ export async function GET(
 
     const rows = await db
       .select({
-        article: schema.articles,
+        article: {
+          id: schema.articles.id,
+          minifluxEntryId: schema.articles.minifluxEntryId,
+          feedId: schema.articles.feedId,
+          originalTitle: schema.articles.originalTitle,
+          originalContent: schema.articles.originalContent,
+          originalUrl: schema.articles.originalUrl,
+          publishedAt: schema.articles.publishedAt,
+          sourceLanguage: schema.articles.sourceLanguage,
+          imageUrl: sql<string | null>`COALESCE(
+            ${schema.articles.imageUrl},
+            (regexp_match(${schema.articles.translatedContent}, '<img[^>]+src="([^"]+)"'))[1],
+            (regexp_match(${schema.articles.originalContent}, '<img[^>]+src="([^"]+)"'))[1]
+          )`,
+          translatedTitle: schema.articles.translatedTitle,
+          translatedContent: schema.articles.translatedContent,
+          translationStatus: schema.articles.translationStatus,
+          translationProvider: schema.articles.translationProvider,
+          summaryTldr: schema.articles.summaryTldr,
+          summaryBullets: schema.articles.summaryBullets,
+          summaryTags: schema.articles.summaryTags,
+          summarySentiment: schema.articles.summarySentiment,
+          summaryCategory: schema.articles.summaryCategory,
+          summaryStatus: schema.articles.summaryStatus,
+          translationError: schema.articles.translationError,
+          summaryError: schema.articles.summaryError,
+          isRead: schema.articles.isRead,
+          isStarred: schema.articles.isStarred,
+          isArchived: schema.articles.isArchived,
+          createdAt: schema.articles.createdAt,
+          updatedAt: schema.articles.updatedAt,
+        },
         feed: schema.feeds,
         isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,
         isStarred: sql<boolean>`COALESCE(${schema.userArticleStates.isStarred}, false)`,
@@ -88,7 +119,11 @@ export async function GET(
       translationStatus: schema.articles.translationStatus,
       translationProvider: schema.articles.translationProvider,
       sourceLanguage: schema.articles.sourceLanguage,
-      imageUrl: schema.articles.imageUrl,
+      imageUrl: sql<string | null>`COALESCE(
+        ${schema.articles.imageUrl},
+        (regexp_match(${schema.articles.translatedContent}, '<img[^>]+src="([^"]+)"'))[1],
+        (regexp_match(${schema.articles.originalContent}, '<img[^>]+src="([^"]+)"'))[1]
+      )`,
       feedId: schema.articles.feedId,
       sourceName: schema.feeds.sourceName,
       isRead: sql<boolean>`COALESCE(${schema.userArticleStates.isRead}, false)`,

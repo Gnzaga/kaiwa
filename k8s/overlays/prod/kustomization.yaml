@@ -10,3 +10,5 @@ images:
     newTag: latest
   - name: harbor.gnzaga.com/apps/kaiwa-researcher
     newTag: latest
+  - name: harbor.gnzaga.com/apps/kaiwa-webreader
+    newTag: latest

@@ -99,19 +99,20 @@ export async function handleScrape(jobs: Job<ScrapeJobData>[]) {
         continue;
       }
 
-      const scraped = parsed.textContent.trim();
+      const scrapedText = parsed.textContent.trim();
+      const scrapedHtml = parsed.content ?? '';
       const original = article.originalContent ?? '';
 
       const updates: Record<string, unknown> = {};
 
-      if (scraped.length > original.length && scraped.length >= config.scrape.minContentLength) {
-        updates.originalContent = scraped;
+      if (scrapedText.length > original.length && scrapedText.length >= config.scrape.minContentLength) {
+        updates.originalContent = scrapedHtml;
         console.log(
-          `[scrape] Article ${articleId}: replaced content (${original.length} -> ${scraped.length} chars)`,
+          `[scrape] Article ${articleId}: replaced content (${original.length} -> ${scrapedHtml.length} chars HTML)`,
         );
       } else {
         console.log(
-          `[scrape] Article ${articleId}: kept original (original=${original.length}, scraped=${scraped.length} chars)`,
+          `[scrape] Article ${articleId}: kept original (original=${original.length}, scraped=${scrapedText.length} chars text)`,
         );
       }
 

@@ -146,7 +146,11 @@ export async function GET(request: NextRequest) {
           isArchived: sql<boolean>`COALESCE(${schema.userArticleStates.isArchived}, false)`,
           readAt: schema.userArticleStates.readAt,
           sourceLanguage: schema.articles.sourceLanguage,
-          imageUrl: sql<string | null>`COALESCE(${schema.articles.imageUrl}, (regexp_match(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, ''), '<img[^>]+src="([^"]+)"'))[1])`,
+          imageUrl: sql<string | null>`COALESCE(
+            ${schema.articles.imageUrl},
+            (regexp_match(${schema.articles.translatedContent}, '<img[^>]+src="([^"]+)"'))[1],
+            (regexp_match(${schema.articles.originalContent}, '<img[^>]+src="([^"]+)"'))[1]
+          )`,
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
           categorySlug: sql<string>`COALESCE(${schema.articles.summaryCategory}, ${schema.categories.slug})`,

@@ -7,6 +7,12 @@ export interface ResearchEvent {
   [key: string]: unknown;
 }
 
+export interface WebSource {
+  url: string;
+  title: string;
+  relevance_reason: string;
+}
+
 export interface ResearchReport {
   summary: string;
   key_findings: string[];
@@ -14,6 +20,7 @@ export interface ResearchReport {
   tags: string[];
   sentiment: string;
   top_articles: { article_id: number; relevance_reason: string }[];
+  web_sources?: WebSource[];
 }
 
 export interface ResearchArticle {

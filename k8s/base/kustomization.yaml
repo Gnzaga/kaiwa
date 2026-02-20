@@ -13,3 +13,8 @@ resources:
   - external-secret.yaml
   - externalsecret-harbor.yaml
   - scaledobject-embedder.yaml
+  - deployment-searxng.yaml
+  - service-searxng.yaml
+  - configmap-searxng.yaml
+  - deployment-webreader.yaml
+  - service-webreader.yaml

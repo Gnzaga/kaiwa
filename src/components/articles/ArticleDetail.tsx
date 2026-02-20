@@ -559,41 +559,6 @@ export default function ArticleDetail({ id }: { id: number }) {
         </div>
       )}
 
-      {/* Hero image */}
-      {article.imageUrl && (
-        <div className="rounded overflow-hidden border border-border cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
-          <img
-            src={article.imageUrl}
-            alt=""
-            className="w-full max-h-80 object-cover"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-            }}
-          />
-        </div>
-      )}
-
-      {/* Image lightbox */}
-      {lightboxOpen && article.imageUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 cursor-zoom-out"
-          onClick={() => setLightboxOpen(false)}
-        >
-          <img
-            src={article.imageUrl}
-            alt=""
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded shadow-2xl"
-          />
-          <button
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 text-white/60 hover:text-white text-2xl leading-none"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
       {/* Header */}
       <header className="space-y-2">
         <div className="flex items-center gap-3 text-xs text-text-tertiary">
@@ -634,10 +599,46 @@ export default function ArticleDetail({ id }: { id: number }) {
           )}
         </div>
         <h1 className="text-2xl font-semibold text-text-primary leading-tight">{title}</h1>
+
+        {/* Hero image under title */}
+        {article.imageUrl && (
+          <div className="rounded-xl overflow-hidden border border-border cursor-zoom-in my-4" onClick={() => setLightboxOpen(true)}>
+            <img
+              src={article.imageUrl}
+              alt=""
+              className="w-full max-h-[50vh] object-cover transition-transform duration-700 hover:scale-[1.02]"
+              loading="lazy"
+              onError={(e) => {
+                (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
         {article.translatedTitle && article.translatedTitle !== article.originalTitle && (
           <p className="text-sm text-text-tertiary font-jp">{article.originalTitle}</p>
         )}
       </header>
+
+      {/* Image lightbox */}
+      {lightboxOpen && article.imageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 cursor-zoom-out"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <img
+            src={article.imageUrl}
+            alt=""
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded shadow-2xl"
+          />
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 text-white/60 hover:text-white text-2xl leading-none"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Action buttons */}
       <div className="flex flex-wrap items-center gap-2">

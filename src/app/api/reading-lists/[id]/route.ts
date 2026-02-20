@@ -44,7 +44,11 @@ export async function GET(
           translationStatus: schema.articles.translationStatus,
           summaryTldr: schema.articles.summaryTldr,
           summaryTags: schema.articles.summaryTags,
-          imageUrl: sql<string | null>`COALESCE(${schema.articles.imageUrl}, (regexp_match(COALESCE(${schema.articles.translatedContent}, ${schema.articles.originalContent}, ''), '<img[^>]+src="([^"]+)"'))[1])`,
+          imageUrl: sql<string | null>`COALESCE(
+            ${schema.articles.imageUrl},
+            (regexp_match(${schema.articles.translatedContent}, '<img[^>]+src="([^"]+)"'))[1],
+            (regexp_match(${schema.articles.originalContent}, '<img[^>]+src="([^"]+)"'))[1]
+          )`,
           feedSourceName: schema.feeds.sourceName,
           feedRegionId: schema.feeds.regionId,
           isRead: sql<boolean>`coalesce(${schema.userArticleStates.isRead}, false)`,

@@ -235,6 +235,22 @@ export default function ArticleCard({
             {/* Title */}
             <h3 className="text-sm font-semibold text-text-primary leading-snug line-clamp-3 group-hover:text-accent-highlight transition-colors">{title}</h3>
 
+            {/* Image under title */}
+            {imageUrl && (
+              <div className="mt-2 mb-1.5 rounded-lg overflow-hidden bg-bg-elevated max-h-48 border border-border/50">
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
             {/* Original title */}
             {showOriginal && (
               <p className="text-xs text-text-tertiary font-jp mt-0.5 truncate">{article.originalTitle}</p>
@@ -293,21 +309,6 @@ export default function ArticleCard({
             </div>
           </div>
         </div>
-
-        {/* Image on right */}
-        {imageUrl && (
-          <div className="shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-bg-elevated self-center">
-            <img
-              src={imageUrl}
-              alt=""
-              className="w-full h-full object-cover"
-              loading="lazy"
-              onError={(e) => {
-                (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-              }}
-            />
-          </div>
-        )}
       </article>
     </Link>
   );

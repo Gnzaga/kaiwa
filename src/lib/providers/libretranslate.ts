@@ -13,6 +13,7 @@ export async function translate(
     q: text,
     source: sourceLanguage,
     target: targetLanguage,
+    format: 'html',
   };
   if (config.libretranslate.apiKey) {
     body.api_key = config.libretranslate.apiKey;
