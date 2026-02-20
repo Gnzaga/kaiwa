@@ -82,7 +82,8 @@ async def _run_research_task(
         async def _proxy_events():
             while True:
                 evt = await logging_queue.get()
-                events_log.append(evt)
+                if evt.get("event") != "progress":
+                    events_log.append(evt)
                 await event_queue.put(evt)
                 if evt.get("event") == "done":
                     break

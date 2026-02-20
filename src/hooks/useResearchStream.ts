@@ -45,19 +45,28 @@ export interface ResearchResult {
 
 type Status = 'idle' | 'connecting' | 'streaming' | 'complete' | 'error';
 
+export interface ThinkingState {
+  node: string;
+  text: string;
+}
+
 export function useResearchStream() {
   const [status, setStatus] = useState<Status>('idle');
   const [events, setEvents] = useState<ResearchEvent[]>([]);
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
+  const [thinking, setThinking] = useState<ThinkingState | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const startTimeRef = useRef<number>(0);
 
   const start = useCallback(async (query: string, filters?: { region?: string; date_from?: string; date_to?: string }) => {
     // Reset
     setEvents([]);
     setResult(null);
     setError(null);
+    setThinking(null);
+    startTimeRef.current = Date.now();
     setStatus('connecting');
 
     try {
@@ -80,10 +89,18 @@ export function useResearchStream() {
       const es = new EventSource(`/api/research/${id}/stream`);
       eventSourceRef.current = es;
 
-      es.addEventListener('status', (e) => {
+      es.addEventListener('progress', (e) => {
         try {
           const data = JSON.parse(e.data);
-          setEvents((prev) => [...prev, data]);
+          setThinking({ node: data.node, text: data.text });
+        } catch { /* ignore */ }
+      });
+
+      es.addEventListener('status', (e) => {
+        try {
+          setThinking(null);
+          const data = JSON.parse(e.data);
+          setEvents((prev) => [...prev, { ...data, _ts: Date.now() }]);
         } catch { /* ignore parse errors */ }
       });
 
@@ -95,6 +112,7 @@ export function useResearchStream() {
       });
 
       es.addEventListener('done', () => {
+        setThinking(null);
         setStatus('complete');
         es.close();
         eventSourceRef.current = null;
@@ -132,5 +150,5 @@ export function useResearchStream() {
     setStatus('idle');
   }, [cancel]);
 
-  return { status, events, result, error, taskId, start, cancel, reset };
+  return { status, events, result, error, taskId, thinking, startTime: startTimeRef.current, start, cancel, reset };
 }

@@ -71,6 +71,18 @@ async def _emit(state: ResearchState, event_type: str, data: dict[str, Any]) -> 
         await q.put({"event": event_type, "data": data})
 
 
+async def _stream_llm(state: ResearchState, node: str, prompt: str) -> str:
+    """Stream LLM output, emitting progress events with accumulated text."""
+    llm = _get_llm()
+    accumulated = ""
+    async for chunk in llm.astream(prompt):
+        token = chunk.content or ""
+        if token:
+            accumulated += token
+            await _emit(state, "progress", {"node": node, "text": accumulated})
+    return accumulated
+
+
 # ── Nodes ─────────────────────────────────────────────────────────────
 
 async def check_web_availability(state: ResearchState) -> dict[str, Any]:
@@ -94,7 +106,6 @@ async def check_web_availability(state: ResearchState) -> dict[str, Any]:
 async def plan_search(state: ResearchState) -> dict[str, Any]:
     """LLM decides which DB and web search queries to run."""
     iteration = state["iteration"] + 1
-    llm = _get_llm()
     today = date.today().isoformat()
     web_available = state.get("web_available", False)
 
@@ -151,8 +162,9 @@ Respond with ONLY a JSON object (no markdown):
 {{"db_searches": [{{"query": "...", "mode": "hybrid", "region": null}}], {'"web_searches": [{"query": "...", "language": "en"}], ' if web_available else ''}"reasoning": "..."}}
 """
 
-    resp = await llm.ainvoke(prompt)
-    content = resp.content.strip()
+    await _emit(state, "status", {"type": "planning", "iteration": iteration})
+
+    content = (await _stream_llm(state, "planning", prompt)).strip()
     if content.startswith("```"):
         content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
@@ -315,7 +327,6 @@ async def read_sources(state: ResearchState) -> dict[str, Any]:
 
 async def analyze_and_decide(state: ResearchState) -> dict[str, Any]:
     """LLM reviews findings and decides whether to expand or compile."""
-    llm = _get_llm()
     today = date.today().isoformat()
     iteration = state["iteration"]
     summaries = state["read_summaries"]
@@ -359,8 +370,7 @@ Respond with ONLY a JSON object (no markdown):
 {{"action": "expand" or "compile", "reasoning": "...", "new_angles": ["query1", "query2"]}}
 """
 
-    resp = await llm.ainvoke(prompt)
-    content = resp.content.strip()
+    content = (await _stream_llm(state, "analyzing", prompt)).strip()
     if content.startswith("```"):
         content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
@@ -385,7 +395,6 @@ Respond with ONLY a JSON object (no markdown):
 
 async def compile_report(state: ResearchState) -> dict[str, Any]:
     """LLM produces the final structured report."""
-    llm = _get_llm()
     today = date.today().isoformat()
     summaries = state["read_summaries"]
     web_summaries = state.get("web_page_summaries", {})
@@ -430,8 +439,9 @@ Produce a JSON report with:
 Respond with ONLY a JSON object (no markdown):
 """
 
-    resp = await llm.ainvoke(prompt)
-    content = resp.content.strip()
+    await _emit(state, "status", {"type": "compiling"})
+
+    content = (await _stream_llm(state, "compiling", prompt)).strip()
     if content.startswith("```"):
         content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 

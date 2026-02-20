@@ -12,7 +12,7 @@ import ResearchHistory from '@/components/research/ResearchHistory';
 
 function ResearchPageContent() {
   const searchParams = useSearchParams();
-  const { status, events, result, error, taskId, start, reset } = useResearchStream();
+  const { status, events, result, error, taskId, thinking, startTime, start, reset } = useResearchStream();
   const [viewingResult, setViewingResult] = useState<ResearchResult | null>(null);
   const [viewingQuery, setViewingQuery] = useState<string | null>(null);
 
@@ -99,7 +99,7 @@ function ResearchPageContent() {
               <span className="text-[10px] font-mono text-text-tertiary">{taskId}</span>
             )}
           </div>
-          <ResearchProgress events={events} isActive={isActive} />
+          <ResearchProgress events={events} isActive={isActive} thinking={thinking} startTime={startTime} />
         </div>
       )}
 

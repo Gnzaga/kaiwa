@@ -1,13 +1,17 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import type { ResearchEvent } from '@/hooks/useResearchStream';
+import type { ThinkingState } from '@/hooks/useResearchStream';
 
 const EVENT_PREFIX: Record<string, string> = {
+  planning: 'PLAN',
   searching: 'SEARCH',
   found: 'FOUND',
   reading: 'READ',
   analyzing: 'ANALYZE',
   expanding: 'EXPAND',
+  compiling: 'COMPILE',
   web_searching: 'WEB:SEARCH',
   web_found: 'WEB:FOUND',
   web_reading: 'WEB:READ',
@@ -16,11 +20,13 @@ const EVENT_PREFIX: Record<string, string> = {
 };
 
 const EVENT_COLOR: Record<string, string> = {
+  planning: 'text-yellow-400',
   searching: 'text-accent-primary',
   found: 'text-text-secondary',
   reading: 'text-accent-primary',
   analyzing: 'text-yellow-400',
   expanding: 'text-text-tertiary',
+  compiling: 'text-yellow-400',
   web_searching: 'text-accent-primary',
   web_found: 'text-text-secondary',
   web_reading: 'text-accent-primary',
@@ -28,8 +34,21 @@ const EVENT_COLOR: Record<string, string> = {
   error: 'text-red-400',
 };
 
+// Node types that show thinking text
+const THINKING_NODES = new Set(['planning', 'analyzing', 'compiling']);
+
+function formatElapsed(startTime: number, ts: number): string {
+  if (!startTime || !ts) return '';
+  const secs = Math.floor((ts - startTime) / 1000);
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `+${m}:${s.toString().padStart(2, '0')}`;
+}
+
 function EventDetail({ event }: { event: ResearchEvent }) {
   switch (event.type) {
+    case 'planning':
+      return <span className="text-text-tertiary">iteration {event.iteration as number}</span>;
     case 'searching':
       return (
         <>
@@ -63,6 +82,8 @@ function EventDetail({ event }: { event: ResearchEvent }) {
           )}
         </span>
       );
+    case 'compiling':
+      return <span className="text-text-tertiary">generating report</span>;
     case 'web_searching':
       return <span className="text-text-primary">{event.query as string}</span>;
     case 'web_found':
@@ -85,30 +106,75 @@ function EventDetail({ event }: { event: ResearchEvent }) {
   }
 }
 
+function ThinkingBox({ thinking }: { thinking: ThinkingState }) {
+  const scrollRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [thinking.text]);
+
+  return (
+    <div className="ml-[100px] pl-6 my-1">
+      <pre
+        ref={scrollRef}
+        className="text-text-tertiary text-[11px] leading-relaxed bg-bg-primary/50 border border-border/50 rounded px-3 py-2 max-h-48 overflow-y-auto whitespace-pre-wrap break-words"
+      >
+        {thinking.text}
+        <span className="animate-pulse">&#x258C;</span>
+      </pre>
+    </div>
+  );
+}
+
 export default function ResearchProgress({
   events,
   isActive,
+  thinking,
+  startTime,
 }: {
   events: ResearchEvent[];
   isActive: boolean;
+  thinking?: ThinkingState | null;
+  startTime?: number;
 }) {
   if (events.length === 0 && !isActive) return null;
+
+  // Determine which event is the latest thinking-capable event
+  const lastThinkingIdx = (() => {
+    for (let i = events.length - 1; i >= 0; i--) {
+      if (THINKING_NODES.has(events[i].type)) return i;
+    }
+    return -1;
+  })();
 
   return (
     <div className="font-mono text-xs space-y-0.5">
       {events.map((event, idx) => (
-        <div key={idx} className="flex items-start gap-0">
-          <span className={`shrink-0 w-[100px] text-right pr-2 ${EVENT_COLOR[event.type] || 'text-text-tertiary'}`}>
-            {EVENT_PREFIX[event.type] || event.type}
-          </span>
-          <span className="text-text-tertiary shrink-0 mr-2">|</span>
-          <span className="text-text-secondary leading-relaxed">
-            <EventDetail event={event} />
-          </span>
+        <div key={idx}>
+          <div className="flex items-start gap-0">
+            <span className={`shrink-0 w-[100px] text-right pr-2 ${EVENT_COLOR[event.type] || 'text-text-tertiary'}`}>
+              {EVENT_PREFIX[event.type] || event.type}
+            </span>
+            <span className="text-text-tertiary shrink-0 mr-2">|</span>
+            <span className="text-text-secondary leading-relaxed flex-1">
+              <EventDetail event={event} />
+            </span>
+            {startTime && (event._ts as number) ? (
+              <span className="shrink-0 text-text-tertiary ml-2">
+                {formatElapsed(startTime, event._ts as number)}
+              </span>
+            ) : null}
+          </div>
+          {/* Show thinking box after the latest thinking-capable event */}
+          {isActive && thinking && idx === lastThinkingIdx && (
+            <ThinkingBox thinking={thinking} />
+          )}
         </div>
       ))}
 
-      {isActive && (
+      {isActive && !thinking && (
         <div className="flex items-start gap-0">
           <span className="shrink-0 w-[100px] text-right pr-2 text-text-tertiary animate-pulse">...</span>
           <span className="text-text-tertiary shrink-0 mr-2">|</span>
