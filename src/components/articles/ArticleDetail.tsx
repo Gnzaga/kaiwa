@@ -256,6 +256,11 @@ export default function ArticleDetail({ id }: { id: number }) {
   const noteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const noteInitialized = useRef(false);
   const [metaOpen, setMetaOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const toggleDropdown = useCallback((name: string) => {
+    setOpenDropdown(prev => prev === name ? null : name);
+    if (name !== 'more') setShowListMenu(false);
+  }, []);
 
   // Auto-save note after 2s idle
   useEffect(() => {
@@ -339,6 +344,19 @@ export default function ArticleDetail({ id }: { id: number }) {
     return () => { if (sidebar) sidebar.style.display = ''; };
   }, [focusMode]);
 
+  // Close dropdowns on outside click
+  useEffect(() => {
+    if (!openDropdown) return;
+    function handleClick(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest('[data-dropdown]')) {
+        setOpenDropdown(null);
+        setShowListMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [openDropdown]);
+
   // Add 'f' key for focus mode toggle, '?' for shortcuts
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -350,7 +368,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.key === 'p') window.print();
       if (e.key === 't') { copyThread(); toast('Thread copied'); }
       if (e.key === '?') setShowShortcuts(m => !m);
-      if (e.key === 'Escape') { setShowShortcuts(false); setQuotePopup(null); }
+      if (e.key === 'Escape') { setShowShortcuts(false); setQuotePopup(null); setOpenDropdown(null); setShowListMenu(false); }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -573,165 +591,132 @@ export default function ArticleDetail({ id }: { id: number }) {
           {article.isArchived ? 'Unarchive' : 'Archive'}
         </ActionButton>
 
-        {/* Save to List dropdown */}
-        <div className="relative">
-          <ActionButton onClick={() => setShowListMenu(!showListMenu)}>
-            Save to List
-          </ActionButton>
-          {showListMenu && (
-            <div className="absolute top-full left-0 mt-1 w-48 bg-bg-elevated border border-border rounded shadow-lg z-10">
-              {lists && lists.length > 0 ? (
-                lists.map(list => (
-                  <button
-                    key={list.id}
-                    onClick={() => addToListMutation.mutate(list.id)}
-                    className="block w-full text-left px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
-                  >
-                    {list.name}
-                  </button>
-                ))
-              ) : (
-                <div className="px-3 py-2 text-xs text-text-tertiary">No lists yet</div>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Spacer pushes dropdowns right */}
+        <div className="flex-1" />
 
-        <ActionButton onClick={copyLink} active={copied}>
-          {copied ? 'Copied!' : 'Copy Link'}
-        </ActionButton>
-
-        <ActionButton
-          onClick={() => {
+        {/* Copy dropdown */}
+        <DropdownMenu label="Copy" open={openDropdown === 'copy'} onToggle={() => toggleDropdown('copy')}>
+          <MenuItem onClick={() => { copyLink(); setOpenDropdown(null); }}>
+            {copied ? 'Copied!' : 'Copy Link'}
+          </MenuItem>
+          <MenuItem onClick={() => {
             if (!data?.article) return;
             const mdTitle = data.article.translatedTitle || data.article.originalTitle;
             navigator.clipboard.writeText(`[${mdTitle}](${data.article.originalUrl})`);
             setMdCopied(true);
             setTimeout(() => setMdCopied(false), 2000);
-          }}
-          active={mdCopied}
-        >
-          {mdCopied ? 'Copied!' : 'Copy MD'}
-        </ActionButton>
+            setOpenDropdown(null);
+          }}>
+            {mdCopied ? 'Copied!' : 'Copy Markdown'}
+          </MenuItem>
+          <MenuItem onClick={() => { copyCitation(); setOpenDropdown(null); }}>
+            {citationCopied ? 'Copied!' : 'Copy Citation'}
+          </MenuItem>
+          {article.summaryStatus === 'complete' && (article.summaryTldr || (article.summaryBullets && article.summaryBullets.length > 0)) && (
+            <>
+              <MenuItem onClick={() => { copySummary(); setOpenDropdown(null); }}>
+                {summaryCopied ? 'Copied!' : 'Copy Summary'}
+              </MenuItem>
+              <MenuItem onClick={() => { copyOutline(); setOpenDropdown(null); }}>
+                {outlineCopied ? 'Copied!' : 'Copy Outline'}
+              </MenuItem>
+              <MenuItem onClick={() => { copyThread(); setOpenDropdown(null); }}>
+                {threadCopied ? 'Copied!' : 'Copy Thread'}
+              </MenuItem>
+            </>
+          )}
+        </DropdownMenu>
 
-        <ActionButton onClick={downloadMd}>
-          Download MD
-        </ActionButton>
-
-        <ActionButton onClick={copyCitation} active={citationCopied}>
-          {citationCopied ? 'Copied!' : 'Copy Citation'}
-        </ActionButton>
-
-        {article.summaryStatus === 'complete' && (article.summaryTldr || (article.summaryBullets && article.summaryBullets.length > 0)) && (
-          <>
-            <ActionButton onClick={copySummary} active={summaryCopied}>
-              {summaryCopied ? 'Copied!' : 'Copy Summary'}
-            </ActionButton>
-            <ActionButton onClick={copyOutline} active={outlineCopied}>
-              {outlineCopied ? 'Copied!' : 'Copy Outline'}
-            </ActionButton>
-            <ActionButton onClick={copyThread} active={threadCopied}>
-              {threadCopied ? 'Copied!' : 'Copy Thread'}
-            </ActionButton>
-          </>
-        )}
-
-        <button
-          onClick={cycleFontSize}
-          title={`Font size: ${fontSize} (click to cycle)`}
-          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors font-mono"
-        >
-          A{fontSize === 'sm' ? '−' : fontSize === 'lg' ? '+' : ''}
-        </button>
-        <button
-          onClick={toggleSerifFont}
-          title={serifFont ? 'Switch to sans-serif' : 'Switch to serif'}
-          className={`px-3 py-1.5 text-xs border rounded transition-colors ${serifFont ? 'border-accent-primary text-accent-primary font-serif' : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'}`}
-        >
-          Serif
-        </button>
-
-        <a
-          href={article.originalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
-        >
-          Source ↗
-        </a>
-
-        <button
-          onClick={() => window.print()}
-          title="Print article"
-          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
-        >
-          Print
-        </button>
-
-        <button
-          onClick={() => setFocusMode(m => !m)}
-          title="Focus mode (f)"
-          className={`px-3 py-1.5 text-xs border rounded transition-colors ${focusMode ? 'border-accent-primary text-accent-primary' : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'}`}
-        >
-          {focusMode ? 'Exit Focus' : 'Focus'}
-        </button>
-
-        {article.translatedContent && (
+        {/* Share dropdown */}
+        <DropdownMenu label="Share" open={openDropdown === 'share'} onToggle={() => toggleDropdown('share')}>
           <a
-            href="#article-content"
-            className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
+            href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${article.originalUrl}\n\n${article.summaryTldr ?? ''}`)}`}
+            className="block w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
           >
-            ↓ Read
+            Email
           </a>
-        )}
-        <button
-          onClick={() => window.print()}
-          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
-        >
-          Print
-        </button>
-
-        <a
-          href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${article.originalUrl}\n\n${article.summaryTldr ?? ''}`)}`}
-          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
-        >
-          Email
-        </a>
-
-        <button
-          onClick={() => {
+          <MenuItem onClick={() => {
             if (navigator.share) {
               navigator.share({ title, url: article.originalUrl }).catch(() => {});
             } else {
               navigator.clipboard.writeText(article.originalUrl);
               toast('Link copied');
             }
-          }}
-          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
-        >
-          Share
-        </button>
+            setOpenDropdown(null);
+          }}>
+            Share
+          </MenuItem>
+          <a
+            href={article.originalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+          >
+            Source ↗
+          </a>
+        </DropdownMenu>
 
-        <ActionButton onClick={() => actionMutation.mutate({ type: 'retranslate' })}>
-          Re-translate
-        </ActionButton>
-        <ActionButton onClick={() => actionMutation.mutate({ type: 'resummarize' })}>
-          Re-summarize
-        </ActionButton>
-        <ActionButton
-          onClick={() => scrapeMutation.mutate()}
-          disabled={scrapeMutation.isPending}
-        >
-          {scrapeMutation.isPending ? 'Scraping...' : 'Scrape'}
-        </ActionButton>
-        <a
-          href={article.originalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:text-text-primary hover:border-accent-primary transition-colors"
-        >
-          View Original
-        </a>
+        {/* View dropdown */}
+        <DropdownMenu label="View" open={openDropdown === 'view'} onToggle={() => toggleDropdown('view')}>
+          <MenuItem onClick={() => { setFocusMode(m => !m); setOpenDropdown(null); }} active={focusMode}>
+            {focusMode ? 'Exit Focus' : 'Focus Mode'}
+          </MenuItem>
+          <MenuItem onClick={cycleFontSize}>
+            Font: A{fontSize === 'sm' ? '−' : fontSize === 'lg' ? '+' : ''}
+          </MenuItem>
+          <MenuItem onClick={toggleSerifFont} active={serifFont}>
+            {serifFont ? 'Sans-serif' : 'Serif'}
+          </MenuItem>
+          {article.translatedContent && (
+            <a
+              href="#article-content"
+              onClick={() => setOpenDropdown(null)}
+              className="block w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+            >
+              ↓ Jump to Content
+            </a>
+          )}
+        </DropdownMenu>
+
+        {/* More dropdown */}
+        <DropdownMenu label="More" open={openDropdown === 'more'} onToggle={() => toggleDropdown('more')}>
+          <MenuItem onClick={() => setShowListMenu(m => !m)}>
+            Save to List {showListMenu ? '▾' : '→'}
+          </MenuItem>
+          {showListMenu && (
+            lists && lists.length > 0 ? (
+              lists.map(list => (
+                <button
+                  key={list.id}
+                  onClick={() => addToListMutation.mutate(list.id)}
+                  className="block w-full text-left pl-6 pr-3 py-1.5 text-xs text-text-tertiary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+                >
+                  {list.name}
+                </button>
+              ))
+            ) : (
+              <div className="pl-6 pr-3 py-1.5 text-xs text-text-tertiary">No lists yet</div>
+            )
+          )}
+          <MenuItem onClick={() => { downloadMd(); setOpenDropdown(null); }}>
+            Download Markdown
+          </MenuItem>
+          <MenuItem onClick={() => { window.print(); setOpenDropdown(null); }}>
+            Print
+          </MenuItem>
+          <MenuItem onClick={() => { actionMutation.mutate({ type: 'retranslate' }); setOpenDropdown(null); }}>
+            Re-translate
+          </MenuItem>
+          <MenuItem onClick={() => { actionMutation.mutate({ type: 'resummarize' }); setOpenDropdown(null); }}>
+            Re-summarize
+          </MenuItem>
+          <MenuItem
+            onClick={() => { scrapeMutation.mutate(); setOpenDropdown(null); }}
+            disabled={scrapeMutation.isPending}
+          >
+            {scrapeMutation.isPending ? 'Scraping...' : 'Scrape'}
+          </MenuItem>
+        </DropdownMenu>
       </div>
 
       {scrapeMutation.isError && (
@@ -964,6 +949,75 @@ function ActionButton({
           : active
             ? 'border-accent-primary text-accent-primary'
             : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DropdownMenu({
+  label,
+  open,
+  onToggle,
+  children,
+}: {
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative" data-dropdown>
+      <button
+        onClick={onToggle}
+        className={`px-3 py-1.5 text-xs border rounded transition-colors flex items-center gap-1 ${
+          open
+            ? 'border-accent-primary text-accent-primary'
+            : 'border-border text-text-secondary hover:text-text-primary hover:border-accent-primary'
+        }`}
+      >
+        {label}
+        <svg
+          className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1 w-48 bg-bg-elevated border border-border rounded shadow-lg z-10 py-1">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({
+  children,
+  onClick,
+  active,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  active?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`block w-full text-left px-3 py-2 text-xs transition-colors ${
+        disabled
+          ? 'text-text-tertiary cursor-not-allowed opacity-60'
+          : active
+            ? 'text-accent-primary bg-bg-secondary'
+            : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
       }`}
     >
       {children}

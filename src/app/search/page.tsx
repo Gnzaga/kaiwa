@@ -104,9 +104,13 @@ function SearchPageContent() {
   params.set('page', String(searchPage));
   params.set('sort', searchSort);
 
-  const { data, isLoading } = useQuery<SearchResponse>({
+  const { data, isLoading, error } = useQuery<SearchResponse>({
     queryKey: ['search', filters, searchPage, searchSort],
-    queryFn: () => fetch(`/api/articles/search?${params}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/articles/search?${params}`);
+      if (!r.ok) throw new Error(`Search failed (${r.status})`);
+      return r.json();
+    },
     enabled: hasQuery,
   });
 
@@ -216,6 +220,12 @@ function SearchPageContent() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-24 bg-bg-secondary border border-border rounded animate-pulse" />
           ))}
+        </div>
+      )}
+
+      {hasQuery && error && (
+        <div className="text-center py-12 text-accent-highlight text-sm">
+          Search failed. Please try again.
         </div>
       )}
 
