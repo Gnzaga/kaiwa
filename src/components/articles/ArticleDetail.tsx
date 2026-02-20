@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Article } from '@/db/schema';
 import Tag from '@/components/ui/Tag';
@@ -11,9 +12,17 @@ import { useToast } from '@/components/ui/Toast';
 import { trackArticleView } from '@/components/ui/CommandPalette';
 
 interface ArticleDetailResponse {
-  article: Article & { sourceName?: string; imageUrl?: string | null; note?: string | null };
+  article: Article & { sourceName?: string; imageUrl?: string | null; note?: string | null; commentCount?: number };
   related: (Article & { sourceName?: string })[];
   fromSameSource: { id: number; originalTitle: string; translatedTitle: string | null; originalUrl: string; publishedAt: string; summaryTldr: string | null; sourceName: string | null }[];
+}
+
+interface CommentData {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  user: { id: string; name: string | null; image: string | null };
 }
 
 interface ReadingList {
@@ -28,6 +37,7 @@ const FONT_CLASS: Record<FontSize, string> = { sm: 'text-sm', base: 'text-base',
 
 export default function ArticleDetail({ id }: { id: number }) {
   const { toast } = useToast();
+  const { data: sessionData } = useSession();
   const [showOriginal, setShowOriginal] = useState(false);
   const [showTranslated, setShowTranslated] = useState(false);
   const [showListMenu, setShowListMenu] = useState(false);
@@ -75,6 +85,62 @@ export default function ArticleDetail({ id }: { id: number }) {
     queryKey: ['reading-lists'],
     queryFn: () => fetch('/api/reading-lists').then(r => r.json()),
     enabled: showListMenu,
+  });
+
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+
+  const { data: commentsData, isLoading: commentsLoading } = useQuery<{ comments: CommentData[] }>({
+    queryKey: ['comments', id],
+    queryFn: () => fetch(`/api/articles/${id}/comments`).then(r => r.json()),
+    enabled: commentsOpen,
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: (content: string) =>
+      fetch(`/api/articles/${id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      }).then(r => { if (!r.ok) throw new Error('Failed to post comment'); return r.json(); }),
+    onSuccess: () => {
+      setCommentText('');
+      queryClient.invalidateQueries({ queryKey: ['comments', id] });
+      queryClient.invalidateQueries({ queryKey: ['article', id] });
+    },
+    onError: () => toast('Failed to post comment', 'error'),
+  });
+
+  const editCommentMutation = useMutation({
+    mutationFn: ({ commentId, content }: { commentId: number; content: string }) =>
+      fetch(`/api/articles/${id}/comments`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId, content }),
+      }).then(r => { if (!r.ok) throw new Error('Failed to edit comment'); return r.json(); }),
+    onSuccess: () => {
+      setEditingCommentId(null);
+      setEditingCommentText('');
+      queryClient.invalidateQueries({ queryKey: ['comments', id] });
+    },
+    onError: () => toast('Failed to edit comment', 'error'),
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: number) =>
+      fetch(`/api/articles/${id}/comments`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId }),
+      }).then(r => { if (!r.ok) throw new Error('Failed to delete comment'); return r.json(); }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', id] });
+      queryClient.invalidateQueries({ queryKey: ['article', id] });
+      toast('Comment deleted');
+    },
+    onError: () => toast('Failed to delete comment', 'error'),
   });
 
   const actionMutation = useMutation({
@@ -366,6 +432,7 @@ export default function ArticleDetail({ id }: { id: number }) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'f') setFocusMode(m => !m);
       if (e.key === 'n') setNoteOpen(m => !m);
+      if (e.key === 'm') setCommentsOpen(m => !m);
       if (e.key === 'p') window.print();
       if (e.key === 't') { copyThread(); toast('Thread copied'); }
       if (e.key === '?') setShowShortcuts(m => !m);
@@ -464,6 +531,7 @@ export default function ArticleDetail({ id }: { id: number }) {
               ['a', 'Toggle archive'],
               ['f', 'Focus mode'],
               ['n', 'Toggle note panel'],
+              ['m', 'Toggle comments'],
               ['p', 'Print article'],
               ['t', 'Copy as thread'],
               ['o', 'Open original'],
@@ -767,6 +835,113 @@ export default function ArticleDetail({ id }: { id: number }) {
         )}
       </div>
 
+      {/* Comments */}
+      <div className="border border-border rounded overflow-hidden">
+        <button
+          onClick={() => setCommentsOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-text-tertiary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <span>Comments</span>
+            {(article.commentCount ?? 0) > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-bg-elevated text-[10px] font-medium text-text-secondary">
+                {article.commentCount}
+              </span>
+            )}
+          </span>
+          <span>{commentsOpen ? '▲' : '▼'}</span>
+        </button>
+        {commentsOpen && (
+          <div className="border-t border-border p-3 space-y-3">
+            {commentsLoading ? (
+              <div className="text-xs text-text-tertiary py-2">Loading comments...</div>
+            ) : commentsData?.comments && commentsData.comments.length > 0 ? (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {commentsData.comments.map((comment) => {
+                  const isEdited = new Date(comment.updatedAt).getTime() - new Date(comment.createdAt).getTime() > 1000;
+                  const isEditing = editingCommentId === comment.id;
+                  return (
+                    <div key={comment.id} className="flex gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-bg-elevated border border-border flex items-center justify-center shrink-0 overflow-hidden">
+                        {comment.user.image ? (
+                          <img src={comment.user.image} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] font-medium text-text-tertiary">
+                            {(comment.user.name || '?')[0].toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 text-[11px]">
+                          <span className="font-medium text-text-primary">{comment.user.name || 'Anonymous'}</span>
+                          <span className="text-text-tertiary">{formatRelativeTime(comment.createdAt)}</span>
+                          {isEdited && <span className="text-text-tertiary">(edited)</span>}
+                        </div>
+                        {isEditing ? (
+                          <div className="mt-1.5 space-y-1.5">
+                            <textarea
+                              value={editingCommentText}
+                              onChange={(e) => setEditingCommentText(e.target.value)}
+                              rows={2}
+                              maxLength={2000}
+                              className="w-full bg-bg-primary border border-border rounded px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary resize-none"
+                            />
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => editCommentMutation.mutate({ commentId: comment.id, content: editingCommentText })}
+                                disabled={!editingCommentText.trim() || editCommentMutation.isPending}
+                                className="px-2.5 py-1 text-[11px] bg-accent-primary text-white rounded hover:opacity-90 transition-opacity disabled:opacity-50"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }}
+                                className="px-2.5 py-1 text-[11px] text-text-tertiary hover:text-text-primary transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-text-secondary mt-0.5 whitespace-pre-wrap break-words">{comment.content}</p>
+                        )}
+                        {!isEditing && (
+                          <CommentActions
+                            comment={comment}
+                            currentUserId={sessionData?.user?.id}
+                            onEdit={() => { setEditingCommentId(comment.id); setEditingCommentText(comment.content); }}
+                            onDelete={() => deleteCommentMutation.mutate(comment.id)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-text-tertiary py-1">No comments yet. Be the first to share your thoughts.</p>
+            )}
+            <div className="flex gap-2 pt-1">
+              <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Add a comment..."
+                rows={2}
+                maxLength={2000}
+                className="flex-1 bg-bg-primary border border-border rounded px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary resize-none"
+              />
+              <button
+                onClick={() => addCommentMutation.mutate(commentText)}
+                disabled={!commentText.trim() || addCommentMutation.isPending}
+                className="self-end px-3 py-2 text-xs bg-accent-primary text-white rounded hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                {addCommentMutation.isPending ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <hr className="divider-line border-0" />
 
       {/* AI Summary */}
@@ -1042,4 +1217,44 @@ function MenuItem({
       {children}
     </button>
   );
+}
+
+function CommentActions({
+  comment,
+  currentUserId,
+  onEdit,
+  onDelete,
+}: {
+  comment: CommentData;
+  currentUserId?: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const isOwn = currentUserId === comment.user.id;
+  if (!isOwn) return null;
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <button onClick={onEdit} className="text-[10px] text-text-tertiary hover:text-text-primary transition-colors" title="Edit">
+        Edit
+      </button>
+      <button onClick={onDelete} className="text-[10px] text-text-tertiary hover:text-accent-highlight transition-colors" title="Delete">
+        Delete
+      </button>
+    </div>
+  );
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }

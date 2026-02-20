@@ -165,6 +165,20 @@ export const userArticleStates = pgTable('user_article_states', {
   index('idx_uas_user_read').on(table.userId, table.isRead),
 ]);
 
+// ─── Comments ───────────────────────────────────────────────────────
+
+export const comments = pgTable('comments', {
+  id: serial('id').primaryKey(),
+  articleId: integer('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index('idx_comments_article').on(table.articleId),
+  index('idx_comments_user').on(table.userId),
+]);
+
 // ─── Reading lists / collections ────────────────────────────────────
 
 export const readingLists = pgTable('reading_lists', {
@@ -211,6 +225,25 @@ export const userMutedSources = pgTable('user_muted_sources', {
   primaryKey({ columns: [table.userId, table.feedId] }),
 ]);
 
+// ─── Research tasks ─────────────────────────────────────────────────
+
+export const researchTasks = pgTable('research_tasks', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id),
+  query: text('query').notNull(),
+  filters: jsonb('filters'),
+  status: text('status', { enum: ['running', 'complete', 'error'] }).default('running').notNull(),
+  report: jsonb('report'),
+  articles: jsonb('articles'),
+  searchLog: jsonb('search_log'),
+  events: jsonb('events'),
+  error: text('error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, (table) => [
+  index('idx_research_tasks_user').on(table.userId, table.createdAt),
+]);
+
 // ─── Relations ──────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -218,6 +251,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   sessions: many(sessions),
   userArticleStates: many(userArticleStates),
   readingLists: many(readingLists),
+  comments: many(comments),
   preferences: one(userPreferences, {
     fields: [users.id],
     references: [userPreferences.userId],
@@ -273,6 +307,7 @@ export const articlesRelations = relations(articles, ({ one, many }) => ({
     references: [feeds.id],
   }),
   userStates: many(userArticleStates),
+  comments: many(comments),
 }));
 
 export const userArticleStatesRelations = relations(userArticleStates, ({ one }) => ({
@@ -284,6 +319,11 @@ export const userArticleStatesRelations = relations(userArticleStates, ({ one })
     fields: [userArticleStates.articleId],
     references: [articles.id],
   }),
+}));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  article: one(articles, { fields: [comments.articleId], references: [articles.id] }),
+  user: one(users, { fields: [comments.userId], references: [users.id] }),
 }));
 
 export const readingListsRelations = relations(readingLists, ({ one, many }) => ({
@@ -316,6 +356,13 @@ export const userPreferencesRelations = relations(userPreferences, ({ one }) => 
   }),
 }));
 
+export const researchTasksRelations = relations(researchTasks, ({ one }) => ({
+  user: one(users, {
+    fields: [researchTasks.userId],
+    references: [users.id],
+  }),
+}));
+
 // ─── Types ──────────────────────────────────────────────────────────
 
 export type User = typeof users.$inferSelect;
@@ -331,3 +378,5 @@ export type UserArticleState = typeof userArticleStates.$inferSelect;
 export type ReadingList = typeof readingLists.$inferSelect;
 export type ReadingListItem = typeof readingListItems.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
+export type ResearchTask = typeof researchTasks.$inferSelect;

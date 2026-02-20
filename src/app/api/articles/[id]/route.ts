@@ -44,6 +44,13 @@ export async function GET(
 
     const row = rows[0];
     const rawImageUrl = row.article.imageUrl;
+
+    // Comment count subquery
+    const [{ count: commentCount }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.comments)
+      .where(eq(schema.comments.articleId, articleId));
+
     const article = {
       ...row.article,
       imageUrl: rawImageUrl
@@ -55,6 +62,7 @@ export async function GET(
       isStarred: row.isStarred,
       isArchived: row.isArchived,
       note: row.note ?? null,
+      commentCount,
     };
 
     // Find related articles by embedding cosine similarity, fallback to tag overlap
