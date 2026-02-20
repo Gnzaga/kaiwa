@@ -4,8 +4,10 @@ resources:
   - deployment-web.yaml
   - deployment-worker.yaml
   - deployment-embedder.yaml
+  - deployment-researcher.yaml
   - service.yaml
   - service-embedder.yaml
+  - service-researcher.yaml
   - ingress.yaml
   - ingress-auth-bypass.yaml
   - external-secret.yaml

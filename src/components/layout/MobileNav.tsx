@@ -31,6 +31,7 @@ export default function MobileNav() {
   const isHome = pathname === '/';
   const isRegion = pathname.startsWith('/region/');
   const isSearch = pathname.startsWith('/search');
+  const isResearch = pathname.startsWith('/research');
   const isLists = pathname.startsWith('/lists');
   const isSettings = pathname.startsWith('/settings');
 
@@ -115,6 +116,16 @@ export default function MobileNav() {
         </Link>
 
         <Link
+          href="/research"
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
+            isResearch ? 'text-accent-primary' : 'text-text-tertiary'
+          }`}
+        >
+          <ResearchIcon className="w-5 h-5" />
+          <span className="text-[10px]">Research</span>
+        </Link>
+
+        <Link
           href="/settings"
           className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded transition-colors ${
             isSettings ? 'text-accent-primary' : 'text-text-tertiary'
@@ -156,6 +167,14 @@ function SearchIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+  );
+}
+
+function ResearchIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.935A1.068 1.068 0 0120.168 22H3.832a1.068 1.068 0 01-1.034-1.335L4.2 14.88" />
     </svg>
   );
 }

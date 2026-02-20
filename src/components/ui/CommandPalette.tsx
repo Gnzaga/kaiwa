@@ -54,6 +54,7 @@ const NAV_PAGES = [
   { label: 'Feeds', href: '/feeds', hint: 'Feed management' },
   { label: 'Stats', href: '/stats', hint: 'Reading statistics' },
   { label: 'Search', href: '/search', hint: 'Full text search' },
+  { label: 'Research', href: '/research', hint: 'AI-powered research agent' },
   { label: 'Settings', href: '/settings', hint: 'Preferences' },
   { label: 'Admin', href: '/admin', hint: 'Administration' },
 ];

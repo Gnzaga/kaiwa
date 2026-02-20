@@ -8,3 +8,5 @@ images:
     newTag: latest
   - name: harbor.gnzaga.com/apps/kaiwa-embedder
     newTag: latest
+  - name: harbor.gnzaga.com/apps/kaiwa-researcher
+    newTag: latest

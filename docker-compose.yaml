@@ -26,5 +26,27 @@ services:
       retries: 3
       start_period: 30s
 
+  researcher:
+    build: ./researcher
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: postgresql://kaiwa:kaiwa@db:5432/kaiwa
+      EMBEDDER_URL: http://embedder:8000
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      RESEARCH_MODEL: ${RESEARCH_MODEL:-deepseek/deepseek-v3.2}
+      RESEARCH_MAX_ITERATIONS: ${RESEARCH_MAX_ITERATIONS:-8}
+    depends_on:
+      db:
+        condition: service_healthy
+      embedder:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   pgdata:

@@ -92,6 +92,11 @@ export const config = {
     url: env('EMBEDDER_URL', 'http://localhost:8000'),
   },
 
+  // Researcher
+  researcher: {
+    url: env('RESEARCHER_URL', 'http://localhost:8001'),
+  },
+
   // Worker
   worker: {
     pollIntervalMinutes: parseInt(env('POLL_INTERVAL_MINUTES', '15'), 10),
